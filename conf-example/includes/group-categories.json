@@ -1,0 +1,10 @@
+{
+    "ansible-operators": {
+        "ansible-full": ["staff1"],
+        "ansible-restricted": ["staff2"]
+    },
+    "dev-groups": {
+        "www-data": ["dev1", "dev2"],
+        "upload": ["dev2"]
+    }
+}

@@ -1,0 +1,37 @@
+{
+    "staff-user-category": [
+        {
+            "name": "staff1",
+            "key": "staff1.pub",
+            "state": "present"
+        },
+        {
+            "name": "staff2",
+            "key": "staff2.pub",
+            "state": "absent"
+        }
+    ],
+    "app-services-user-category":[
+        {
+            "name": "www-data",
+            "state": "present"
+        },
+        {
+            "name": "postgres",
+            "state": "present"
+        }
+    ],
+    "devs-user-category":[
+        {
+            "name": "dev1",
+            "key": "staff1.pub",
+            "state": "present"
+        },
+        {
+            "name": "dev2",
+            "key": "staff2.pub",
+            "state": "absent"
+        }
+    ]
+            
+}

@@ -1,0 +1,119 @@
+[
+    {
+        "name": "www.example.com",
+        "users": [
+            {
+                "name": "user1",
+                "authorized_keys": ["user1"]
+            },
+            {
+                "name": "user2",
+                "authorized_keys": ["user1"]
+            }
+        ],
+        "groups": [
+            {
+                "name": "group1",
+                "members": [
+                    "user1"
+                ]
+            },
+            {
+                "name": "group2",
+                "members": [
+                    "user2"
+                ]
+            },
+            {
+                "name": "group3",
+                "members": [
+                    "user1",
+                    "user2"
+                ]
+            }
+
+        ],
+        "include-ssh":"strict",
+        "sudoers": [
+            {
+                "group": "group3",
+                "su-users": "all",
+                "su-groups": "all",
+                "commands": "all",
+                "nopasswd": "true"
+            },
+            {
+                "group": "group1",
+                "su-users": "www-data",
+                "su-groups": "www-data",
+                "commands": "chmod",
+                "nopasswd": "true"
+            }
+        ]
+    },
+    {
+        "name": "www.test.com",
+        "users": [
+            {
+                "name": "user2",
+                "authorized_keys": ["user1"]
+            }
+        ],
+        "groups": [
+            {
+                "name": "group2",
+                "members": [
+                    "user2"
+                ]
+            },
+            {
+                "name": "group3",
+                "members": [
+                    "user2"
+                ]
+            }
+
+        ],
+        "include-sudoer-entries": [
+            "ansible-user",
+            "operator"
+        ],
+        "include-ssh": "strict"
+    },
+    {
+        "name": "www.abc.co.za",
+        "users": [
+            {
+                "name": "user1",
+                "authorized_keys": ["user1", "user3"]
+            },
+            {
+                "name": "user2",
+                "authorized_keys": ["user1"]
+            }
+        ],
+        "groups": [
+            {
+                "name": "group3",
+                "members": [
+                    "user2"
+                ]
+            }
+
+        ],
+        "sudoers": [
+            {
+                "group": "group3",
+                "su-users": "all",
+                "su-groups": "all",
+                "commands": "all",
+                "nopasswd": "true"
+            }
+        ],
+        "include-sudoer-entries": [
+            "ansible-user",
+            "operator"
+        ],
+        "include-ssh": "strict-with-root"
+    }
+]

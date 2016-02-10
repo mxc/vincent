@@ -1,0 +1,17 @@
+{
+    "strict": {
+        "permit-root": "no",
+        "valid-users-only": "true",
+        "password-authentication": "no"
+    },
+    "strict-with-root": {
+        "permit-root": "without-password",
+        "valid-users-only": "true",
+        "password-authentication": "no"
+    },
+    "loose": {
+        "permit-root": "yes",
+        "valid-users-only": "false",
+        "password-authentication": "yes"
+    }
+}

@@ -1,0 +1,22 @@
+[
+    {
+        "name": "user1",
+        "key": "user1.pub",
+        "state": "present"
+    },
+    {
+        "name": "user2",
+        "key": "",
+        "state": "absent"
+    },
+    {
+        "name": "user3",
+        "key": "user3.pub",
+        "uid": "1000",
+        "state": "present"
+    },
+    {
+        "name": "user4",
+        "state": "absent"
+    }
+]

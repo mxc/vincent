@@ -233,10 +233,12 @@ var App = function () {
         value: function load() {
             this.groups = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'groups.js'));
             this.users = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'users.js'));
-            this.hosts = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'hosts.js'));
-            this.ssh = JSON.parse(_fs2.default.readFileSync(this.config.confdir + "ssh.js"));
-            this.sudo = JSON.parse(_fs2.default.readFileSync(this.config.confdir + "sudo.js"));
-            this.templates = JSON.parse(_fs2.default.readFileSync(this.config.confdir + "templates.js"));
+            this.hosts_includes = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'hosts.js'));
+            //includes
+            this.ssh_includes = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'includes/ssh-configs.js'));
+            this.sudo_includes = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'includes/sudo-entries.js'));
+            this.users_includes = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'includes/user-categories.js'));
+            this.groups_includes = JSON.parse(_fs2.default.readFileSync(this.config.confdir + 'includes/groups-categories.js'));
         }
     }, {
         key: 'init',

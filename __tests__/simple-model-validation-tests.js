@@ -1,6 +1,6 @@
 'use strict';
 
-jest.dontMock('../src/App');
+jest.dontMock('../src/modules/base');
 
 var groups = [
     {name: 'group1'},
@@ -103,11 +103,11 @@ var hosts = [
         users: [
             {
                 name: "user1",
-                authorized_keys: ["user1", "user3"]
+                authorized_keys: ["user1", "user3","waldo","user4"]
             },
             {
                 name: "user2",
-                authorized_keys: ["user1", "waldo", "user4"]
+                authorized_keys: ["user1", "user4"]
             }
         ],
         groups: [
@@ -128,22 +128,22 @@ var hosts = [
         ]
     }
 ];
-var App = require('../src/App').default;
+var Base = require('../src/modules/base').default;
 
 describe("validating group configuration", function () {
-    var app = new App(groups, users, hosts);
-    var parsedGroups = app.validateGroups();
+    var base = new Base(users,groups,hosts);
+    var parsedGroups = base.validateGroups();
 
     it("should detect duplicate group names", function () {
-        expect(app.errors.indexOf("Group group2 has already been defined.")).not.toBe(-1);
+        expect(base.errors.indexOf("Group group2 has already been defined.")).not.toBe(-1);
     });
 
     it("should detect duplicate gids", function () {
-        expect(app.errors.indexOf("Gid 1000 for group4 has already been assigned.")).not.toBe(-1);
+        expect(base.errors.indexOf("Gid 1000 for group4 has already been assigned.")).not.toBe(-1);
     });
 
     it("should detect groups with missing name property", function () {
-        expect(app.errors.indexOf("Group with index 5 is missing a name property.")).not.toBe(-1);
+        expect(base.errors.indexOf("Group with index 5 is missing a name property.")).not.toBe(-1);
     })
 
     it("should return an array of valid groups", function () {
@@ -158,14 +158,14 @@ describe("validating group configuration", function () {
 });
 
 describe("validating user configuration", function () {
-    var app = new App(groups, users, hosts);
-    var parsedUsers = app.validateUsers();
+    var base = new Base(users,groups,hosts);
+    var parsedUsers = base.validateUsers();
     it("should detect duplicate user names", function () {
-        expect(app.errors.indexOf("User user2 has already been defined.")).not.toBe(-1);
+        expect(base.errors.indexOf("User user2 has already been defined.")).not.toBe(-1);
     });
 
     it("should detect duplicate uids", function () {
-        expect(app.errors.indexOf("Uid 1000 from user6 has already been assigned.")).not.toBe(-1);
+        expect(base.errors.indexOf("Uid 1000 from user6 has already been assigned.")).not.toBe(-1);
     });
 
     it("should return an array of valid users", function () {
@@ -194,31 +194,31 @@ describe("validating host configuration", function () {
         {name: 'group3', gid: 1000}
     ];
 
-    var app = new App(groups, users, hosts);
-    var parsedHosts = app.validateHosts(validUsers, validGroups);
+    var base = new Base(users,groups,hosts);
+    var parsedHosts = base.validateHosts(validUsers, validGroups);
 
     it("should detect hosts without a name property", function () {
-        expect(app.errors.indexOf("Host with index 1 is missing a name property.")).not.toBe(-1);
+        expect(base.errors.indexOf("Host with index 1 is missing a name property.")).not.toBe(-1);
     });
 
     it("should detect undefined users", function () {
-        expect(app.errors.indexOf("User waldo for www.test.com is not defined in the user config file.")).not.toBe(-1);
+        expect(base.errors.indexOf("User waldo for www.test.com is not defined in the user config file.")).not.toBe(-1);
     });
 
     it("should detect group members that are undefined for host", function () {
-        expect(app.errors.indexOf("The member waldo of group group3 for host www.test.com has not been defined.")).not.toBe(-1);
+        expect(base.errors.indexOf("The member waldo of group group3 for host www.test.com has not been defined.")).not.toBe(-1);
     });
 
     it("should detect undefined groups", function () {
-        expect(app.errors.indexOf("The group group10 for host www.abc.co.za has not been defined.")).not.toBe(-1);
+        expect(base.errors.indexOf("The group group10 for host www.abc.co.za has not been defined.")).not.toBe(-1);
     });
 
     it("should detect undefined user in users authorized_keys list", function () {
-        expect(app.errors.indexOf("The authorized user waldo for user2 for www.abc.co.za has not been defined.")).not.toBe(-1);
+        expect(base.errors.indexOf("The authorized user waldo for user1 for www.abc.co.za has not been defined.")).not.toBe(-1);
     });
 
     it("should detect defined user with missing key in user's authorized_keys list", function () {
-        expect(app.errors.indexOf("The authorized user user4 for user2 for www.abc.co.za does not have a key defined.")).not.toBe(-1);
+        expect(base.errors.indexOf("The authorized user user4 for user1 for www.abc.co.za does not have a key defined.")).not.toBe(-1);
     });
 
     it("should return an array of valid hosts", function () {
@@ -228,11 +228,12 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         name: "user1",
+                        state: "present",
                         authorized_keys: ["user1"]
                     },
                     {
                         name: "user2",
-                        authorized_keys: ["user1"]
+                        state: "absent",
                     }
                 ],
                 groups: [
@@ -244,18 +245,12 @@ describe("validating host configuration", function () {
                     },
                     {
                         name: "group2",
-                        members: [
-                            "user2"
-                        ]
+                        members: []
                     },
                     {
                         name: "group3",
-                        members: [
-                            "user1",
-                            "user2"
-                        ]
+                        members: ["user1"]
                     }
-
                 ]
             },
             {
@@ -263,21 +258,17 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         name: "user2",
-                        authorized_keys: ["user1"]
+                        state:"absent",
                     }
                 ],
                 groups: [
                     {
                         name: "group2",
-                        members: [
-                            "user2"
-                        ]
+                        members: []
                     },
                     {
                         name: "group3",
-                        members: [
-                            "user2"
-                        ]
+                        members: []
                     }
 
                 ]
@@ -287,19 +278,18 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         name: "user1",
+                        state: "present",
                         authorized_keys: ["user1", "user3"]
                     },
                     {
                         name: "user2",
-                        authorized_keys: ["user1"]
+                        state: "absent",
                     }
                 ],
                 groups: [
                     {
                         name: "group3",
-                        members: [
-                            "user2"
-                        ]
+                        members: []
                     }
 
                 ]

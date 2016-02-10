@@ -6,13 +6,13 @@ var babel = require('gulp-babel');
 var rename = require('gulp-rename');
 
 gulp.task('default', ['js'], function () {
-   return gulp.src('build/*.js')
-           .pipe(concat('makeaplay.js'))
+   return gulp.src('build/**/*.js')
+           .pipe(concat('app.js'))
            .pipe(gulp.dest('dist'));    
 });
 
 gulp.task('js', function () {
-    return gulp.src('src/*.js')
+    return gulp.src('src/app.js')
             .pipe(babel({
                 "presets": ['es2015', 'stage-1']
             }))
