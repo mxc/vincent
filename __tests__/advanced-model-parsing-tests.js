@@ -174,7 +174,7 @@ describe("validating user categories include", function () {
                     name: "group2",
                     members: ["user2"]
                 }
-            ],
+            ]
         }
     ];
 
@@ -250,7 +250,12 @@ describe("validating group categories include", function () {
     var validGroups = [
         {name: "group1", gid: 1000},
         {name: "group2", gid: 2000},
-        {name: "group3"}
+        {name: "group3"},
+        {name: "group3"},
+        {name: "group4"},
+        {name: "group5"},
+        {name: "group6"},
+        {name: "group7"}
     ];
 
     var userCategories = {
@@ -265,13 +270,13 @@ describe("validating group categories include", function () {
     };
 
     var groupCategories = {
-        groupCat1: [
+        groupcat1: [
             {name: "group4", members: ["user1"]},
             {name: "group5", members: ["user2", "user1"]}
         ],
-        groupCat2: [
+        groupcat2: [
             {name: "group6", members: ["user"]},
-            {name: "group7", memebers: ["cat1"]}
+            {name: "group7", members: ["cat1"]}
         ]
     };
 
@@ -284,9 +289,7 @@ describe("validating group categories include", function () {
                     authorized_keys: ["user1", "user2"]
                 }
             ],
-            
-            include_user_categories: [ "cat1", "cat2"],
-            
+            include_user_categories: ["cat1", "cat2"],
             groups: [
                 {
                     name: "group1",
@@ -297,14 +300,13 @@ describe("validating group categories include", function () {
                     members: ["user2"]
                 }
             ],
-            
-            include_group_categories: ["groupcat1","groupcat2"]
+            include_group_categories: ["groupcat1", "groupcat2"]
         }
     ];
 
     var base = new Base(validUsers, validGroups, hosts);
-    base.setGroupCategories(groupCategories);
     base.setUserCategories(userCategories);
+    base.setGroupCategories(groupCategories);
     base.parsedUsers = validUsers;
     var parsedHosts = base.validateHosts(validUsers, validGroups);
 
@@ -339,6 +341,173 @@ describe("validating group categories include", function () {
                     {
                         name: "group2",
                         members: ["user2"]
+                    },
+                    {
+                        name: "group4",
+                        members: ["user1"]
+                    },
+                    {
+                        name: "group5",
+                        members: ["user2", "user1"]
+                    },
+                    {
+                        name: "group6",
+                        members: ["user"]
+                    },
+                    {
+                        name: "group7",
+                        members: ["user1"]
+                    }
+                ]
+            }
+        ];
+        expect(parsedHosts).toEqual(validHosts);
+    });
+});
+
+
+describe("validating group categories include with duplicated groups", function () {
+
+    var validUsers = [
+        {
+            name: "user1",
+            key: "user1.pub",
+            uid: 1100,
+            state: "present"
+        },
+        {
+            name: "user2",
+            key: "user2.pub",
+            uid: 1200,
+            state: "present"
+        },
+        {
+            name: "user3",
+            state: "absent"
+        },
+        {
+            name: "userA",
+            state: "present"
+        },
+        {
+            name: "user",
+            state: "present"
+        }
+    ];
+
+    var validGroups = [
+        {name: "group1", gid: 1000},
+        {name: "group2", gid: 2000},
+        {name: "group3"},
+        {name: "group4"},
+        {name: "group5"},
+        {name: "group6"},
+        {name: "group7"}
+    ];
+
+    var userCategories = {
+        cat1: [
+            {name: "user1", authorized_keys: ["user1"]},
+            {name: "user2", authorized_keys: ["user2", "user1"]}
+        ],
+        cat2: [
+            {name: "user3", authorized_keys: ["user2", "user3"]},
+            {name: "user1"}
+        ]
+    };
+
+    var groupCategories = {
+        groupcat1: [
+            {name: "group4", members: ["user1"]},
+            {name: "group5", members: ["user2", "user1"]}
+        ],
+        groupcat2: [
+            {name: "group6", members: ["user"]},
+            {name: "group7", members: ["cat1"]}
+        ]
+    };
+
+    var hosts = [
+        {
+            name: "web01.example.co.za",
+            users: [
+                {
+                    name: "userA",
+                    authorized_keys: ["user1", "user2"]
+                }
+            ],
+            include_user_categories: ["cat1", "cat2"],
+            groups: [
+                {
+                    name: "group1",
+                    members: ["user1", "user2", "user3"]
+                },
+                {
+                    name: "group2",
+                    members: ["user2"]
+                },
+                {
+                    name: "group4",
+                    members: ["user3"]
+                }
+            ],
+            include_group_categories: ["groupcat1", "groupcat2"]
+        }
+    ];
+
+    var base = new Base(validUsers, validGroups, hosts);
+    base.setUserCategories(userCategories);
+    base.setGroupCategories(groupCategories);
+    base.parsedUsers = validUsers;
+    var parsedHosts = base.validateHosts(validUsers, validGroups);
+
+    it("should return an collection of valid hosts including deduplicated group categories", function () {
+        var validHosts = [
+            {
+                name: "web01.example.co.za",
+                users: [
+                    {
+                        name: "userA",
+                        authorized_keys: ["user1", "user2"],
+                        state: "present"
+                    },
+                    {
+                        name: "user1",
+                        state: "present",
+                        authorized_keys: ["user1"]
+                    }, {
+                        name: "user2",
+                        state: "present",
+                        authorized_keys: ["user2", "user1"]
+                    }, {
+                        name: "user3",
+                        state: "absent"
+                    }
+                ],
+                groups: [
+                    {
+                        name: "group1",
+                        members: ["user1", "user2"]
+                    },
+                    {
+                        name: "group2",
+                        members: ["user2"]
+                    },
+                    {
+                        name: "group4",
+                        members: ["user1", "user3"]
+                    },
+                    {
+                        name: "group5",
+                        members: ["user2", "user1"]
+                    },
+                    {
+                        name: "group6",
+                        members: ["user"]
+                    },
+                    {
+                        name: "group7",
+                        members: ["user1", "user2"]
                     }
                 ]
             }

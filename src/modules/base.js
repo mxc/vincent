@@ -32,28 +32,31 @@ class Base {
     setGroupCategories(groupCategories){
         //we need to lookup user categories in group categories so there is
         //a loading dependency order.
-        if (!userCategories){
-            throw new Excpetion("user categories must be set before loading group categories");
+        if (!this.userCategories){
+            throw new Error("user categories must be set before loading group categories");
         }
         
         if (!groupCategories){
             groupCategories = JSON.parse(fs.readFileSync(this.config.confdir+'includes/group-categories.js'));
         }
+        
         //parse category groups to update for members which reference a user category.
-        groupCategories.forEach((categoryGroup) =>{
-            var parsedCategoryMembers=[];
-            categoryGroup.members.forEach((member,index) =>{
+        for (var groupCategory in groupCategories){
+            groupCategories[groupCategory].forEach((group)=>{
+              var parsedGroupMembers=[];
+              group.members.forEach((member)=>{
                 if (this.userCategories[member]){
-                     var usernames = this.userCategories[member].map((user) ={
-                         return user.name;
+                     var usernames = this.userCategories[member].map((user)=>{
+                            return user.name;
                      });
-                     parsedCategoryMembers.concat(usernames);
+                     parsedGroupMembers = parsedGroupMembers.concat(usernames);
                 }else{
-                    parsedCategoryMembers.push(member)
+                    parsedGroupMembers.push(member)
                 }
-            });
-            categoryGroup.members = parseCategoryMembers;
+           });
+            group.members = parsedGroupMembers;
         });
+        }
         this.groupCategories=groupCategories;
     }
     
@@ -103,7 +106,6 @@ class Base {
     }
 
     validateUsers(){
-
         var usernames = new Set();
         var uids = new Set();
         return this.users.filter((elm, index, array) => {
@@ -142,6 +144,7 @@ class Base {
                     Object.assign(clonedHost, host);
                     clonedHosts.push(clonedHost);
             });
+            
             //filter and clean up cloned hosts 
             return clonedHosts.filter((host, hindex, harray) => {
             //if the host is missing a name remove from results.
@@ -159,13 +162,13 @@ class Base {
             if (host.include_user_categories){
                host.include_user_categories.forEach((userCategory) =>{ 
                     var categoryUsers = this.userCategories[userCategory];
-                    catUsers.forEach((user)=>{
+                    categoryUsers.forEach((user)=>{
                         host.users.push(user);
                     });
                 });
                 delete host["include_user_categories"];
             }
-
+            
             //user validation
             var processedUsers = [];
             host.users = host.users.filter((user, uindex, uarray) => {
@@ -175,7 +178,6 @@ class Base {
                         this.errors.push(`User ${user.name} for ${host.name} is not defined in the user config file.`);
                         return false;
                 }
-                
                 //to do merge duplicate users?
                 //check for duplicate users - usually the result of an include_user_categories entry
                 if (processedUsers.indexOf(user.name)!=-1){
@@ -183,7 +185,7 @@ class Base {
                 }else{
                     processedUsers.push(user.name);
                 }
-                                
+                    
                 //set the user state from global user settings. Global state wins over local
                 //state unless local state is "absent"
                 if (!user.state ||  user.state ==="present"){
@@ -219,21 +221,26 @@ class Base {
             if (host.include_group_categories){
                host.include_group_categories.forEach((groupcategory) =>{ 
                     var categoryGroups = this.groupCategories[groupcategory];
-                    categoryGroups.forEach((group)=>{
-                        host.groups.push(group);
+                    if (categoryGroups){
+                        categoryGroups.forEach((group)=>{
+                            host.groups.push(group);
                     });
+                    }else{
+                       this.errors.push(`The group category ${groupcategory}  for host ${host} is not defined`);
+                    }
                 });
                 delete host["include_group_categories"];
             }
 
             //group and group membership validation
+            var tmpParsedGroups =[]; //used to detect duplicate groups resulting from included group_categories
             host.groups = host.groups.filter((group, gindex, garray) => {
                 //has the group been defined
                 if (!this.findValidGroup(group.name, validGroups)){
                         this.errors.push(`The group ${group.name} for host ${host.name} has not been defined.`);
                         return false;
                 } else{
-                //have group members been defined
+                    //have group members been defined
                     group.members = group.members.filter((member, mindex, marray) => {
                         var foundValidUser = this.findValidUser(member,host.users);
                         if (!foundValidUser){
@@ -247,7 +254,22 @@ class Base {
                             return true;
                         }
                     });
-                    return true;
+                    //check if group has already been processed. i.e is this a
+                    //duplicate. If so add memebrs to existing group.
+                    if (tmpParsedGroups.find((sgroup,index)=>{
+                        if (sgroup.name==group.name){
+                            var tmpGroup = tmpParsedGroups[index];
+                            tmpGroup.members=tmpGroup.members.concat(group.members); 
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    })){
+                         return false;
+                    }else{
+                        tmpParsedGroups.push(group);
+                        return true;
+                    }
             }
         });
          return true;
