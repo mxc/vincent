@@ -1,0 +1,112 @@
+'use strict';
+
+import Provider from './Provider';
+import logger from './Logger';
+import User from './User';
+
+class HostUser {
+
+    constructor(provider,data) {
+        if (!provider || !provider instanceof Provider){
+            throw new Error("Parameter provider must be provided for HostGroup.")
+        }
+        this.data = { authorized_keys: []};
+        this.errors = [];
+        this.provider = provider;
+        if (data) {
+            if (typeof data === "object") {
+                //find the user from the list of parsed users for group and
+                //add user to this definition. If the user data has a state
+                //of absent it will override the state of the global user definition
+                //note: all the values of the global group are copied. Only state may change.
+                if (!data.user || !data.user.name) {
+                    logger.logAndThrow("The data object for HostUser must have a property \"user\" of type User.");
+                } else {
+                    var user = this.provider.users.findUserByName(data.user.name);
+                    if (user) {
+                        this.data.user = user.clone();
+                        if (data.user.state === "absent") {
+                                this.data.user.state = "absent";
+                        }
+                    } else {
+                        logger.logAndThrow(`The user ${data.user.name} does not exist in valid users.`);
+                    }
+                }
+                if (data.authorized_keys) {
+                    data.authorized_keys.forEach((username)=> {
+                        var user = this.provider.users.findUserByName(username);
+                        if (!user) {
+                            logger.logAndAddToErrors(
+                                `User with name ${username} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
+                        } else {
+                            try {
+                                this.addAuthorizedUser(user);
+                            } catch (e) {
+                                logger.logAndAddToErrors(`There was an error adding an authorised key to the user ${data.user.name}. ${e.message}`, this.errors);
+                            }
+                        }
+                    });
+                }
+            } else {
+                logger.logAndThrow("The data parameter ofr HostUser must be an data object or undefined.");
+            }
+        }
+    }
+
+    addAuthorizedUser(user) {
+        if (user instanceof User) {
+            var validUser = this.provider.users.findUser(user);
+            //if this is not a valid user or the user is valid
+            //but marked as globally absent then don't add keys
+            if (!validUser || validUser.state === "absent" || !validUser.key) {
+                logger.logAndThrow(`The user ${user.name} is not in validUsers, is absent or does not have an public key defined`);
+                return;
+            }
+            if (!this.provider.users.findUser(user, this.data.authorized_keys)) {
+                this.data.authorized_keys.push(user.clone());
+            } else {
+                logger.info(`User ${user.name} is already in host users authorized keys`);
+            }
+        } else {
+            logger.logAndThrow("The parameter user must be of type User");
+        }
+    }
+
+    merge(hostuser) {
+        if (hostuser instanceof HostUser) {
+            hostuser.authorized_keys.forEach((user)=> {
+                try {
+                    this.addAuthorizedUser(user);
+                } catch (e) {
+                    this.errors.push(e.message);
+                }
+            });
+        } else {
+            logger.logAndThrow("The parameter hostuser must be of type HostUser.");
+        }
+    }
+
+    get user() {
+        return this.data.user;
+    }
+
+    get authorized_keys() {
+        return this.data.authorized_keys;
+    }
+
+    toJSON() {
+        var str = '{"user":' + this.data.user.toJSON() + ",";
+        str += ' "authorized_keys": [';
+        this.data.authorized_keys.forEach((user,index)=> {
+            str += '"'+user.name+'"';
+            if (index!=this.data.authorized_keys.length-1){
+                str+= ",";
+            }
+        });
+        str += ']}';
+        return str;
+    }
+
+}
+
+export default HostUser;

@@ -1,7 +1,9 @@
-
 'use strict';
-jest.dontMock('../src/modules/base');
-var Base = require('../src/modules/base').default;
+
+global.expect = require("chai").expect;
+//global.when = require("when");
+
+var Controller = require('../src/modules/Controller').default;
 describe("validating ssh config include", function () {
 
     var validUsers = [
@@ -65,11 +67,14 @@ describe("validating ssh config include", function () {
                     members: ["user2"]
                 }
             ],
-            include_ssh_config: "strict"
+            includes: [
+                {ssh: "strict"}
+            ]
+
         }
     ];
 
-    var base = new Base(validUsers, validGroups, hosts);
+    var base = new Controller(validUsers, validGroups, hosts);
     base.setSSHConfigs(sshConfigs);
 
     var parsedHosts = base.validateHosts(validUsers, validGroups);
@@ -99,14 +104,18 @@ describe("validating ssh config include", function () {
                         members: ["user2"]
                     }
                 ],
-                ssh: {
-                    permit_root: "no",
-                    valid_users_only: "true",
-                    password_authentication: "no"
-                }
+                includes: [
+                    {
+                        ssh: {
+                            permit_root: "no",
+                            valid_users_only: "true",
+                            password_authentication: "no"
+                        }
+                    }
+                ]
             }
         ];
-        expect(parsedHosts).toEqual(validHosts);
+        expect(parsedHosts).to.equal(validHosts);
     });
 });
 
@@ -154,31 +163,36 @@ describe("validating user categories include", function () {
     };
 
     var hosts = [
-        {
-            name: "web01.example.co.za",
-            users: [
-                {
-                    name: "userA",
-                    authorized_keys: ["user1", "user2"]
-                }
-            ],
-            include_user_categories: [
-                "cat1", "cat2"
-            ],
-            groups: [
-                {
-                    name: "group1",
-                    members: ["user1", "user2", "user3"]
-                },
-                {
-                    name: "group2",
-                    members: ["user2"]
-                }
-            ]
-        }
-    ];
+            {
+                name: "web01.example.co.za",
+                users: [
+                    {
+                        name: "userA",
+                        authorized_keys: ["user1", "user2"]
+                    }
+                ],
+                includes: [
+                    {
+                        user_categories: [
+                            "cat1", "cat2"
+                        ]
+                    }
+                ],
+                groups: [
+                    {
+                        name: "group1",
+                        members: ["user1", "user2", "user3"]
+                    },
+                    {
+                        name: "group2",
+                        members: ["user2"]
+                    }
+                ]
+            }
+        ]
+        ;
 
-    var base = new Base(validUsers, validGroups, hosts);
+    var base = new Controller(validUsers, validGroups, hosts);
     base.setUserCategories(userCategories);
     base.parsedUsers = validUsers;
     var parsedHosts = base.validateHosts(validUsers, validGroups);
@@ -218,7 +232,7 @@ describe("validating user categories include", function () {
                 ]
             }
         ];
-        expect(parsedHosts).toEqual(validHosts);
+        expect(parsedHosts).to.equal(validHosts);
     });
 });
 
@@ -289,7 +303,13 @@ describe("validating group categories include", function () {
                     authorized_keys: ["user1", "user2"]
                 }
             ],
-            include_user_categories: ["cat1", "cat2"],
+            includes: [
+                {
+                    group_categories: [
+                        "groupcat1", "groupcat2"
+                    ]
+                }
+            ],
             groups: [
                 {
                     name: "group1",
@@ -300,11 +320,10 @@ describe("validating group categories include", function () {
                     members: ["user2"]
                 }
             ],
-            include_group_categories: ["groupcat1", "groupcat2"]
         }
     ];
 
-    var base = new Base(validUsers, validGroups, hosts);
+    var base = new Controller(validUsers, validGroups, hosts);
     base.setUserCategories(userCategories);
     base.setGroupCategories(groupCategories);
     base.parsedUsers = validUsers;
@@ -361,7 +380,7 @@ describe("validating group categories include", function () {
                 ]
             }
         ];
-        expect(parsedHosts).toEqual(validHosts);
+        expect(parsedHosts).to.equal(validHosts);
     });
 });
 
@@ -436,7 +455,7 @@ describe("validating group categories include with duplicated groups", function 
                     authorized_keys: ["user1", "user2"]
                 }
             ],
-            include_user_categories: ["cat1", "cat2"],
+
             groups: [
                 {
                     name: "group1",
@@ -451,11 +470,14 @@ describe("validating group categories include with duplicated groups", function 
                     members: ["user3"]
                 }
             ],
-            include_group_categories: ["groupcat1", "groupcat2"]
+            includes: [
+                {user_categories: ["cat1", "cat2"]},
+                {group_categories: ["groupcat1", "groupcat2"]}
+            ]
         }
     ];
 
-    var base = new Base(validUsers, validGroups, hosts);
+    var base = new Controller(validUsers, validGroups, hosts);
     base.setUserCategories(userCategories);
     base.setGroupCategories(groupCategories);
     base.parsedUsers = validUsers;
@@ -512,6 +534,6 @@ describe("validating group categories include with duplicated groups", function 
                 ]
             }
         ];
-        expect(parsedHosts).toEqual(validHosts);
+        expect(parsedHosts).to.equal(validHosts);
     });
 });
