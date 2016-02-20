@@ -3,16 +3,15 @@
 import Provider from './Provider';
 import logger from './Logger';
 import User from './User';
+import Host from './Host';
+import HostDef from './HostDef';
 
-class HostUser {
+class HostUser extends HostDef {
 
-    constructor(provider,data) {
-        if (!provider || !provider instanceof Provider){
-            throw new Error("Parameter provider must be provided for HostGroup.")
-        }
-        this.data = { authorized_keys: []};
+    constructor(host, data) {
+        super(host);
+        this.data = {authorized_keys: []};
         this.errors = [];
-        this.provider = provider;
         if (data) {
             if (typeof data === "object") {
                 //find the user from the list of parsed users for group and
@@ -20,13 +19,13 @@ class HostUser {
                 //of absent it will override the state of the global user definition
                 //note: all the values of the global group are copied. Only state may change.
                 if (!data.user || !data.user.name) {
-                    logger.logAndThrow("The data object for HostUser must have a property \"user\" of type User.");
+                    logger.logAndThrow("The data object for HostUser must have a property \"user\".");
                 } else {
                     var user = this.provider.users.findUserByName(data.user.name);
                     if (user) {
                         this.data.user = user.clone();
                         if (data.user.state === "absent") {
-                                this.data.user.state = "absent";
+                            this.data.user.state = "absent";
                         }
                     } else {
                         logger.logAndThrow(`The user ${data.user.name} does not exist in valid users.`);
@@ -50,6 +49,7 @@ class HostUser {
             } else {
                 logger.logAndThrow("The data parameter ofr HostUser must be an data object or undefined.");
             }
+            this.data.source = data;
         }
     }
 
@@ -94,17 +94,16 @@ class HostUser {
         return this.data.authorized_keys;
     }
 
-    toJSON() {
-        var str = '{"user":' + this.data.user.toJSON() + ",";
-        str += ' "authorized_keys": [';
-        this.data.authorized_keys.forEach((user,index)=> {
-            str += '"'+user.name+'"';
-            if (index!=this.data.authorized_keys.length-1){
-                str+= ",";
-            }
-        });
-        str += ']}';
-        return str;
+    export() {
+        var obj = {};
+        obj.user = this.data.user.exportId();
+        //if (this.data.authorized_keys && this.data.authorized_keys.length>0) {
+            obj.authorized_keys = [];
+            this.data.authorized_keys.forEach((user)=> {
+                obj.authorized_keys.push(user.name);
+            });
+        //}
+        return obj;
     }
 
 }

@@ -2,12 +2,17 @@
 
 import Group from './Group';
 import logger from './Logger';
+import Provider from './Provider';
 
 class Groups {
 
-    constructor() {
+    constructor(provider) {
+        if (!provider instanceof Provider){
+            throw new Error("Parameter provider must be an instance of provider");
+        }
+        this.provider = provider;
         this.validGroups = [];
-        this.groupCategories=[];
+        this.groupCategories = [];
     }
 
     add(group) {
@@ -60,7 +65,7 @@ class Groups {
             return;
         }
         if (typeof gid === 'number') {
-           return this.validGroups.find((mgroup) => {
+            return this.validGroups.find((mgroup) => {
                 if (mgroup.gid === gid) {
                     return mgroup;
                 }
@@ -70,20 +75,27 @@ class Groups {
         }
     }
 
-    toJSON(){
-        var str = "[";
-        this.validGroups.forEach((group,index)=>{
-            str+=group.toJSON();
-            if (index != this.validGroups.length-1){
-                str+=",";
+    import(groupdata, errors) {
+        groupdata.forEach((data) => {
+            try {
+                var group = new Group(data);
+                this.add(group);
+            } catch (e) {
+                logger.logAndAddToErrors(`Error validating group. ${e.message}`, errors);
             }
         });
-        str+="]";
-        return str;
     }
 
-    clear(){
-        this.validGroups=[];
+    export() {
+        var obj = [];
+        this.validGroups.forEach((group)=> {
+            obj.push(group.export());
+        });
+        return obj;
+    }
+
+    clear() {
+        this.validGroups = [];
     }
 
 }

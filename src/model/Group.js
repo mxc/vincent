@@ -1,19 +1,21 @@
 "use strict";
 
 import logger from './Logger';
+import Base from './Base';
 
-class Group {
+class Group extends Base {
 
     constructor(data) {
+        super();
         //check if we were passed a group name or a data object
-        if (typeof data === 'string'){
+        if (typeof data === 'string') {
             var valid = /\w/;
             if (!valid.test(data)) {
                 logger.logAndThrow(`${data} is an invalid group name`);
             }
             this.data = {
                 name: data,
-                state:"present"
+                state: "present"
             };
         }
 
@@ -21,18 +23,19 @@ class Group {
             logger.logAndThrow("The parameter data must be a group name or an object with a mandatory property \"name\".");
         }
 
-        if (data.gid && typeof data.gid !== 'number'){
+        if (data.gid && typeof data.gid !== 'number') {
             logger.logAndThrow("Gid must be a number.");
         }
 
-        if(data.state && data.state!="present" && data.state!="absent"){
+        if (data.state && data.state != "present" && data.state != "absent") {
             logger.logAndThrow("Group state must be \"present\" or \"absent\".");
         }
         this.data = {
             name: data.name,
             gid: data.gid,
-            state: data.state?data.state:"present"
+            state: data.state ? data.state : "present",
         };
+        this._source = data;
     }
 
     get name() {
@@ -54,8 +57,8 @@ class Group {
     set state(state) {
         if (state !== "present" && state !== "absent") {
             logger.logAndThrow(`Group state is either present or absent not ${state}`);
-        }else{
-            this.data.state=state;
+        } else {
+            this.data.state = state;
         }
     }
 
@@ -67,12 +70,16 @@ class Group {
         }
     }
 
-    clone(){
+    clone() {
         return new Group(this.data);
     }
 
-    toJSON(){
-        return JSON.stringify(this.data);
+    export() {
+        return this.data;
+    }
+
+    exportId() {
+        return {name: this.data.name, state: this.data.state};
     }
 
 }

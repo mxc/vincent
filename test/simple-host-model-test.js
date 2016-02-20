@@ -147,6 +147,7 @@ describe("validating host configuration", function () {
     ];
 
     var provider = new Provider();
+    //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
 
@@ -178,60 +179,87 @@ describe("validating host configuration", function () {
     });
 
     it("should return an array of valid hosts", function () {
-        var validHosts = [{
-                "name": "www.example.com",
-                "users": [{
-                    "user": {"name": "user1", "key": "user1.pub", "state": "present"},
-                    "authorized_keys": ["user1"]
-                }, {"user": {"name": "user2", "state": "absent"}, "authorized_keys": ["user1"]}],
-                "groups": [{
-                    "group": {"name": "group1", "state": "present"},
-                    "members": [{"name": "user1", "key": "user1.pub", "state": "present"}]
-                }, {"group": {"name": "group2", "state": "present"}, "members": []}, {
-                    "group": {
-                        "name": "group3",
-                        "gid": 1000,
-                        "state": "present"
-                    }, "members": [{"name": "user1", "key": "user1.pub", "state": "present"}]
-                }]
-            }, {
-                "name": "www.test.com",
-                "users": [{
-                    "user": {"name": "user2", "state": "absent"},
-                    "authorized_keys": ["user1"]
-                }, {
-                    "user": {"name": "user3", "key": "user3.pub", "uid": 1000, "state": "present"},
-                    "authorized_keys": []
-                }, {"user": {"name": "user4", "state": "absent"}, "authorized_keys": []}],
-                "groups": [
+        var validHosts = [
+            {
+                name: "www.example.com",
+                users: [
                     {
-                        "group": {"name": "group2", "state": "present"},
-                        "members": []
+                        user: {name: "user1", state: "present" },
+                        authorized_keys: ["user1"]
                     },
                     {
-                        "group": {
-                            "name": "group3",
-                            "gid": 1000,
-                            "state": "present"
-                        },
-                        "members": []
-                    }]
-            }, {
-                "name": "www.abc.co.za",
-                "users": [{
-                    "user": {"name": "user1", "key": "user1.pub", "state": "present"},
-                    "authorized_keys": ["user1", "user3"]
-                },
+                        user: {name: "user2", state: "absent"},
+                        authorized_keys: ["user1"]
+                    }
+                ],
+                groups: [
                     {
-                        "user": {"name": "user2", "state": "absent"},
-                        "authorized_keys": ["user1"]
-                    }],
-                "groups": [{
-                    "group": {"name": "group3", "gid": 1000, "state": "present"},
-                    "members": []
-                }]
-            }]
-            ;
-        expect(JSON.parse(base.validHostsToJSON())).to.eql(validHosts);
+                        group: {name: "group1", state: "present"},
+                        members: [
+                            "user1"
+                        ]
+                    },
+                    {
+                        group: {name: "group2", state: "present"},
+                        members: []
+                    },
+                    {
+                        group: {name: "group3", state: "present"},
+                        members: [
+                            "user1"
+                        ]
+                    }
+
+                ]
+            },
+            {
+                name: "www.test.com",
+                users: [
+                    {
+                        user: {name: "user2", state: "absent"},
+                        authorized_keys: ["user1"]
+                    },
+                    {
+                        user: {name: "user3", state: "present"},
+                        authorized_keys:[]
+                    },
+                    {
+                        user: {name: "user4", state: "absent"},
+                        authorized_keys:[]
+                    }
+                ],
+                groups: [
+                    {
+                        group: {name: "group2", state: "present"},
+                        members: []
+                    },
+                    {
+                        group: {name: "group3", state: "present"},
+                        members: []
+                    }
+                ]
+            },
+            {
+                name: "www.abc.co.za",
+                users: [
+                    {
+                        user: {name: "user1", state: "present"},
+                        authorized_keys: ["user1", "user3"]
+                    },
+                    {
+                        user: {name: "user2", state: "absent"},
+                        authorized_keys: ["user1"]
+                    }
+                ],
+                groups: [
+                    {
+                        group: {name: "group3", state: "present"},
+                        members: []
+                    }
+
+                ]
+            }
+        ];
+        expect(JSON.stringify(provider.hosts.export())).to.eql(JSON.stringify(validHosts));
     });
 });

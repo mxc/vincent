@@ -5,15 +5,13 @@
 import Provider from './Provider';
 import Group from './Group';
 import User from './User';
+import HostDef from './HostDef';
 import logger from './Logger';
 
-class HostGroup {
+class HostGroup extends HostDef{
 
-    constructor(provider,data) {
-        if (!provider || !provider instanceof Provider){
-                throw new Error("Parameter provider must be provided for HostGroup.")
-        }
-        this.provider = provider;
+    constructor(host,data) {
+        super(host);
         this.data = { members: []};
         this.errors = [];
         if (data) {
@@ -23,9 +21,9 @@ class HostGroup {
                 //of absent it will override the state of the global group definition
                 //note: all the values of the global group are copied. Only state may change.
                 if (!data.group || !data.group.name) {
-                    logger.logAndThrow("The data object for HostGroupDef must have a property \"group\".");
+                    logger.logAndThrow("The data object for HostGroup must have a property \"group\".");
                 } else {
-                    var group = provider.groups.findGroupByName(data.group.name);
+                    var group = this.provider.groups.findGroupByName(data.group.name);
                     if (group) {
                         this.data.group = group.clone();
                         if (data.group.state === "absent") {
@@ -45,8 +43,9 @@ class HostGroup {
                         }
                     });
                 }
+                this.data.source=data;
             } else {
-                logger.logAndThrow("The data parameter for GroupUserDef must be an data object or undefined.");
+                logger.logAndThrow("The data parameter for HostGroup must be an data object or undefined.");
             }
         }
     }
@@ -101,17 +100,14 @@ class HostGroup {
         return this.data.members;
     }
 
-    toJSON() {
-        var str = '{"group":' + this.data.group.toJSON() + ",";
-        str += ' "members":[';
-        this.data.members.forEach((member,index)=> {
-            str += member.toJSON();
-            if(index!==this.data.members.length-1){
-                str+= ",";
-            }
+    export() {
+        var obj ={};
+        obj.group =  this.data.group.exportId();
+        obj.members = [];
+        this.data.members.forEach((member)=> {
+                obj.members.push(member.name);
         });
-        str += ']}'
-        return str;
+        return obj;
     }
 
 }

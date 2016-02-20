@@ -1,17 +1,26 @@
-{
-    "strict": {
-        "permit-root": "no",
-        "valid-users-only": "true",
-        "password-authentication": "no"
-    },
-    "strict-with-root": {
-        "permit-root": "without-password",
-        "valid-users-only": "true",
-        "password-authentication": "no"
-    },
-    "loose": {
-        "permit-root": "yes",
-        "valid-users-only": "false",
-        "password-authentication": "yes"
+[
+  {
+    "name": "strict",
+    "config": {
+      "permitRoot": "no",
+      "validUsersOnly": "true",
+      "passwordAuthentication": "no"
     }
-}
+  },
+  {
+    "name": "strict-with-root",
+    "config": {
+      "permitRoot": "without-password",
+      "validUsersOnly": "true",
+      "passwordAuthentication": "no"
+    }
+  },
+  {
+    "name": "loose",
+    "config": {
+      "permitRoot": "yes",
+      "validUsersOnly": "false",
+      "passwordAuthentication": "yes"
+    }
+  }
+]

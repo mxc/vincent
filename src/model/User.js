@@ -1,10 +1,12 @@
 "use strict";
 
 import logger from './Logger';
+import Base from './Base';
 
-class User {
+class User extends Base{
 
     constructor(data) {
+        super();
         //check if we were provided with a user name or a data object
         if (typeof data === 'string'){
             var valid = /\w/;
@@ -35,9 +37,9 @@ class User {
             name: data.name,
             key: data.key,
             uid: data.uid,
-            state: data.state?data.state:"present"
+            state: data.state?data.state:"present",
         };
-
+        this._source =data;
     }
 
     get name() {
@@ -102,8 +104,12 @@ class User {
         return  new User(this.data);
     }
 
-    toJSON(){
-       return JSON.stringify(this.data);
+    export(){
+        return this.data;
+    }
+
+    exportId(){
+        return {name:this.data.name, state: this.data.state };
     }
 }
 

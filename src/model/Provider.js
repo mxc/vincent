@@ -1,14 +1,18 @@
 import Users from './Users';
 import Groups from './Groups';
 import Hosts from './Hosts';
-
+import SshConfigs from './includes/SshConfigs';
+import UserCategories from './includes/UserCategories';
 
 class Provider {
 
     constructor() {
-            this.users = new Users();
-            this.groups = new Groups();
-            this.hosts = new Hosts();
+        this.configdir = "/home/mark/NetBeansProjects/ansible-coach/conf-example";
+        this.users = new Users(this);
+        this.groups = new Groups(this);
+        this.hosts = new Hosts(this);
+        this.sshconfigs = new SshConfigs(this);
+        this.userCategories = new UserCategories(this);
     }
 
 
@@ -16,6 +20,11 @@ class Provider {
         this.users.clear();
         this.groups.clear();
         this.hosts.clear();
+    }
+
+    clearAll() {
+        clear();
+        this.sshconfigs.clear();
     }
 
 }

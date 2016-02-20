@@ -1,5 +1,4 @@
-
-class Base{
+class Base {
 
     getBooleanValue(val) {
         if (typeof val === 'string') {
@@ -14,6 +13,14 @@ class Base{
         } else {
             throw new Error("Boolean value must be 'true/yes' or 'false/no'");
         }
+    }
+
+    idToJSON() {
+        return '{ "name":' + this.data.name + ',' + '"state:"' + this.data.state + '}';
+    }
+
+    get source(){
+        return this._source;
     }
 }
 

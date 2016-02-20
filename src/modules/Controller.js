@@ -18,20 +18,6 @@ class Controller {
         this.provider = provider;
     }
 
-    setSSHConfigs(sshConfigs) {
-        if (!sshConfigs) {
-            sshConfigs = JSON.parse(fs.readFileSync(this.config.confdir + 'includes/ssh-configs.js'));
-        }
-        this.sshConfigs = sshConfigs;
-    }
-
-    setUserCategories(userCategories) {
-        if (!userCategories) {
-            userCategories = JSON.parse(fs.readFileSync(this.config.confdir + 'includes/user-categories.js'));
-        }
-        this.userCategories = userCategories;
-    }
-
     setGroupCategories(groupCategories) {
         //we need to lookup user categories in group categories so there is
         //a loading dependency order.
@@ -81,101 +67,26 @@ class Controller {
         }
     }
 
-    validateGroups(groupsdata) {
-        groupsdata.forEach((data) => {
-            try {
-                var group = new Group(data);
-                this.provider.groups.add(group);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error validating group. ${e.message}`, this.errors);
-            }
-        });
+    validateGroups(groupdata) {
+        this.provider.groups.import(groupdata, this.errors);
         return this.provider.groups.validGroups;
     }
 
     validateUsers(userdata) {
-        userdata.forEach((data) => {
-            try {
-                var user = new User(data);
-                this.provider.users.add(user);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error validating user. ${e.message}`, this.errors);
-            }
-        });
+        this.provider.users.import(userdata, this.errors);
         return this.provider.users.validUsers;
     }
 
     validateHosts(hosts) {
-
         //filter and clean up cloned hosts
         hosts.forEach((hostdef) => {
-            var hostdata = {
-                name: hostdef.name
-            };
             try {
-                var host = new Host(this.provider, hostdata);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error adding host - ${e.message}`, this.errors);
-                return;
+                let host = this.provider.hosts.import(hostdef);
+                Array.prototype.push.apply(this.errors, this.provider.hosts.errors[host.name]);
             }
-
-            ////replace any ssh includes with config
-            //if (hostdef.include_ssh_config) {
-            //    host.addSSHConfig(hostdef.include_ssh_config);
-            //}
-            //
-            ////Merge user categories into the user array
-            //if (hostdef.include_user_categories) {
-            //    hostdef.include_user_categories.forEach((userCategory) => {
-            //        var categoryUsers = users.userCategories[userCategory];
-            //        categoryUsers.forEach((userdef)=> {
-            //            host.addUserByName(userdefuser);
-            //        });
-            //    });
-            //}
-
-            //user validation
-            if (hostdef.users) {
-                hostdef.users.forEach((userdef) => {
-                    try {
-                        //console.log("iterating over hosts current1 = " + JSON.stringify(userdef));
-                        var hostuser = new HostUser(this.provider, userdef);
-                        this.errors = this.errors.concat(hostuser.errors);
-                        //console.log("iterating over hosts current2 = " + JSON.stringify(hostuser));
-                        host.addHostUser(hostuser);
-                    } catch (e) {
-                        logger.logAndAddToErrors(`Error adding host user - ${e.message}`, this.errors);
-                    }
-                });
+            catch (e) {
+                    this.errors.push(e.message);
             }
-            ////Merge group categories into the user array
-            //if (host.include_group_categories) {
-            //    host.include_group_categories.forEach((groupcategory) => {
-            //        var categoryGroups = this.groupCategories[groupcategory];
-            //        if (categoryGroups) {
-            //            categoryGroups.forEach((group)=> {
-            //                host.groups.push(group);
-            //            });
-            //        } else {
-            //            this.errors.push(`The group category ${groupcategory}  for host ${host} is not defined`);
-            //        }
-            //    });
-            //    delete host["include_group_categories"];
-            //}
-
-            //group and group membership validation
-            if(hostdef.groups) {
-                hostdef.groups.forEach((groupdef) => {
-                    try {
-                        var hostgroup = new HostGroup(this.provider, groupdef);
-                        host.addHostGroup(hostgroup);
-                        this.errors = this.errors.concat(hostgroup.errors);
-                    } catch (e) {
-                        logger.logAndAddToErrors(`Error adding host group - ${e.message}`, this.errors);
-                    }
-                });
-            }
-            this.provider.hosts.add(host);
         });
         return this.provider.hosts.validHosts;
     }
@@ -210,21 +121,9 @@ class Controller {
         }
     }
 
-    validGroupsToJSON() {
-        //console.log(this.provider.groups.validGroups);
-        return this.provider.groups.toJSON();
-    }
-
-    validUsersToJSON() {
-        return this.provider.users.toJSON();
-    }
-
-    validHostsToJSON() {
-        return this.provider.hosts.toJSON();
-    }
-
-
 }
 
-export default Controller;
+export
+default
+Controller;
     
