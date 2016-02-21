@@ -2,7 +2,7 @@
 
 import User from './../User';
 import Provider from './../../Provider';
-import logger from './../../utilities/Logger';
+import logger from './../../Logger';
 
 class Users {
 

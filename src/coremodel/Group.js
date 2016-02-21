@@ -1,6 +1,6 @@
 "use strict";
 
-import logger from './../utilities/Logger';
+import logger from './../Logger';
 import Base from './Base';
 
 class Group extends Base {

@@ -10,6 +10,7 @@ class HostSsh extends HostDef {
     constructor(host,config) {
         super(host);
         this.data=new Ssh(config);
+        this.errors = this.data.errors;
     }
 
     get ssh(){

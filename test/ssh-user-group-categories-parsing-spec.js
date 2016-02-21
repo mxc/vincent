@@ -224,7 +224,7 @@ describe("validating ssh include config", function () {
                     {
                         user: {
                             name: "user1",
-                            state: "present",
+                            state: "present"
                         },
                         authorized_keys: ["user1"]
                     }, {

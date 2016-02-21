@@ -1,9 +1,9 @@
 /**
  * Created by mark on 2016/02/20.
  */
-import Provider from './../../utilities/Provider';
+import Provider from './../../Provider';
 import Host from './../Host';
-import logger from './../../utilities/Logger';
+import logger from './../../Logger';
 
 class HostDef {
 

@@ -3,8 +3,9 @@
 import Host from './../Host';
 import HostUser from '../hostcomponents/HostUser';
 import HostGroup from '../hostcomponents/HostGroup';
+import SudoEntry from '../SudoEntry';
 import Provider from './../../Provider';
-import logger from './../../utilities/Logger';
+import logger from './../../Logger';
 
 class Hosts {
 
@@ -138,8 +139,32 @@ class Hosts {
             }
         }
 
+        if (hostDef.sudoerEntries) {
+                hostDef.sudoerEntries.forEach((sudoEntryData)=> {
+                    try {
+                        host.addSudoEntry(sudoEntryData);
+                    } catch (e) {
+                        this.errors[host.name].push(e.message);
+                    }
+                });
+        }
+
+        if (hostDef.includes) {
+            let sudoerEntries = this.findIncludeInDef("sudoerEntries", hostDef.includes);
+            if (sudoerEntries) {
+                sudoerEntries.forEach((sudoEntry) => {
+                    try {
+                        host.addSudoEntry(sudoEntry);
+                    } catch (e) {
+                        this.errors[host.name].push(e.message);
+                    }
+                });
+            }
+        }
+
         host.source = hostDef;
         this.add(host);
+        Array.prototype.push.apply(this.errors[host.name], host.errors)
         return host;
     }
 

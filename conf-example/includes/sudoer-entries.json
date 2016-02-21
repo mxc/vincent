@@ -1,16 +1,44 @@
-{
-    "ansible-users": {
-        "group": "group1",
-        "su-users": "www-data",
-        "su-groups": "www-data",
-        "commands": "chmod",
-        "nopasswd": "true"
-    },
-    "monitor-users": {
-        "group": "group1",
-        "su-users": "postgres,git",
-        "su-groups": "postgres,git",
-        "commands": "psql,git",
-        "nopasswd": "true"
+[
+  {
+    "name": "developers",
+    "config": {
+      "userList": [
+        {
+          "group": {
+            "name": "group1"
+          }
+        },
+        {
+          "user": {
+            "name": "user1"
+          }
+        }
+      ],
+      "commandSpec": {
+        "cmdList": [
+          "/bin/vi"
+        ],
+        "runAs": "ALL:ALL",
+        "options": "NOPASSWD:"
+      }
     }
-}
+  },
+  {
+    "name": "backupOperators",
+    "config": {
+      "userList": [
+        {
+          "user": {
+            "name": "user3"
+          }
+        }
+      ],
+      "commandSpec": {
+        "cmdList": [
+          "/usr/local/backup.sh"
+        ],
+        "runAs": "ALL:ALL"
+      }
+    }
+  }
+]

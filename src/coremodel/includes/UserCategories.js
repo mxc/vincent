@@ -1,8 +1,8 @@
 /**
  * Created by mark on 2016/02/20.
  */
-import logger from '../../utilities/Logger';
-import Provider from '../../utilities/Provider';
+import logger from '../../Logger';
+import Provider from '../../Provider';
 import fs from 'fs';
 
 class UserCategories {
@@ -20,6 +20,9 @@ class UserCategories {
 
         if (Array.isArray(userCategoriesData)) {
             userCategoriesData.forEach((userCategory)=> {
+                if (!userCategory.name || !userCategory.config){
+                    logger.logAndThrow("The data mus have properties name and config");
+                }
                 this.data.configs[userCategory.name] = userCategory.config;
             });
         } else {

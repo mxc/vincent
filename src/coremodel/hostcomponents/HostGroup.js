@@ -2,17 +2,18 @@
  * Created by mark on 2016/02/13.
  */
 
-import Provider from './../../utilities/Provider';
+import Provider from './../../Provider';
 import Group from './../Group';
 import User from './../User';
 import HostDef from './HostDef';
-import logger from './../../utilities/Logger';
+import logger from './../../Logger';
 
 class HostGroup extends HostDef {
 
     constructor(host, data) {
         super(host);
         this.data = {members: []};
+        this.data.source = data;
         this.errors = [];
         if (data) {
             if (typeof data === "object") {
@@ -59,7 +60,6 @@ class HostGroup extends HostDef {
                         }
                     });
                 }
-                this.data.source = data;
             } else {
                 logger.logAndThrow("The data parameter for HostGroup must be an data object or undefined.");
             }

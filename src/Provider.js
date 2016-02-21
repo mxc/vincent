@@ -1,9 +1,10 @@
-import Users from 'coremodel/collections/Users';
-import Groups from 'coremodel/collections/Groups';
-import Hosts from 'coremodel/collections/Hosts';
-import SshConfigs from 'coremodel/includes/SshConfigs';
-import UserCategories from 'coremodel/includes/UserCategories';
-import GroupCategories from 'coremodel/includes/GroupCategories';
+import Users from './coremodel/collections/Users';
+import Groups from './coremodel/collections/Groups';
+import Hosts from './coremodel/collections/Hosts';
+import SshConfigs from './coremodel/includes/SshConfigs';
+import UserCategories from './coremodel/includes/UserCategories';
+import GroupCategories from './coremodel/includes/GroupCategories';
+import SudoerEntries from './coremodel/includes/SudoerEntries';
 
 class Provider {
 
@@ -15,6 +16,7 @@ class Provider {
         this.sshconfigs = new SshConfigs(this);
         this.userCategories = new UserCategories(this);
         this.groupCategories = new GroupCategories(this);
+        this.sudoerEntries = new SudoerEntries(this);
     }
 
 
@@ -28,6 +30,7 @@ class Provider {
         this.clear();
         this.sshconfigs.clear();
         this.userCategories.clear();
+        this.sudoerEntries.clear();
     }
 
 }

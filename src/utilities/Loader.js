@@ -1,12 +1,12 @@
 "use strict";
 
-import Provider from 'Provider';
-import User from '../model/User';
-import Group from '../model/Group';
-import Host from '../model/Host';
-import HostUser from '../model/hostcomponents/HostUser';
-import HostGroup from '../model/hostcomponents/HostGroup';
-import logger from 'Logger';
+import Provider from '../Provider';
+import User from '../coremodel/User';
+import Group from '../coremodel/Group';
+import Host from '../coremodel/Host';
+import HostUser from '../coremodel/hostcomponents/HostUser';
+import HostGroup from '../coremodel/hostcomponents/HostGroup';
+import logger from '../Logger';
 
 class Controller {
 

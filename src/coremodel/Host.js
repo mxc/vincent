@@ -1,17 +1,20 @@
 'use strict';
 
 import Group from './Group';
-import HostGroup from 'hostcomponents/HostGroup';
-import HostUser from 'hostcomponents/HostUser';
-import HostSsh from 'hostcomponents/HostSsh';
-import Provider from './../utilities/Provider';
-import logger from './../utilities/Logger';
+import HostGroup from '../coremodel/hostcomponents/HostGroup';
+import HostUser from '../coremodel/hostcomponents/HostUser';
+import HostSsh from '../coremodel/hostcomponents/HostSsh';
+import HostSudoEntry from '../coremodel/hostcomponents/HostSudoEntry';
+import SudoEntry from '../coremodel/SudoEntry';
+import Provider from './../Provider';
+import logger from './../Logger';
 import Base from './Base';
 
 class Host extends Base {
 
     constructor(provider, data) {
         super();
+        this.errors = [];
         if (!provider || !(provider instanceof Provider)) {
             throw new Error("Parameter provider must be provided for HostGroup.")
         }
@@ -74,13 +77,9 @@ class Host extends Base {
         return this.data.groups;
     }
 
-    //findHostUserByName(username) {
-    //    this.data.users.find((huser)=> {
-    //        if (huser.user.equals(username)) {
-    //            return huser;
-    //        }
-    //    });
-    //}
+    get sudoerEntries() {
+        return this.data.sudoerEntries;
+    }
 
     addHostUser(hostUser, fromUserCategory = false) {
         if (hostUser instanceof HostUser) {
@@ -95,6 +94,7 @@ class Host extends Base {
                         this._export.users.push(hostUser.export());
                     }
                 }
+                Array.prototype.push.apply(this.errors, hostUser.errors);
             } else {
                 logger.logAndThrow("User ${user.name} was not found in the valid users list.");
             }
@@ -136,6 +136,7 @@ class Host extends Base {
                         this._export.groups.push(hostGroup.export());
                     }
                 }
+                Array.prototype.push.apply(this.errors, hostGroup.errors);
             } else {
                 logger.logAndThrow("Group ${group.name} was not found in the valid groups list.");
             }
@@ -171,7 +172,8 @@ class Host extends Base {
             if (!userCategoriesObj) {
                 userCategoriesObj = [];
                 this._export.includes["userCategories"] = userCategoriesObj;
-            };
+            }
+            ;
             userCategoriesObj.push(userCategory);
             let errors = [];
             users.forEach((userDef)=> {
@@ -198,7 +200,8 @@ class Host extends Base {
             if (!groupCategoriesObj) {
                 groupCategoriesObj = [];
                 this._export.includes["groupCategories"] = groupCategoriesObj;
-            };
+            }
+            ;
             groupCategoriesObj.push(groupCategory);
             let errors = [];
             groups.forEach((groupDef)=> {
@@ -231,6 +234,39 @@ class Host extends Base {
             this.checkIncludes();
             this._export.includes["ssh"] = config;
         }
+        Array.prototype.push.apply(this.errors, this.data.ssh.errors);
+
+    }
+
+    addSudoEntry(sudoData) {
+        if (!this.data.sudoerEntries) {
+            this.data.sudoerEntries = [];
+        }
+        try {
+            if (typeof sudoData == "string") {
+                if (!this._export.includes) {
+                    this._export.includes = {};
+                    this._export.includes.sudoerEntries = [];
+                } else if (!this._export.includes.sudoerEntries) {
+                    this._export.includes.sudoerEntries = [];
+                }
+                let sudoDataLookup = this.provider.sudoerEntries.find(sudoData);
+                let hostSudoEntry = new HostSudoEntry(this, sudoDataLookup);
+                this.data.sudoerEntries.push(hostSudoEntry);
+                this._export.includes.sudoerEntries.push(sudoData);
+                console.log(sudoData);
+            } else {
+                let hostSudoEntry = new HostSudoEntry(this, sudoData);
+                this.data.sudoerEntries.push(hostSudoEntry);
+                if (!this._export.sudoerEntries) {
+                    this._export.sudoerEntries = [];
+                }
+                this._export.sudoerEntries.push(hostSudoEntry.sudoEntry.export());
+            }
+        }
+        catch (e) {
+            logger.logAndThrow(`Error adding SudoerEntry - ${e.message}`);
+        }
     }
 
     checkIncludes() {
@@ -257,21 +293,15 @@ class Host extends Base {
         });
     }
 
+    findUser(userName) {
+        return this.data.users.find((hostUser) => {
+            if (hostUser.name === userName) {
+                return hostUser;
+            }
+        });
+    }
+
     export() {
-        //var obj = {
-        //    name: this.data.name,
-        //    users: [],
-        //    groups: []
-        //};
-        //
-        //this.data.users.forEach((hostuser)=> {
-        //    obj.users.push(hostuser._export());
-        //});
-        //
-        //this.data.groups.forEach((hostgroup)=> {
-        //    obj.groups.push(hostgroup._export());
-        //});
-        //return obj;
         return this._export;
     }
 }

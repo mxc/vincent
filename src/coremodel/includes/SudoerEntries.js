@@ -2,30 +2,34 @@
  * Created by mark on 2016/02/19.
  */
 
-import logger from '../../utilities/Logger';
+import logger from '../../Logger';
+import Provider from '../../Provider';
+import fs from 'fs';
 
 class SudoerEntries{
     
-    constructor(provider, suDoerEntriesData) {
-        if (!provider || !(provider instanceof Provider)) {
-            logger.logAndThrow("Parameter data provider must be of type provider");
-        }
+    constructor(provider, sudoerEntriesData) {
+            if (!provider || !(provider instanceof Provider)) {
+                logger.logAndThrow("Parameter data provider must be of type provider");
+            }
 
-        this.data = {};
-        this.data.configs = {};
-        if (!suDoerEntriesData) {
-            suDoerEntriesData = JSON.parse(fs.readFileSync(provider.configdir + '/includes/sudoer-entries.json'));
-        }
+            this.data = {};
+            this.data.configs = {};
+            if (!sudoerEntriesData) {
+                sudoerEntriesData = JSON.parse(fs.readFileSync(provider.configdir + '/includes/sudoer-entries.json'));
+            }
 
-        if (Array.isArray(suDoerEntriesData)) {
-            suDoerEntriesData.forEach((sudoerEntryData)=> {
-                this.data.configs[sudoerEntryData.name] = sudoerEntryData.config;
-            });
-        } else {
-            throw new Error("The sudoerEntriesData variable should be an array of SudoerEntryDefs.");
-        }
-
-    }
+            if (Array.isArray(sudoerEntriesData)) {
+                sudoerEntriesData.forEach((sudoerEntryData)=> {
+                    if (!sudoerEntryData.name || !sudoerEntryData.config){
+                        logger.logAndThrow("The data mus have properties name and config");
+                    }
+                    this.data.configs[sudoerEntryData.name] = sudoerEntryData.config;
+                });
+            } else {
+                throw new Error("The sudoerEntriesData variable should be an array of SudoerEntryDefs.");
+            }
+            }
 
     find(name) {
         return this.data.configs[name];

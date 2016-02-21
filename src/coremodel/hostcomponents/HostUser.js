@@ -1,7 +1,7 @@
 'use strict';
 
-import Provider from './../../utilities/Provider';
-import logger from './../../utilities/Logger';
+import Provider from './../../Provider';
+import logger from './../../Logger';
 import User from './../User';
 import Host from './../Host';
 import HostDef from './HostDef';

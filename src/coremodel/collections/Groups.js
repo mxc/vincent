@@ -1,7 +1,7 @@
 "use strict";
 
 import Group from './../Group';
-import logger from './../../utilities/Logger';
+import logger from './../../Logger';
 import Provider from './../../Provider';
 
 class Groups {

@@ -5,7 +5,7 @@
  */
 
 import Base from './Base';
-import logger from './../utilities/Logger';
+import logger from './../Logger';
 
 class Ssh extends Base {
 
