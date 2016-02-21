@@ -1,8 +1,8 @@
 "use strict";
 
-import User from './User';
-import Provider from './Provider';
-import logger from './Logger';
+import User from './../User';
+import Provider from './../../Provider';
+import logger from './../../utilities/Logger';
 
 class Users {
 
@@ -51,7 +51,9 @@ class Users {
     findUserByName(user) {
         if (typeof user === 'string') {
             return this.validUsers.find((muser)=> {
-                return muser.name === user;
+                if (muser.name === user){
+                    return muser;
+                }
             });
         } else {
             logger.logAndThrow(`The parameter user should be a user name string.`);

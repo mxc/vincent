@@ -1,8 +1,8 @@
 /**
  * Created by mark on 2016/02/19.
  */
-import logger from '../Logger';
-import Provider from '../Provider';
+import logger from '../../utilities/Logger';
+import Provider from '../../utilities/Provider';
 import fs from 'fs';
 import Ssh from '../Ssh';
 

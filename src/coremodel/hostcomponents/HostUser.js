@@ -1,9 +1,9 @@
 'use strict';
 
-import Provider from './Provider';
-import logger from './Logger';
-import User from './User';
-import Host from './Host';
+import Provider from './../../utilities/Provider';
+import logger from './../../utilities/Logger';
+import User from './../User';
+import Host from './../Host';
 import HostDef from './HostDef';
 
 class HostUser extends HostDef {
@@ -19,7 +19,7 @@ class HostUser extends HostDef {
                 //of absent it will override the state of the global user definition
                 //note: all the values of the global group are copied. Only state may change.
                 if (!data.user || !data.user.name) {
-                    logger.logAndThrow("The data object for HostUser must have a property \"user\".");
+                    logger.logAndThrow("The parameter data for HostUser must have a property \"user\".");
                 } else {
                     var user = this.provider.users.findUserByName(data.user.name);
                     if (user) {
@@ -72,9 +72,12 @@ class HostUser extends HostDef {
         }
     }
 
-    merge(hostuser) {
-        if (hostuser instanceof HostUser) {
-            hostuser.authorized_keys.forEach((user)=> {
+    merge(hostUser) {
+        if (hostUser instanceof HostUser) {
+            if (hostUser.name !== this.name) {
+                logger.logAndThrow(`User ${hostUser.name} does not match ${this.data.name}`);
+            }
+            hostUser.authorized_keys.forEach((user)=> {
                 try {
                     this.addAuthorizedUser(user);
                 } catch (e) {
@@ -82,7 +85,7 @@ class HostUser extends HostDef {
                 }
             });
         } else {
-            logger.logAndThrow("The parameter hostuser must be of type HostUser.");
+            logger.logAndThrow("The parameter hostUser must be of type HostUser.");
         }
     }
 
@@ -90,6 +93,9 @@ class HostUser extends HostDef {
         return this.data.user;
     }
 
+    get name(){
+        return this.data.user.name;
+    }
     get authorized_keys() {
         return this.data.authorized_keys;
     }

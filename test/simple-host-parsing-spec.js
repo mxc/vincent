@@ -1,8 +1,8 @@
-import Provider from "../src/model/Provider";
-import User from "../src/model/User";
-import Group from "../src/model/Group";
+import Provider from "../src/Provider.js";
+import User from "../src/coremodel/User";
+import Group from "../src/coremodel/Group";
 
-var Controller = require('../src/modules/Controller').default;
+var Loader = require('../src/utilities/Loader').default;
 
 
 describe("validating host configuration", function () {
@@ -151,31 +151,38 @@ describe("validating host configuration", function () {
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
 
-    var base = new Controller(provider);
-    base.validateHosts(hosts);
+    var loader = new Loader(provider);
+    loader.loadHosts(hosts);
 
     it("should detect hosts without a name property", function () {
-        expect(base.errors.indexOf("Error adding host - The parameter data must be a hostname or an object with a mandatory property \"name\".")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error adding host - The parameter data must be a hostname " +
+            "or an object with a mandatory property \"name\".")).not.to.equal(-1);
     });
 
     it("should detect undefined users", function () {
-        expect(base.errors.indexOf("Error adding host user - The user waldo does not exist in valid users.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error adding host user - The user waldo does not exist " +
+            "in valid users.")).not.to.equal(-1);
     });
 
     it("should detect group members that are undefined for host", function () {
-        expect(base.errors.indexOf("Error adding host user - The user waldo does not exist in valid users.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error adding host user - The user waldo does not exist " +
+            "in valid users.")).not.to.equal(-1);
     });
 
     it("should detect undefined groups", function () {
-        expect(base.errors.indexOf("Error adding host group - The group group10 does not exist in valid groups.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error adding host group - The group group10 does " +
+            "not exist in valid groups.")).not.to.equal(-1);
     });
 
     it("should detect undefined user in users authorized_keys list", function () {
-        expect(base.errors.indexOf("User with name waldo cannot be added as authorized user to user1 as the user is invalid.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("User with name waldo cannot be added as authorized " +
+            "user to user1 as the user is invalid.")).not.to.equal(-1);
     });
 
     it("should detect defined user with missing key in user's authorized_keys list", function () {
-        expect(base.errors.indexOf("There was an error adding an authorised key to the user user1. The user user4 is not in validUsers, is absent or does not have an public key defined")).not.to.equal(-1);
+        expect(loader.errors.indexOf("There was an error adding an authorised key to the " +
+            "user user1. The user user4 is not in validUsers, is absent or does not have an " +
+            "public key defined")).not.to.equal(-1);
     });
 
     it("should return an array of valid hosts", function () {

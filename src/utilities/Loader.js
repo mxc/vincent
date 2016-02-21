@@ -1,12 +1,12 @@
 "use strict";
 
-import Provider from '../model/Provider';
+import Provider from 'Provider';
 import User from '../model/User';
 import Group from '../model/Group';
 import Host from '../model/Host';
-import HostUser from '../model/HostUser';
-import HostGroup from '../model/HostGroup';
-import logger from '../model/Logger';
+import HostUser from '../model/hostcomponents/HostUser';
+import HostGroup from '../model/hostcomponents/HostGroup';
+import logger from 'Logger';
 
 class Controller {
 
@@ -50,16 +50,16 @@ class Controller {
     }
 
     //Check that the model is consistent.
-    validateModel() {
+    loadModel() {
         //reset errors array at beginning of validation
         this.errors.length = 0;
 
         //basic user configuration validation
-        this.parsedUsers = this.validateUsers(users);
+        this.parsedUsers = this.loadUsers(users);
         ////basic group configuration validation
-        this.parsedGroups = this.validateGroups(groups);
+        this.parsedGroups = this.loadGroups(groups);
         ////basic host configuration validation
-        this.parsedHosts = this.validateHosts(users, groups);
+        this.parsedHosts = this.loadHosts(users, groups);
         if (this.errors.length > 0) {
             return false;
         } else {
@@ -67,17 +67,17 @@ class Controller {
         }
     }
 
-    validateGroups(groupdata) {
+    loadGroups(groupdata) {
         this.provider.groups.import(groupdata, this.errors);
         return this.provider.groups.validGroups;
     }
 
-    validateUsers(userdata) {
+    loadUsers(userdata) {
         this.provider.users.import(userdata, this.errors);
         return this.provider.users.validUsers;
     }
 
-    validateHosts(hosts) {
+    loadHosts(hosts) {
         //filter and clean up cloned hosts
         hosts.forEach((hostdef) => {
             try {

@@ -5,3 +5,6 @@
  */
 
 
+class SudoEntry extends Base{
+
+}

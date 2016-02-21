@@ -1,9 +1,8 @@
 'use strict';
 
 global.expect = require("chai").expect
-import Provider from '../src/model/Provider';
-
-var Controller = require('../src/modules/Controller').default;
+import Provider from './../src/Provider';
+import Loader from   '../src/utilities/Loader';
 
 var groups = [
     {name: 'group1'},
@@ -28,19 +27,19 @@ var users = [
 
 describe("validating group configuration", function () {
     var provider = new Provider();
-    var base = new Controller(provider);
-    base.validateGroups(groups);
+    var loader = new Loader(provider);
+    loader.loadGroups(groups);
 
     it("should detect duplicate group names", function () {
-        expect(base.errors.indexOf("Error validating group. Group group2 already exists.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error validating group. Group group2 already exists.")).not.to.equal(-1);
     });
 
     it("should detect duplicate gids", function () {
-        expect(base.errors.indexOf("Error validating group. Group group4 with gid 1000 already exists as group3 with gid 1000.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error validating group. Group group4 with gid 1000 already exists as group3 with gid 1000.")).not.to.equal(-1);
     });
 
     it("should detect groups with missing name property", function () {
-        expect(base.errors.indexOf("Error validating group. The parameter data must be a group name or an object with a mandatory property \"name\".")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error validating group. The parameter data must be a group name or an object with a mandatory property \"name\".")).not.to.equal(-1);
     });
 
     it("should return an array of valid groups", function () {
@@ -66,8 +65,8 @@ describe("validating group configuration", function () {
 
 describe("validating user configuration", function () {
     var provider = new Provider();
-    var base = new Controller(provider);
-    base.validateUsers(users);
+    var base = new Loader(provider);
+    base.loadUsers(users);
 
     it("should detect duplicate user names", function () {
         expect(base.errors.indexOf("Error validating user. User user2 already exists.")).not.to.equal(-1);

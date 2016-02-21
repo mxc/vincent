@@ -1,8 +1,8 @@
 /**
  * Created by mark on 2016/02/20.
  */
-import logger from '../Logger';
-import Provider from '../Provider';
+import logger from '../../utilities/Logger';
+import Provider from '../../utilities/Provider';
 import fs from 'fs';
 
 class UserCategories {
@@ -18,9 +18,14 @@ class UserCategories {
             userCategoriesData = JSON.parse(fs.readFileSync(provider.configdir + '/includes/user-categories.json'));
         }
 
-        userCategoriesData.forEach((userCategory)=> {
-            this.data.configs[userCategory.name] = userCategory.config;
-        });
+        if (Array.isArray(userCategoriesData)) {
+            userCategoriesData.forEach((userCategory)=> {
+                this.data.configs[userCategory.name] = userCategory.config;
+            });
+        } else {
+            throw new Error("The userCategoriesData variable should be an array of UserDefs.");
+        }
+
     }
 
     find(name) {

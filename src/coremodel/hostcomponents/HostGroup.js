@@ -2,17 +2,17 @@
  * Created by mark on 2016/02/13.
  */
 
-import Provider from './Provider';
-import Group from './Group';
-import User from './User';
+import Provider from './../../utilities/Provider';
+import Group from './../Group';
+import User from './../User';
 import HostDef from './HostDef';
-import logger from './Logger';
+import logger from './../../utilities/Logger';
 
-class HostGroup extends HostDef{
+class HostGroup extends HostDef {
 
-    constructor(host,data) {
+    constructor(host, data) {
         super(host);
-        this.data = { members: []};
+        this.data = {members: []};
         this.errors = [];
         if (data) {
             if (typeof data === "object") {
@@ -33,17 +33,33 @@ class HostGroup extends HostDef{
                         logger.logAndThrow(`The group ${data.group.name} does not exist in valid groups.`);
                     }
                 }
+
                 if (data.members) {
                     data.members.forEach((username)=> {
-                        var user = this.provider.users.findUserByName(username);
-                        try {
-                            this.addMember(user);
-                        } catch (e) {
-                            logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`,this.errors);
+                        let user = this.provider.users.findUserByName(username);
+                        if (user) {
+                            try {
+                                this.addMember(user);
+                            } catch (e) {
+                                logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
+                            }
+                        } else {
+                            //is this a user category? If so add all members from the category
+                            let members = this.provider.userCategories.find(username);
+                            if (members) {
+                                members.forEach((hostUserData)=> {
+                                    let user = this.provider.users.findUserByName(hostUserData.user.name);
+                                    try {
+                                        this.addMember(user);
+                                    } catch (e) {
+                                        logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
+                                    }
+                                });
+                            }
                         }
                     });
                 }
-                this.data.source=data;
+                this.data.source = data;
             } else {
                 logger.logAndThrow("The data parameter for HostGroup must be an data object or undefined.");
             }
@@ -51,7 +67,7 @@ class HostGroup extends HostDef{
     }
 
     merge(group) {
-        if (group.name !== this.data.group.name) {
+        if (group.name !== this.name) {
             logger.logAndThrow(`Group ${group.name} does not match ${this.data.name}`);
         } else {
             if (!this.data.group.gid) {
@@ -74,7 +90,10 @@ class HostGroup extends HostDef{
             var validUser = this.provider.users.findUser(user);
             if (validUser && validUser.state != "absent") {
                 var t_user = this.data.members.find((muser) => {
-                    return muser.equals(validUser);
+                    if (muser.equals(validUser)) {
+                        return muser;
+                    }
+                    ;
                 });
                 if (t_user) {
                     logger.logAndAddToErrors(`${user.name} is already a member of group ${this.data.name}`, this.errors);
@@ -92,20 +111,24 @@ class HostGroup extends HostDef{
         }
     }
 
-    get group(){
+    get group() {
         return this.data.group;
     }
 
-    get members(){
+    get members() {
         return this.data.members;
     }
 
+    get name() {
+        return this.data.group.name;
+    }
+
     export() {
-        var obj ={};
-        obj.group =  this.data.group.exportId();
+        var obj = {};
+        obj.group = this.data.group.exportId();
         obj.members = [];
         this.data.members.forEach((member)=> {
-                obj.members.push(member.name);
+            obj.members.push(member.name);
         });
         return obj;
     }

@@ -3,7 +3,7 @@
  */
 
 import HostDef from './HostDef';
-import Ssh from './Ssh';
+import Ssh from './../Ssh';
 
 class HostSsh extends HostDef {
 
@@ -11,6 +11,11 @@ class HostSsh extends HostDef {
         super(host);
         this.data=new Ssh(config);
     }
+
+    get ssh(){
+        return this.data.data;
+    }
+
 
 }
 

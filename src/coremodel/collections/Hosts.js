@@ -1,10 +1,10 @@
 "use strict";
 
-import Host from './Host';
-import HostUser from './HostUser';
-import HostGroup from './HostGroup';
-import Provider from './Provider';
-import logger from './Logger';
+import Host from './../Host';
+import HostUser from '../hostcomponents/HostUser';
+import HostGroup from '../hostcomponents/HostGroup';
+import Provider from './../../Provider';
+import logger from './../../utilities/Logger';
 
 class Hosts {
 
@@ -40,61 +40,46 @@ class Hosts {
         }
     }
 
-    find(hostname){
-        return this.validHosts.find((host)=>{
-            if (host.name===hostname){
+    find(hostname) {
+        return this.validHosts.find((host)=> {
+            if (host.name === hostname) {
                 return host;
             }
         });
     }
 
-    import(hostdef) {
-        var hostdata = {
-            name: hostdef.name
+    import(hostDef) {
+        var hostData = {
+            name: hostDef.name
         };
         let host = {};
 
         //create host instance
         try {
-            host = new Host(this.provider, hostdata);
+            host = new Host(this.provider, hostData);
             this.errors[host.name] = [];
         } catch (e) {
             logger.logAndThrow(`Error adding host - ${e.message}`);
         }
 
         //Configure ssh for host if configured
-        if (hostdef.ssh) {
+        if (hostDef.ssh) {
             try {
-                host.addSsh(hostdef.ssh);
+                host.addSsh(hostDef.ssh);
             } catch (e) {
                 logger.logAndAddToErrors(`Error adding ssh to host - ${e.message}`,
                     this.errors[host.name]);
             }
-        } else if (hostdef.includes) {
-            let ssh = this.findInclude("ssh",hostdef.includes)
+        } else if (hostDef.includes) {
+            let ssh = this.findIncludeInDef("ssh", hostDef.includes);
             if (ssh) {
                 host.addSsh(ssh);
             }
         }
 
-
-        //Add user categories into the user array
-        if (hostdef.includes) {
-            let userCategories = this.findInclude("userCategories",hostdef.includes);
-            if(userCategories){
-                userCategories.forEach((userCategory) => {
-                    try {
-                        host.addUserCategory(userCategory);
-                    }catch(e){
-                        this.errors[host.name].push(e.message);
-                    }
-                });
-            }
-        }
-
         //add users to host
-        if (hostdef.users) {
-            hostdef.users.forEach(
+        if (hostDef.users) {
+            hostDef.users.forEach(
                 (userdef) => {
                     try {
                         var hostuser = new HostUser(host, userdef);
@@ -110,35 +95,50 @@ class Hosts {
                     }
                 });
         }
-////Merge group categories into the user array
-//if (host.include_group_categories) {
-//    host.include_group_categories.forEach((groupcategory) => {
-//        var categoryGroups = this.groupCategories[groupcategory];
-//        if (categoryGroups) {
-//            categoryGroups.forEach((group)=> {
-//                host.groups.push(group);
-//            });
-//        } else {
-//            this.errors.push(`The group category ${groupcategory}  for host ${host} is not defined`);
-//        }
-//    });
-//    delete host["include_group_categories"];
-//}
 
-//group and group membership validation
-        if (hostdef.groups) {
-            hostdef.groups.forEach((groupdef) => {
+        //Add user categories into the user array
+        if (hostDef.includes) {
+            let userCategories = this.findIncludeInDef("userCategories", hostDef.includes);
+            if (userCategories) {
+                userCategories.forEach((userCategory) => {
+                    try {
+                        host.addUserCategory(userCategory);
+                    } catch (e) {
+                        this.errors[host.name].push(e.message);
+                    }
+                });
+            }
+        }
+
+        //group and group membership validation
+        if (hostDef.groups) {
+            hostDef.groups.forEach((groupdef) => {
                 try {
-                    var hostgroup = new HostGroup(host, groupdef);
-                    host.addHostGroup(hostgroup);
-                    Array.prototype.push.apply(this.errors[host.name], hostgroup.errors);
+                    let hostGroup = new HostGroup(host, groupdef);
+                    host.addHostGroup(hostGroup);
+                    Array.prototype.push.apply(this.errors[host.name], hostGroup.errors);
                 } catch (e) {
                     logger.logAndAddToErrors(`Error adding host group - ${e.message}`,
                         this.errors[host.name]);
                 }
             });
         }
-        host.source = hostdef;
+
+        //Add group categories into the groups array
+        if (hostDef.includes) {
+            let groupCategories = this.findIncludeInDef("groupCategories", hostDef.includes);
+            if (groupCategories) {
+                groupCategories.forEach((groupCategory) => {
+                    try {
+                        host.addGroupCategory(groupCategory);
+                    } catch (e) {
+                        this.errors[host.name].push(e.message);
+                    }
+                });
+            }
+        }
+
+        host.source = hostDef;
         this.add(host);
         return host;
     }
@@ -155,12 +155,13 @@ class Hosts {
         this.validHosts = [];
     }
 
-    findInclude(name,includes){
-        includes.find((include)=> {
-            if (include[name]) {
-                return include[name];
-            }
-        });
+    findIncludeInDef(name, includes) {
+        let inc = includes[name];
+        if (inc) {
+            return inc;
+        } else {
+            return;
+        }
     }
 }
 
