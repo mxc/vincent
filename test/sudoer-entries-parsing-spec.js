@@ -43,11 +43,11 @@ describe("validating host configuration with sudoer entry config", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 }
             ],
             groups: [
@@ -111,11 +111,10 @@ describe("validating host configuration with sudoer entry config", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name:"user1",state:"present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
-                        authorized_keys: ["user1"]
                     }
                 ],
                 groups: [
@@ -208,11 +207,11 @@ describe("validating host configuration with sudo entry and invalid users", func
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 }
             ],
             groups: [
@@ -276,11 +275,10 @@ describe("validating host configuration with sudo entry and invalid users", func
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name:"user1",state:"present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
-                        authorized_keys: ["user1"]
                     }
                 ],
                 groups: [
@@ -403,11 +401,11 @@ describe("validating host configuration with sudo entry include", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 }
             ],
             groups: [
@@ -445,18 +443,17 @@ describe("validating host configuration with sudo entry include", function () {
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
-    it('should generate a export host string with include statement', function () {
+    it('should generate a export host string with include statement for sudoEntries', function () {
         var validHosts = [
             {
                 name: "www.example.com",
                 users: [
                     {
-                        user: {name: "user1", state: "present"},
-                        authorized_keys: ["user1"]
+                        user:{name: "user1", state: "present"},
+                        authorized_keys: [{name:"user1", state:"present"}]
                     },
                     {
-                        user: {name: "user2", state: "absent"},
-                        authorized_keys: ["user1"]
+                        user:{name: "user2", state: "absent"},
                     }
                 ],
                 groups: [

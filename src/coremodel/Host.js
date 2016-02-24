@@ -70,7 +70,9 @@ class Host extends Base {
     }
 
     get ssh() {
-        return this.data.ssh.data.data;
+        if (this.data.hostSsh) {
+            return this.data.hostSsh.ssh;
+        }
     }
 
     get groups() {
@@ -82,24 +84,28 @@ class Host extends Base {
     }
 
     addHostUser(hostUser, fromUserCategory = false) {
-        if (hostUser instanceof HostUser) {
-            if (this.provider.users.findUser(hostUser.user)) {
-                var foundHostUser = this.findHostUser(hostUser);
-                if (foundHostUser) {
-                    logger.info("User ${user.name} already exists on host,merging authorized_keys.");
-                    this.mergeUsers(foundHostUser, hostUser);
-                } else {
-                    this.data.users.push(hostUser);
-                    if (!fromUserCategory) {
-                        this._export.users.push(hostUser.export());
+        try {
+            if (hostUser instanceof HostUser) {
+                if (this.provider.users.findUser(hostUser.user)) {
+                    var foundHostUser = this.findHostUser(hostUser);
+                    if (foundHostUser) {
+                        logger.info("User ${user.name} already exists on host,merging authorized_keys.");
+                        this.mergeUsers(foundHostUser, hostUser);
+                    } else {
+                        this.data.users.push(hostUser);
+                        if (!fromUserCategory) {
+                            this._export.users.push(hostUser.export());
+                        }
                     }
+                    Array.prototype.push.apply(this.errors, hostUser.errors);
+                } else {
+                    logger.logAndThrow("User ${user.name} was not found in the valid users list.");
                 }
-                Array.prototype.push.apply(this.errors, hostUser.errors);
             } else {
-                logger.logAndThrow("User ${user.name} was not found in the valid users list.");
+                logger.logAndThrow("The parameter hostUser must be of type HostUser.");
             }
-        } else {
-            logger.logAndThrow("The parameter hostUser must be of type HostUser.");
+        }catch(e){
+            throw e;
         }
     }
 
@@ -173,7 +179,6 @@ class Host extends Base {
                 userCategoriesObj = [];
                 this._export.includes["userCategories"] = userCategoriesObj;
             }
-            ;
             userCategoriesObj.push(userCategory);
             let errors = [];
             users.forEach((userDef)=> {
@@ -201,7 +206,6 @@ class Host extends Base {
                 groupCategoriesObj = [];
                 this._export.includes["groupCategories"] = groupCategoriesObj;
             }
-            ;
             groupCategoriesObj.push(groupCategory);
             let errors = [];
             groups.forEach((groupDef)=> {
@@ -227,14 +231,14 @@ class Host extends Base {
 
     addSsh(config) {
         if (typeof config === 'object') {
-            this.data.ssh = new HostSsh(this, config);
-            this._export.ssh = this.data.ssh.data.export();
+            this.data.hostSsh = new HostSsh(this, config);
+            this._export.ssh = this.data.hostSsh.data.export();
         } else {
-            this.data.ssh = new HostSsh(this, this.provider.sshconfigs.find(config));
+            this.data.hostSsh = new HostSsh(this, this.provider.sshconfigs.find(config));
             this.checkIncludes();
             this._export.includes["ssh"] = config;
         }
-        Array.prototype.push.apply(this.errors, this.data.ssh.errors);
+        Array.prototype.push.apply(this.errors, this.data.hostSsh.errors);
 
     }
 
@@ -254,7 +258,6 @@ class Host extends Base {
                 let hostSudoEntry = new HostSudoEntry(this, sudoDataLookup);
                 this.data.sudoerEntries.push(hostSudoEntry);
                 this._export.includes.sudoerEntries.push(sudoData);
-                console.log(sudoData);
             } else {
                 let hostSudoEntry = new HostSudoEntry(this, sudoData);
                 this.data.sudoerEntries.push(hostSudoEntry);

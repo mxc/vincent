@@ -45,11 +45,11 @@ describe("validating ssh custom config", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1", "user2"]
+                    authorized_keys: [{name: "user1"}, {name: "user2"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user2"]
+                    authorized_keys: [{name: "user2"}]
                 }
             ],
             groups: [
@@ -87,7 +87,7 @@ describe("validating ssh custom config", function () {
                             name: "user1",
                             state: "present",
                         },
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name: "user1"}]
                     }, {
                         user: {
                             name: "user2",
@@ -185,11 +185,11 @@ describe("validating ssh include config", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1", "user2"]
+                    authorized_keys: [{name: "user1"}, {name: "user2"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user2"]
+                    authorized_keys: [{name: "user2"}]
                 }
             ],
             groups: [
@@ -226,7 +226,7 @@ describe("validating ssh include config", function () {
                             name: "user1",
                             state: "present"
                         },
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name: "user1"}]
                     }, {
                         user: {
                             name: "user2",
@@ -300,15 +300,23 @@ describe("validating user categories include", function () {
         {
             "name": "cat1",
             "config": [
-                {user: {name: "user1", state: "absent"}, authorized_keys: ["user2", "user1"]},
+                {
+                    user: {
+                        name: "user1",
+                        state: "absent"
+                    },
+                    authorized_keys: [
+                        {name: "user2"},
+                        {name: "user1"}]
+                },
                 {user: {name: "user2"}}
             ]
         },
         {
             "name": "cat2",
             "config": [
-                {user: {name: "user3"}, state: "present"},
-                {user: {name: "user1"}, authorized_keys: ["user2", "user1"]}
+                {user: {name: "user3", state: "present"}},
+                {user: {name: "user1"}, authorized_keys: [{name: "user2"}, {name: "user1"}]}
             ]
         }
     ];
@@ -319,7 +327,7 @@ describe("validating user categories include", function () {
             users: [
                 {
                     user: {name: "userA"},
-                    authorized_keys: ["user1", "user2"]
+                    authorized_keys: [{name: "user1"}, {name: "user2"}]
                 }
             ],
             includes: {
@@ -356,7 +364,7 @@ describe("validating user categories include", function () {
                             name: "userA",
                             state: "present"
                         },
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name: "user1"}]
                     }
                 ],
                 groups: [
@@ -439,7 +447,7 @@ describe("validating group categories include", function () {
             name: "groupcat2",
             config: [
                 {group: {name: "group6"}, members: ["user"]},
-                {group: {name: "group7"}, members: ["user2","user3"]}
+                {group: {name: "group7"}, members: ["user2", "user3"]}
             ]
         }
     ];
@@ -450,15 +458,15 @@ describe("validating group categories include", function () {
             users: [
                 {
                     user: {name: "userA"},
-                    authorized_keys: ["user1", "user2"]
+                    authorized_keys: [{name: "user1"}, {name: "user2"}]
                 },
                 {
                     user: {name: "user3"},
-                    authorized_keys: ["user1", "user3"]
+                    authorized_keys: [{name: "user1"}, {name: "user3"}]
                 },
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name: "user1"}]
                 }
             ],
             includes: {
@@ -487,37 +495,47 @@ describe("validating group categories include", function () {
 
     it("should return a collection of valid hosts including group categories", function () {
         var validHosts = [
-            {
-                name: "web01.example.co.za",
-                users: [
-                    {
-                        user: {name: "userA", state: "present"},
-                        authorized_keys: ["user1"]
-                    },
-                    {
-                        user: {name: "user3", state: "present"},
-                        authorized_keys: ["user1", "user3"]
-                    },
-                    {
-                        user: {name: "user1", state: "present"},
-                        authorized_keys: ["user1"]
+                {
+                    name: "web01.example.co.za",
+                    users: [
+                        {
+                            user: {name: "userA", state: "present"},
+                            authorized_keys: [{
+                                name: "user1",
+                                state: "present"
+                            }]
+                        },
+                        {
+                            user: {name: "user3", state: "present"},
+                            authorized_keys: [
+                                {
+                                    name: "user1",
+                                    state: "present"
+                                },
+                                {name: "user3"}
+                            ]
+                        },
+                        {
+                            user: {name: "user1", state: "present"},
+                            authorized_keys: [{name: "user1"}]
+                        }
+                    ],
+                    groups: [
+                        {
+                            group: {name: "group1", state: "present"},
+                            members: ["user1", "user3"]
+                        },
+                        {
+                            group: {name: "group2", state: "present"},
+                            members: []
+                        }
+                    ],
+                    includes: {
+                        groupCategories: ["groupcat1", "groupcat2"]
                     }
-                ],
-                groups: [
-                    {
-                        group: {name: "group1", state: "present"},
-                        members: ["user1", "user3"]
-                    },
-                    {
-                        group: {name: "group2", state: "present"},
-                        members: []
-                    }
-                ],
-                includes: {
-                    groupCategories: ["groupcat1", "groupcat2"]
                 }
-            }
-        ];
+            ]
+            ;
         expect(JSON.stringify(provider.hosts.export())).to
             .equal(JSON.stringify(validHosts));
     });
@@ -536,7 +554,8 @@ describe("validating group categories include", function () {
             ' to the group group1. Cannot add member to group. Parameter' +
             ' user with name user2 is not a valid user or user is absent.')).to.not.equal(-1);
     })
-});
+})
+;
 
 
 describe("validating group categories include with duplicated groups", function () {
@@ -582,7 +601,12 @@ describe("validating group categories include with duplicated groups", function 
         {
             "name": "cat1",
             "config": [
-                {user: {name: "user1", state: "present"}, authorized_keys: ["user2", "user1"]},
+                {
+                    user: {name: "user1", state: "present"}, authorized_keys: [
+                    {name: "user2"},
+                    {name: "user1"}
+                ]
+                },
                 {user: {name: "user2"}}
             ]
         },
@@ -590,7 +614,7 @@ describe("validating group categories include with duplicated groups", function 
             "name": "cat2",
             "config": [
                 {user: {name: "user3"}, state: "present"},
-                {user: {name: "user1"}, authorized_keys: ["user2", "user1"]}
+                {user: {name: "user1"}, authorized_keys: [{name:"user2"}, {name:"user1"}]}
             ]
         }
     ];
@@ -618,11 +642,11 @@ describe("validating group categories include with duplicated groups", function 
             users: [
                 {
                     user: {name: "userA"},
-                    authorized_keys: ["user1", "user2"]
+                    authorized_keys: [{name: "user1"}, {name: "user2"}]
                 },
                 {
                     user: {name: "user3"},
-                    authorized_keys: ["user1", "user3"]
+                    authorized_keys: [{name: "user1"}, {name: "user3"}]
                 }
             ],
             includes: {
@@ -659,11 +683,12 @@ describe("validating group categories include with duplicated groups", function 
                 users: [
                     {
                         user: {name: "userA", state: "present"},
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name: "user1",state:"present"}]
                     },
                     {
                         user: {name: "user3", state: "present"},
-                        authorized_keys: ["user1", "user3"]
+                        authorized_keys: [{name: "user1",state:"present"},
+                            {name: "user3",state:"present"}]
                     }
                 ],
                 groups: [
@@ -683,6 +708,7 @@ describe("validating group categories include with duplicated groups", function 
                 }
             }
         ];
+        console.log(loader.errors);
         expect(JSON.stringify(provider.hosts.export())).to
             .equal(JSON.stringify(validHosts));
     });

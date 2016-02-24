@@ -11,6 +11,7 @@ class HostUser extends HostDef {
     constructor(host, data) {
         super(host);
         this.data = {authorized_keys: []};
+        this._export = {};
         this.errors = [];
         if (data) {
             if (typeof data === "object") {
@@ -27,19 +28,20 @@ class HostUser extends HostDef {
                         if (data.user.state === "absent") {
                             this.data.user.state = "absent";
                         }
+                        this._export.user = this.data.user.exportId();
                     } else {
                         logger.logAndThrow(`The user ${data.user.name} does not exist in valid users.`);
                     }
                 }
                 if (data.authorized_keys) {
-                    data.authorized_keys.forEach((username)=> {
-                        var user = this.provider.users.findUserByName(username);
+                    data.authorized_keys.forEach((authorizedUserDef)=> {
+                        var user = this.provider.users.findUserByName(authorizedUserDef.name);
                         if (!user) {
                             logger.logAndAddToErrors(
-                                `User with name ${username} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
+                                `User with name ${authorizedUserDef} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
                         } else {
                             try {
-                                this.addAuthorizedUser(user);
+                                this.addAuthorizedUser(user, authorizedUserDef.state);
                             } catch (e) {
                                 logger.logAndAddToErrors(`There was an error adding an authorised key to the user ${data.user.name}. ${e.message}`, this.errors);
                             }
@@ -53,17 +55,34 @@ class HostUser extends HostDef {
         }
     }
 
-    addAuthorizedUser(user) {
+    addAuthorizedUser(user, state) {
+        //if the user has been marked as absent and will be deleted
+        //authorized keys are not superfluous.
+        if (this.state=='absent'){
+            return;
+        }
         if (user instanceof User) {
             var validUser = this.provider.users.findUser(user);
             //if this is not a valid user or the user is valid
             //but marked as globally absent then don't add keys
-            if (!validUser || validUser.state === "absent" || !validUser.key) {
-                logger.logAndThrow(`The user ${user.name} is not in validUsers, is absent or does not have an public key defined`);
+            if (!validUser || !validUser.key) {
+                logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have an public key defined`);
                 return;
             }
+            //detect if user already in keys
             if (!this.provider.users.findUser(user, this.data.authorized_keys)) {
-                this.data.authorized_keys.push(user.clone());
+                let authorizedUser = user.clone();
+                if (state === "absent") {
+                    authorizedUser.state = "absent";
+                }
+                this.data.authorized_keys.push(authorizedUser);
+                if (!this._export.authorized_keys){
+                    this._export.authorized_keys=[];
+                }
+                this._export.authorized_keys.push({
+                    name:  authorizedUser.name,
+                    state: authorizedUser.state
+                });
             } else {
                 logger.info(`User ${user.name} is already in host users authorized keys`);
             }
@@ -77,9 +96,9 @@ class HostUser extends HostDef {
             if (hostUser.name !== this.name) {
                 logger.logAndThrow(`User ${hostUser.name} does not match ${this.data.name}`);
             }
-            hostUser.authorized_keys.forEach((user)=> {
+            hostUser.authorized_keys.forEach((authorizedUser)=> {
                 try {
-                    this.addAuthorizedUser(user);
+                    this.addAuthorizedUser(authorizedUser, authorizedUser.state);
                 } catch (e) {
                     this.errors.push(e.message);
                 }
@@ -93,23 +112,20 @@ class HostUser extends HostDef {
         return this.data.user;
     }
 
-    get name(){
+    get state() {
+        return this.data.user.state;
+    }
+
+    get name() {
         return this.data.user.name;
     }
+
     get authorized_keys() {
         return this.data.authorized_keys;
     }
 
     export() {
-        var obj = {};
-        obj.user = this.data.user.exportId();
-        //if (this.data.authorized_keys && this.data.authorized_keys.length>0) {
-            obj.authorized_keys = [];
-            this.data.authorized_keys.forEach((user)=> {
-                obj.authorized_keys.push(user.name);
-            });
-        //}
-        return obj;
+        return this._export;
     }
 
 }

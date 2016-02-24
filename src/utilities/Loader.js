@@ -8,7 +8,7 @@ import HostUser from '../coremodel/hostcomponents/HostUser';
 import HostGroup from '../coremodel/hostcomponents/HostGroup';
 import logger from '../Logger';
 
-class Controller {
+class Loader {
 
     constructor(provider) {
         if (!provider || !provider instanceof Provider) {
@@ -123,7 +123,5 @@ class Controller {
 
 }
 
-export
-default
-Controller;
+export default Loader;
     

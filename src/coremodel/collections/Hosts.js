@@ -63,7 +63,7 @@ class Hosts {
             logger.logAndThrow(`Error adding host - ${e.message}`);
         }
 
-        //Configure ssh for host if configured
+        //Configure hostSsh for host if configured
         if (hostDef.ssh) {
             try {
                 host.addSsh(hostDef.ssh);
@@ -83,12 +83,11 @@ class Hosts {
             hostDef.users.forEach(
                 (userdef) => {
                     try {
-                        var hostuser = new HostUser(host, userdef);
-                        host.addHostUser(hostuser);
-
+                        var hostUser = new HostUser(host, userdef);
+                        host.addHostUser(hostUser);
                         Array.prototype.push.apply(
                             this.errors[host.name],
-                            hostuser.errors);
+                            hostUser.errors);
                     }
                     catch (e) {
                         logger.logAndAddToErrors(`Error adding host user - ${e.message}`,

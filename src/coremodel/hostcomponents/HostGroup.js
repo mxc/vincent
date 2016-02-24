@@ -84,6 +84,10 @@ class HostGroup extends HostDef {
         return this.data.members;
     }
 
+    get state(){
+        return this.data.group.state;
+    }
+
     addMember(user) {
         if (user instanceof User) {
             //Users should be in global object Coach
@@ -93,7 +97,6 @@ class HostGroup extends HostDef {
                     if (muser.equals(validUser)) {
                         return muser;
                     }
-                    ;
                 });
                 if (t_user) {
                     logger.logAndAddToErrors(`${user.name} is already a member of group ${this.data.name}`, this.errors);

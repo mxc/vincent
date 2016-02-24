@@ -1,7 +1,7 @@
 import Provider from "../src/Provider.js";
 import User from "../src/coremodel/User";
 import Group from "../src/coremodel/Group";
-
+//import Loader from '../src/utilities/Loader ';
 var Loader = require('../src/utilities/Loader').default;
 
 
@@ -39,11 +39,14 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{ name:"user1", state: "present"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [
+                        { name:"user1", state: "present"},
+                        { name:"user2", state: "absent"}
+                    ]
                 }
             ],
             groups: [
@@ -86,11 +89,11 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "waldo"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 },
                 {
                     user: {name: "user2", state: "present"},
-                    authorized_keys: ["user1"]
+                    authorized_keys: [{name:"user1"}]
                 },
                 {
                     user: {name: "user3"}
@@ -120,11 +123,11 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: ["user1", "user3", "waldo", "user4"]
+                    authorized_keys: [{name:"user1"}, {name:"user3"}, {name:"waldo"}, {name:"user4"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: ["user1", "user4"]
+                    authorized_keys: [{name:"user1"}, {name:"user4"}]
                 }
             ],
             groups: [
@@ -192,11 +195,10 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present" },
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{ name:"user1", state: "present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
-                        authorized_keys: ["user1"]
                     }
                 ],
                 groups: [
@@ -224,7 +226,7 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user2", state: "absent"},
-                        authorized_keys: ["user1"]
+                        authorized_keys: [{name:"user1"}]
                     },
                     {
                         user: {name: "user3", state: "present"},
@@ -251,11 +253,10 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: ["user1", "user3"]
+                        authorized_keys: [{name:"user1"}, {name:"user3", state:"absent"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
-                        authorized_keys: ["user1"]
                     }
                 ],
                 groups: [

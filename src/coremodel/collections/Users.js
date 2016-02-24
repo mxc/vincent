@@ -51,7 +51,7 @@ class Users {
     findUserByName(user) {
         if (typeof user === 'string') {
             return this.validUsers.find((muser)=> {
-                if (muser.name === user){
+                if (muser.name === user) {
                     return muser;
                 }
             });
