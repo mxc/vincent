@@ -16,8 +16,10 @@ class SshConfigs {
 
         this.data = {};
         this.data.configs = {};
+        let configDir = provider.config.get('configdir');
         if (!sshconfigsData) {
-            sshconfigsData = JSON.parse(fs.readFileSync(provider.configdir + '/includes/ssh-configs.json'));
+            sshconfigsData = JSON.parse(fs.readFileSync(
+                configDir + '/db/includes/ssh-configs.json'));
         }
 
         sshconfigsData.forEach((sshconfig)=> {

@@ -89,7 +89,7 @@ class Host extends Base {
                 if (this.provider.users.findUser(hostUser.user)) {
                     var foundHostUser = this.findHostUser(hostUser);
                     if (foundHostUser) {
-                        logger.info("User ${user.name} already exists on host,merging authorized_keys.");
+                        logger.info(`User ${user.name} already exists on host,merging authorized_keys.`);
                         this.mergeUsers(foundHostUser, hostUser);
                     } else {
                         this.data.users.push(hostUser);
@@ -99,7 +99,7 @@ class Host extends Base {
                     }
                     Array.prototype.push.apply(this.errors, hostUser.errors);
                 } else {
-                    logger.logAndThrow("User ${user.name} was not found in the valid users list.");
+                    logger.logAndThrow(`User ${user.name} was not found in the valid users list.`);
                 }
             } else {
                 logger.logAndThrow("The parameter hostUser must be of type HostUser.");

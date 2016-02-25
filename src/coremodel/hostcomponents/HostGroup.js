@@ -12,7 +12,7 @@ class HostGroup extends HostDef {
 
     constructor(host, data) {
         super(host);
-        this.data = {members: []};
+        this.data = {members:[]};
         this.data.source = data;
         this.errors = [];
         if (data) {
@@ -84,7 +84,7 @@ class HostGroup extends HostDef {
         return this.data.members;
     }
 
-    get state(){
+    get state() {
         return this.data.group.state;
     }
 
@@ -93,6 +93,9 @@ class HostGroup extends HostDef {
             //Users should be in global object Coach
             var validUser = this.provider.users.findUser(user);
             if (validUser && validUser.state != "absent") {
+                //if (!this.data.members) {
+                //    this.data.members = [];
+                //}
                 var t_user = this.data.members.find((muser) => {
                     if (muser.equals(validUser)) {
                         return muser;
@@ -129,10 +132,12 @@ class HostGroup extends HostDef {
     export() {
         var obj = {};
         obj.group = this.data.group.exportId();
-        obj.members = [];
-        this.data.members.forEach((member)=> {
-            obj.members.push(member.name);
-        });
+        if (this.data.members.length>0) {
+            obj.members = [];
+            this.data.members.forEach((member)=> {
+                obj.members.push(member.name);
+            });
+        }
         return obj;
     }
 

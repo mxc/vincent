@@ -38,7 +38,7 @@ class HostUser extends HostDef {
                         var user = this.provider.users.findUserByName(authorizedUserDef.name);
                         if (!user) {
                             logger.logAndAddToErrors(
-                                `User with name ${authorizedUserDef} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
+                                `User with name ${authorizedUserDef.name} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
                         } else {
                             try {
                                 this.addAuthorizedUser(user, authorizedUserDef.state);
@@ -57,7 +57,7 @@ class HostUser extends HostDef {
 
     addAuthorizedUser(user, state) {
         //if the user has been marked as absent and will be deleted
-        //authorized keys are not superfluous.
+        //authorized keys are superfluous.
         if (this.state=='absent'){
             return;
         }
@@ -66,7 +66,7 @@ class HostUser extends HostDef {
             //if this is not a valid user or the user is valid
             //but marked as globally absent then don't add keys
             if (!validUser || !validUser.key) {
-                logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have an public key defined`);
+                logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined`);
                 return;
             }
             //detect if user already in keys

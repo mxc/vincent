@@ -5,11 +5,12 @@ import SshConfigs from './coremodel/includes/SshConfigs';
 import UserCategories from './coremodel/includes/UserCategories';
 import GroupCategories from './coremodel/includes/GroupCategories';
 import SudoerEntries from './coremodel/includes/SudoerEntries';
+import Config from './config.ini';
 
 class Provider {
 
-    constructor() {
-        this.configdir = "/home/mark/NetBeansProjects/ansible-coach/conf-example";
+    constructor(path) {
+        this.config = new Config(path);
         this.users = new Users(this);
         this.groups = new Groups(this);
         this.hosts = new Hosts(this);

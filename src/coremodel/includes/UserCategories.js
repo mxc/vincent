@@ -14,8 +14,12 @@ class UserCategories {
 
         this.data = {};
         this.data.configs = {};
+
+        let configDir = provider.config.get('configdir');
+
         if (!userCategoriesData) {
-            userCategoriesData = JSON.parse(fs.readFileSync(provider.configdir + '/includes/user-categories.json'));
+            userCategoriesData = JSON.parse(fs.readFileSync(
+                configDir + '/db/includes/user-categories.json'));
         }
 
         if (Array.isArray(userCategoriesData)) {
@@ -38,6 +42,8 @@ class UserCategories {
     clear() {
         this.data.configs = [];
     }
+
 }
+
 
 export default UserCategories;

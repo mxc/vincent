@@ -15,8 +15,8 @@ describe("testing of yaml generator", function () {
     "use strict";
 
     var validUsers = [
-        new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
-        new User({name: 'user2', key: undefined, state: 'absent', uid: undefined}),
+        new User({name: 'userA', key: 'userA.pub', state: 'present', uid: undefined}),
+        new User({name: 'userB', key: undefined, state: 'absent', uid: undefined}),
         new User({name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'}),
         new User({name: 'user4', key: undefined, state: 'present', uid: undefined})
     ];
@@ -45,12 +45,12 @@ describe("testing of yaml generator", function () {
             name: "www.example.com",
             users: [
                 {
-                    user: {name: "user1", state: "present"},
-                    authorized_keys: ["user1"]
+                    user: {name: "userA", state: "present"},
+                    authorized_keys: [{name:"userA", state:"present"}]
                 },
                 {
-                    user: {name: "user2", state: "absent"},
-                    authorized_keys: ["user1"]
+                    user: {name: "userB", state: "absent"},
+                    authorized_keys: [{name:"userA", state:"present"}]
                 }
             ],
             groups: [
@@ -61,8 +61,7 @@ describe("testing of yaml generator", function () {
                     ]
                 },
                 {
-                    group: {name: "group2", state: "present"},
-                    members: []
+                    group: {name: "group2", state: "present"}
                 },
                 {
                     group: {name: "group3", state: "present"},

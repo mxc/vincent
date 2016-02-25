@@ -5,10 +5,31 @@
 import Generator from '../coremodel/Generator';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import Host from '../coremodel/Host.js';
 
 class AnsibleGenerator extends Generator {
 
-    generate(host) {
+    constructor(){
+        this.inventory=[];
+        this.playbooks = {};
+    }
+
+    generate(hosts){
+            if (Array.isArray(hosts)){
+                hosts.forEach((host)=>{
+                       if (host instanceof Host){
+                        this.playbooks[host.name]=this.generateHost(host);
+                    }
+                });
+            }
+    }
+
+    export(){
+
+    }
+
+    generateHost(host) {
+        this.inventory.push(host);
         var playbook = [];
         playbook.push({hosts: host.name, tasks:[]});
         //playbook.push({tasks: []});
@@ -28,7 +49,7 @@ class AnsibleGenerator extends Generator {
                     name: "User authorized key state check",
                     authorized_key: {
                         user:`${user.name}`,
-                        key:`{{ lookup('file',${authorizedUser.key}) }}`,
+                        key:`{{ lookup('file','${authorizedUser.key}') }}`,
                         manage_dir:'yes',
                         state: `${authorizedUser.state}`
                     },
@@ -80,7 +101,7 @@ class AnsibleGenerator extends Generator {
                 });
             }
         }
-        console.log(yaml.safeDump(playbook));
+        return yaml.safeDump(playbook);
     }
 
 }

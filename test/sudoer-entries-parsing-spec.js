@@ -126,7 +126,6 @@ describe("validating host configuration with sudoer entry config", function () {
                     },
                     {
                         group: {name: "group2", state: "present"},
-                        members: []
                     },
                     {
                         group: {name: "group3", state: "present"},
@@ -166,8 +165,6 @@ describe("validating host configuration with sudoer entry config", function () {
     });
 
     it('should produce the correct line for insertion into sudoer file', function () {
-        console.log(provider.hosts.find("www.example.co.za").sudoerEntries[0]
-            .sudoEntry.entry);
         expect(provider.hosts.find("www.example.co.za").sudoerEntries[0].sudoEntry.entry).to.equal('%group1,user1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
     });
 
@@ -290,7 +287,6 @@ describe("validating host configuration with sudo entry and invalid users", func
                     },
                     {
                         group: {name: "group2", state: "present"},
-                        members: []
                     },
                     {
                         group: {name: "group3", state: "present"},
@@ -465,7 +461,6 @@ describe("validating host configuration with sudo entry include", function () {
                     },
                     {
                         group: {name: "group2", state: "present"},
-                        members: []
                     },
                     {
                         group: {name: "group3", state: "present"},

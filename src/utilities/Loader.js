@@ -7,6 +7,8 @@ import Host from '../coremodel/Host';
 import HostUser from '../coremodel/hostcomponents/HostUser';
 import HostGroup from '../coremodel/hostcomponents/HostGroup';
 import logger from '../Logger';
+import fs from 'fs';
+
 
 class Loader {
 
@@ -53,13 +55,35 @@ class Loader {
     loadModel() {
         //reset errors array at beginning of validation
         this.errors.length = 0;
+        //user configuration
+        try {
+            let users = fs.readFileSync(this.provider.config.get('confdir') + '/db/users.json', 'utf-8');
+            this.loadUsers(users);
+        } catch (e) {
+            logger.logAndAddToErrors(`Error loading the users config ${config} - ${e.message}`, this.errors);
+            //if we can't load users we won't be able to load hosts so return
+            return false;
+        }
+        ////group configuration
+        try {
+            let groups = fs.readFileSync(this.provider.config.get('confdir') + '/db/groups.json', 'utf-8');
+            this.loadGroups(groups);
+        } catch (e) {
+            logger.logAndAddToErrors(`Error loading groups config ${config} - ${e.message}`, this.errors);
+            //if we can't load groups we probably won't be able to load hosts
+            return false;
+        }
+        ////host configuration
+        try {
+            let hostConfigs = fs.readdirSync(this.provider.config.get('confdir') + '/db/hosts');
+            hostConfigs.forEach((config)=> {
+                let hosts = fs.readFileSync(this.provider.config.get('confdir') + '/db/hosts.json', 'utf-8');
+                this.loadHosts(config);
+            });
+        } catch (e) {
+            logger.logAndAddToErrors(`Error loading host config ${config} - ${e.message}`, this.errors);
+        }
 
-        //basic user configuration validation
-        this.parsedUsers = this.loadUsers(users);
-        ////basic group configuration validation
-        this.parsedGroups = this.loadGroups(groups);
-        ////basic host configuration validation
-        this.parsedHosts = this.loadHosts(users, groups);
         if (this.errors.length > 0) {
             return false;
         } else {
@@ -82,10 +106,11 @@ class Loader {
         hosts.forEach((hostdef) => {
             try {
                 let host = this.provider.hosts.import(hostdef);
+                //console.log(this.provider.hosts.errors[host.name]);
                 Array.prototype.push.apply(this.errors, this.provider.hosts.errors[host.name]);
             }
             catch (e) {
-                    this.errors.push(e.message);
+                this.errors.push(e.message);
             }
         });
         return this.provider.hosts.validHosts;

@@ -81,9 +81,9 @@ class Hosts {
         //add users to host
         if (hostDef.users) {
             hostDef.users.forEach(
-                (userdef) => {
+                (userDef) => {
                     try {
-                        var hostUser = new HostUser(host, userdef);
+                        var hostUser = new HostUser(host, userDef);
                         host.addHostUser(hostUser);
                         Array.prototype.push.apply(
                             this.errors[host.name],

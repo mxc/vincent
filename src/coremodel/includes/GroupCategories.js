@@ -8,15 +8,20 @@ import fs from 'fs';
 class GroupCategories {
 
     constructor(provider, groupCategoriesData) {
+
         if (!provider || !(provider instanceof Provider)) {
             logger.logAndThrow("Parameter data provider must be of type provider");
         }
 
         this.data = {};
         this.data.configs = {};
+        let configDir = provider.config.get('configdir');
+
         if (!groupCategoriesData) {
-            groupCategoriesData = JSON.parse(fs.readFileSync(provider.configdir + '/includes/group-categories.json'));
+            groupCategoriesData = JSON.parse(fs.readFileSync(configDir
+                + '/db/includes/group-categories.json'));
         }
+
         if (Array.isArray(groupCategoriesData)) {
             groupCategoriesData.forEach((groupCategory)=> {
                 if (!groupCategory.name || !groupCategory.config){

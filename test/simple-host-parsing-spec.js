@@ -184,7 +184,7 @@ describe("validating host configuration", function () {
 
     it("should detect defined user with missing key in user's authorized_keys list", function () {
         expect(loader.errors.indexOf("There was an error adding an authorised key to the " +
-            "user user1. The user user4 is not in validUsers, is absent or does not have an " +
+            "user user1. The user user4 is not in validUsers or does not have a " +
             "public key defined")).not.to.equal(-1);
     });
 
@@ -210,7 +210,6 @@ describe("validating host configuration", function () {
                     },
                     {
                         group: {name: "group2", state: "present"},
-                        members: []
                     },
                     {
                         group: {name: "group3", state: "present"},
@@ -226,25 +225,20 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user2", state: "absent"},
-                        authorized_keys: [{name:"user1"}]
                     },
                     {
                         user: {name: "user3", state: "present"},
-                        authorized_keys:[]
                     },
                     {
                         user: {name: "user4", state: "absent"},
-                        authorized_keys:[]
                     }
                 ],
                 groups: [
                     {
                         group: {name: "group2", state: "present"},
-                        members: []
                     },
                     {
                         group: {name: "group3", state: "present"},
-                        members: []
                     }
                 ]
             },
@@ -253,7 +247,8 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name:"user1"}, {name:"user3", state:"absent"}]
+                        authorized_keys: [{name:"user1",state:"present"},
+                            {name:"user3", state:"absent",state:"present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
@@ -262,7 +257,6 @@ describe("validating host configuration", function () {
                 groups: [
                     {
                         group: {name: "group3", state: "present"},
-                        members: []
                     }
 
                 ]

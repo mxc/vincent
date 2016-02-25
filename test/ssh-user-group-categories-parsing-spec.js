@@ -87,13 +87,12 @@ describe("validating ssh custom config", function () {
                             name: "user1",
                             state: "present",
                         },
-                        authorized_keys: [{name: "user1"}]
+                        authorized_keys: [{name: "user1", state: "present"}]
                     }, {
                         user: {
                             name: "user2",
                             state: "absent"
                         },
-                        authorized_keys: []
                     }
                 ],
                 groups: [
@@ -108,8 +107,7 @@ describe("validating ssh custom config", function () {
                         group: {
                             name: "group2",
                             state: "present"
-                        },
-                        members: []
+                        }
                     }
                 ],
                 ssh: {
@@ -226,13 +224,12 @@ describe("validating ssh include config", function () {
                             name: "user1",
                             state: "present"
                         },
-                        authorized_keys: [{name: "user1"}]
+                        authorized_keys: [{name: "user1", state:"present"}]
                     }, {
                         user: {
                             name: "user2",
                             state: "absent"
                         },
-                        authorized_keys: []
                     }
                 ],
                 groups: [
@@ -248,7 +245,6 @@ describe("validating ssh include config", function () {
                             name: "group2",
                             state: "present"
                         },
-                        members: []
                     }
                 ],
                 includes: {
@@ -364,7 +360,7 @@ describe("validating user categories include", function () {
                             name: "userA",
                             state: "present"
                         },
-                        authorized_keys: [{name: "user1"}]
+                        authorized_keys: [{name: "user1", state:"present"}]
                     }
                 ],
                 groups: [
@@ -373,8 +369,7 @@ describe("validating user categories include", function () {
                         members: ["user1", "user3"]
                     },
                     {
-                        group: {name: "group2", state: "present"},
-                        members: []
+                        group: {name: "group2", state: "present"}
                     }
                 ],
                 includes: {
@@ -512,12 +507,12 @@ describe("validating group categories include", function () {
                                     name: "user1",
                                     state: "present"
                                 },
-                                {name: "user3"}
+                                {name: "user3", state:"present"}
                             ]
                         },
                         {
                             user: {name: "user1", state: "present"},
-                            authorized_keys: [{name: "user1"}]
+                            authorized_keys: [{name: "user1", state:"present" }]
                         }
                     ],
                     groups: [
@@ -526,8 +521,7 @@ describe("validating group categories include", function () {
                             members: ["user1", "user3"]
                         },
                         {
-                            group: {name: "group2", state: "present"},
-                            members: []
+                            group: {name: "group2", state: "present"}
                         }
                     ],
                     includes: {
@@ -697,8 +691,7 @@ describe("validating group categories include with duplicated groups", function 
                         members: ["user1", "user3"]
                     },
                     {
-                        group: {name: "group2", state: "present"},
-                        members: []
+                        group: {name: "group2", state: "present"}
                     }
                 ],
                 includes: {
@@ -708,7 +701,6 @@ describe("validating group categories include with duplicated groups", function 
                 }
             }
         ];
-        console.log(loader.errors);
         expect(JSON.stringify(provider.hosts.export())).to
             .equal(JSON.stringify(validHosts));
     });
