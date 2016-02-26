@@ -2,9 +2,10 @@
  * Created by mark on 2016/02/21.
  */
 
-import Config from 'Config';
-import Provider from 'Provider';
-import Loader from 'Loader';
+import Config from './Config';
+import Provider from './Provider';
+import Loader from './utilities/Loader';
+import Saver from './utilities/Saver';
 
 class Main{
 
@@ -24,9 +25,20 @@ class Main{
 
         this.provider  = new Provider(this.configDir);
         this.loader = new Loader(this.provider);
+        this.saver = new Saver(this.provider);
+    }
+
+    load(){
+        this.loader.import();
+    }
+
+    save(){
+            this.saver.export();
     }
 
 }
 
 var app = new Main();
+app.load();
+app.save();
 

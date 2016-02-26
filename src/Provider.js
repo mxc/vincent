@@ -5,12 +5,15 @@ import SshConfigs from './coremodel/includes/SshConfigs';
 import UserCategories from './coremodel/includes/UserCategories';
 import GroupCategories from './coremodel/includes/GroupCategories';
 import SudoerEntries from './coremodel/includes/SudoerEntries';
-import Config from './config.ini';
+import Config from './Config';
 
 class Provider {
 
     constructor(path) {
-        this.config = new Config(path);
+        if (!path){
+            path = process.cwd();
+        }
+        this.config = new Config(path+"/config.ini");
         this.users = new Users(this);
         this.groups = new Groups(this);
         this.hosts = new Hosts(this);

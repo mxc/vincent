@@ -15,7 +15,7 @@ class GroupCategories {
 
         this.data = {};
         this.data.configs = {};
-        let configDir = provider.config.get('configdir');
+        let configDir = provider.config.get('confdir');
 
         if (!groupCategoriesData) {
             groupCategoriesData = JSON.parse(fs.readFileSync(configDir

@@ -52,36 +52,37 @@ class Loader {
     }
 
     //Check that the model is consistent.
-    loadModel() {
+    import() {
         //reset errors array at beginning of validation
         this.errors.length = 0;
+        let dbDir = this.provider.config.get('confdir') + '/db';
         //user configuration
         try {
-            let users = fs.readFileSync(this.provider.config.get('confdir') + '/db/users.json', 'utf-8');
+            let users = JSON.parse(fs.readFileSync(dbDir + '/users.json', 'utf-8'));
             this.loadUsers(users);
         } catch (e) {
-            logger.logAndAddToErrors(`Error loading the users config ${config} - ${e.message}`, this.errors);
+            logger.logAndAddToErrors(`Error loading the users config - ${e.message}`, this.errors);
             //if we can't load users we won't be able to load hosts so return
             return false;
         }
         ////group configuration
         try {
-            let groups = fs.readFileSync(this.provider.config.get('confdir') + '/db/groups.json', 'utf-8');
+            let groups = JSON.parse(fs.readFileSync(dbDir + '/groups.json', 'utf-8'));
             this.loadGroups(groups);
         } catch (e) {
-            logger.logAndAddToErrors(`Error loading groups config ${config} - ${e.message}`, this.errors);
+            logger.logAndAddToErrors(`Error loading groups config - ${e.message}`, this.errors);
             //if we can't load groups we probably won't be able to load hosts
             return false;
         }
         ////host configuration
         try {
-            let hostConfigs = fs.readdirSync(this.provider.config.get('confdir') + '/db/hosts');
+            let hostConfigs = fs.readdirSync(dbDir + '/hosts');
             hostConfigs.forEach((config)=> {
-                let hosts = fs.readFileSync(this.provider.config.get('confdir') + '/db/hosts.json', 'utf-8');
+                let hosts = JSON.parse(fs.readFileSync(dbDir + '/hosts.json', 'utf-8'));
                 this.loadHosts(config);
             });
         } catch (e) {
-            logger.logAndAddToErrors(`Error loading host config ${config} - ${e.message}`, this.errors);
+            logger.logAndAddToErrors(`Error loading host config - ${e.message}`, this.errors);
         }
 
         if (this.errors.length > 0) {

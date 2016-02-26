@@ -15,7 +15,7 @@ class UserCategories {
         this.data = {};
         this.data.configs = {};
 
-        let configDir = provider.config.get('configdir');
+        let configDir = provider.config.get('confdir');
 
         if (!userCategoriesData) {
             userCategoriesData = JSON.parse(fs.readFileSync(

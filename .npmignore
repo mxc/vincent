@@ -6,7 +6,5 @@ vincent.log
 *compiled*
 dist
 build
-lib
+src
 conf-example-bk
-!conf-example/db
-conf-example

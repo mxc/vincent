@@ -13,11 +13,11 @@ class Config {
     }
 
     get(key){
-        return this.config['key'];
+        return this.config.settings[key];
     }
 
     set(key,value){
-        this.config['key']= value;
+        this.config[key]= value;
     }
 
 }

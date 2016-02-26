@@ -15,10 +15,10 @@ class SudoerEntries {
 
         this.data = {};
         this.data.configs = {};
-        let configDir = provider.config.get('configdir');
+        let configDir = provider.config.get('confdir');
         if (!sudoerEntriesData) {
             sudoerEntriesData = JSON.parse(fs.readFileSync(
-                configDir + '/includes/sudoer-entries.json'));
+                configDir + '/db/includes/sudoer-entries.json'));
         }
 
         if (Array.isArray(sudoerEntriesData)) {

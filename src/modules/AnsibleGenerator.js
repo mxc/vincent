@@ -10,6 +10,7 @@ import Host from '../coremodel/Host.js';
 class AnsibleGenerator extends Generator {
 
     constructor(){
+        super();
         this.inventory=[];
         this.playbooks = {};
     }
