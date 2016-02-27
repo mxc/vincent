@@ -5,10 +5,10 @@ import Provider from "../src/Provider.js";
 import User from "../src/coremodel/User";
 import Group from "../src/coremodel/Group";
 //import Loader from '../src/utilities/Loader ';
-import AnsibleGenerator from "../src/modules/AnsibleGenerator";
+import AnsibleGenerator from "../src/modules/AnsibleWorker";
 var Loader = require('../src/utilities/Loader').default;
 
-var gen = new AnsibleGenerator();
+
 
 
 describe("testing of yaml generator", function () {
@@ -73,9 +73,10 @@ describe("testing of yaml generator", function () {
             ]
         }];
 
-    var yml="";
+
 
     var provider = new Provider();
+    var gen = new AnsibleGenerator(provider);
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
@@ -83,8 +84,15 @@ describe("testing of yaml generator", function () {
     loader.loadHosts(validHosts);
 
     it("should write to the console", function () {
-        gen.generate(provider.hosts.find("www.example.com"));
+        gen.generateHost(provider.hosts.find("www.example.com"));
+        expect(gen.export()).to.equal(true);
     });
+
+    it("should get ansible facts",function(){
+        gen.getInfo(provider.hosts.find("www.example.com"));
+    })
+
+
 })
 
 

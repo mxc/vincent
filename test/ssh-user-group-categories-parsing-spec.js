@@ -8,7 +8,7 @@ import SshConfigs from "../src/coremodel/includes/SshConfigs";
 import UserCategories from "../src/coremodel/includes/UserCategories";
 import GroupCategories from "../src/coremodel/includes/GroupCategories";
 
-global.expect = require("chai").expect;
+//global.expect = require("chai").expect;
 
 var Loader = require('../src/utilities/Loader').default;
 describe("validating ssh custom config", function () {
@@ -210,7 +210,7 @@ describe("validating ssh include config", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.sshconfigs = new SshConfigs(provider, sshConfigs);
+    provider.sshconfigs.import(sshConfigs);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
@@ -346,7 +346,7 @@ describe("validating user categories include", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.userCategories = new UserCategories(provider, userCategories);
+    provider.userCategories.import(userCategories);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     it("should return a collection of valid hosts including users from " +
@@ -485,7 +485,7 @@ describe("validating group categories include", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.groupCategories = new GroupCategories(provider, groupCategories);
+    provider.groupCategories.import(groupCategories);
     loader.loadHosts(hosts);
 
     it("should return a collection of valid hosts including group categories", function () {
@@ -665,8 +665,8 @@ describe("validating group categories include with duplicated groups", function 
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.userCategories = new UserCategories(provider, userCategories);
-    provider.groupCategories = new GroupCategories(provider, groupCategories);
+    provider.userCategories.import(userCategories);
+    provider.groupCategories.import(groupCategories);
     loader.loadHosts(hosts);
 
 

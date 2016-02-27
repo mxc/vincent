@@ -11,7 +11,7 @@ class HostSudoEntry extends HostDef {
     constructor(host, data) {
         super(host);
         this.errors = [];
-        if (!data.userList || !Array.isArray(data.userList)) {
+        if (!data && !data.userList && !Array.isArray(data.userList)) {
             logger.logAndThrow("The data def parameter for SudoEntry must have a userList array property");
         }
         this.data = new SudoEntry();

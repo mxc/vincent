@@ -43,11 +43,11 @@ describe("validating host configuration with sudoer entry config", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 }
             ],
             groups: [
@@ -104,14 +104,14 @@ describe("validating host configuration with sudoer entry config", function () {
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
-    it('should load sudo entries correctly', function () {
+    it('should load2 sudo entries correctly', function () {
         var validHosts = [
             {
                 name: "www.example.co.za",
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name:"user1",state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
@@ -204,11 +204,11 @@ describe("validating host configuration with sudo entry and invalid users", func
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 }
             ],
             groups: [
@@ -272,7 +272,7 @@ describe("validating host configuration with sudo entry and invalid users", func
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name:"user1",state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
@@ -397,11 +397,11 @@ describe("validating host configuration with sudo entry include", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 }
             ],
             groups: [
@@ -435,7 +435,7 @@ describe("validating host configuration with sudo entry include", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.sudoerEntries = new SudoerEntries(provider, sudoerEntries);
+    provider.sudoerEntries.import(sudoerEntries);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
@@ -445,11 +445,11 @@ describe("validating host configuration with sudo entry include", function () {
                 name: "www.example.com",
                 users: [
                     {
-                        user:{name: "user1", state: "present"},
-                        authorized_keys: [{name:"user1", state:"present"}]
+                        user: {name: "user1", state: "present"},
+                        authorized_keys: [{name: "user1", state: "present"}]
                     },
                     {
-                        user:{name: "user2", state: "absent"},
+                        user: {name: "user2", state: "absent"},
                     }
                 ],
                 groups: [

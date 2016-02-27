@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import dateformat from 'dateformat';
+import logger from '../Logger';
 
 class Saver {
 

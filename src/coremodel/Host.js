@@ -268,6 +268,7 @@ class Host extends Base {
             }
         }
         catch (e) {
+            console.log(e.message);
             logger.logAndThrow(`Error adding SudoerEntry - ${e.message}`);
         }
     }

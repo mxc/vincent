@@ -31,7 +31,7 @@ class Loader {
             groupCategories = JSON.parse(fs.readFileSync(this.config.confdir + 'includes/group-categories.js'));
         }
 
-        //parse category groups to update for members which reference a user category.
+        //parse category groups to load2 for members which reference a user category.
         for (var groupCategory in groupCategories) {
             groupCategories[groupCategory].forEach((group)=> {
                 var parsedGroupMembers = [];
@@ -56,40 +56,75 @@ class Loader {
         //reset errors array at beginning of validation
         this.errors.length = 0;
         let dbDir = this.provider.config.get('confdir') + '/db';
-        //user configuration
         try {
-            let users = JSON.parse(fs.readFileSync(dbDir + '/users.json', 'utf-8'));
-            this.loadUsers(users);
+            //user configuration
+            fs.readFile(dbDir + '/users.json', 'utf-8', (err, data)=> {
+                try {
+                    let users = JSON.parse(data);
+                    this.loadUsers(users);
+                } catch (e) {
+                    logger.logAndAddToErrors(`Error loading the users config - ${e.message}`, this.errors);
+                    //if we can't load2 users we won't be able to load2 hosts so return
+                    return false;
+                }
+                ////group configuration
+                fs.readFile(dbDir + '/groups.json', 'utf-8', (err, data)=> {
+                    try {
+                        let groups = JSON.parse(data);
+                        this.loadGroups(groups);
+                    } catch (e) {
+                        logger.logAndAddToErrors(`Error loading groups config - ${e.message}`, this.errors);
+                        //if we can't load2 groups we probably won't be able to load2 hosts
+                        return false;
+                    }
+                    //hosts configuration
+                    fs.readdir(dbDir + '/hosts', (err, hostConfigs)=> {
+                        hostConfigs.forEach((config)=> {
+                            try {
+                                fs.readFileSync(dbDir + '/{$config}', 'utf-8', (err, data)=> {
+                                    let hosts = JSON.parse(data);
+                                    this.loadHosts(hosts);
+                                });
+                            } catch (e) {
+                                logger.logAndAddToErrors(`Error loading host config - ${e.message}`, this.errors);
+                            }
+
+                        });
+                    });
+                });
+            });
+            //let users = JSON.parse(fs.readFileSync(dbDir + '/users.json', 'utf-8'));
+            //this.loadUsers(users);
         } catch (e) {
             logger.logAndAddToErrors(`Error loading the users config - ${e.message}`, this.errors);
-            //if we can't load users we won't be able to load hosts so return
+            //if we can't load2 users we won't be able to load2 hosts so return
             return false;
         }
-        ////group configuration
-        try {
-            let groups = JSON.parse(fs.readFileSync(dbDir + '/groups.json', 'utf-8'));
-            this.loadGroups(groups);
-        } catch (e) {
-            logger.logAndAddToErrors(`Error loading groups config - ${e.message}`, this.errors);
-            //if we can't load groups we probably won't be able to load hosts
-            return false;
-        }
+        //////group configuration
+        //try {
+        //    let groups = JSON.parse(fs.readFileSync(dbDir + '/groups.json', 'utf-8'));
+        //    this.loadGroups(groups);
+        //} catch (e) {
+        //    logger.logAndAddToErrors(`Error loading groups config - ${e.message}`, this.errors);
+        //    //if we can't load2 groups we probably won't be able to load2 hosts
+        //    return false;
+        //}
         ////host configuration
-        try {
-            let hostConfigs = fs.readdirSync(dbDir + '/hosts');
-            hostConfigs.forEach((config)=> {
-                let hosts = JSON.parse(fs.readFileSync(dbDir + '/hosts.json', 'utf-8'));
-                this.loadHosts(config);
-            });
-        } catch (e) {
-            logger.logAndAddToErrors(`Error loading host config - ${e.message}`, this.errors);
-        }
+        //try {
+        //    let hostConfigs = fs.readdirSync(dbDir + '/hosts');
+        //    hostConfigs.forEach((config)=> {
+        //        let hosts = JSON.parse(fs.readFileSync(dbDir + '/hosts.json', 'utf-8'));
+        //        this.loadHosts(config);
+        //    });
+        //} catch (e) {
+        //    logger.logAndAddToErrors(`Error loading host config - ${e.message}`, this.errors);
+        //}
 
-        if (this.errors.length > 0) {
-            return false;
-        } else {
-            return true;
-        }
+        //if (this.errors.length > 0) {
+        //    return false;
+        //} else {
+        //    return true;
+        //}
     }
 
     loadGroups(groupdata) {
