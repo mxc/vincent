@@ -2,13 +2,15 @@
  * Created by mark on 2016/02/21.
  */
 
-import Generator from '../coremodel/Worker';
+import Worker from '../coremodel/Worker';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import Host from '../coremodel/Host.js';
 import logger from '../Logger';
+import child_process from 'child_process';
+require("babel-polyfill");
 
-class AnsibleWorker extends Generator {
+class AnsibleWorker extends Worker {
 
     constructor(provider) {
         super();
@@ -29,32 +31,114 @@ class AnsibleWorker extends Generator {
         }
     }
 
-    export() {
-        try {
-            fs.statSync(this.playbookDir)
-        } catch (e) {
-            if (e.message.indexOf("Error: ENOENT: no such file or directory, stat")) {
-                try {
-                    fs.mkdir(this.playbookDir);
-                } catch (e) {
-                    logger.logAndThrow("Error attempting to create playbook directory");
+    export(host) {
+        return new Promise((resolve, reject)=> {
+            this.mkPlayBookDir()
+                .then((resultObject)=> {
+                    if (host instanceof Host) {
+                        resultObject.host = host;
+                        return this.writePlaybooks(resultObject);
+                    } else {
+                        return this.writePlaybooks(resultObject);
+                    }
+                })
+                .then(this.writeInventory)
+                .then(resolve, reject)
+                .catch((e)=> {
+                    console.log(e)
+                });
+        });
+    }
+
+    mkPlayBookDir() {
+        let self = this;
+        return new Promise((resolve)=> {
+            fs.stat(this.playbookDir, (err)=> {
+                if (err) {
+                    fs.mkdir(this.playbookDir, (err) => {
+                        if (err) {
+                            logger.logAndThrow("Error attempting to create playbook directory");
+                        } else {
+                            resolve({
+                                msg: "Created playbooks directory.",
+                                self: self
+                            });
+                        }
+                    });
+                } else {
+                    resolve({
+                        msg: "Playbooks directory found.",
+                        self: self
+                    });
                 }
-            }
-        }
-        for (let node  in this.playbooks) {
-            try {
-                fs.writeFileSync(this.playbookDir + `/${node}.yml`, this.playbooks[node]);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error attempting to create playbook for ${node}`, this.errors);
-            }
-        }
-        let inventory = this.inventory.join("/n/r");
+            });
+        });
+    }
+
+    writePlaybooks(resultObj) {
         try {
-            fs.writeFileSync(this.playbookDir + `/inventory`, inventory);
+            if (resultObj.host) {
+                return resultObj.self.writePlaybook({
+                    playbook: resultObj.host.name,
+                    self: resultObj.self
+                });
+            }
+            //else
+            let promises = [];
+            for (let playbookTitle in resultObj.self.playbooks) {
+                promises.push(resultObj.self.writePlaybook({
+                    playbook: playbookTitle,
+                    self: resultObj.self
+                }));
+            }
+            return Promise.all(promises).then(()=>{
+                    return resultObj;
+            });
         } catch (e) {
-            logger.logAndAddToErrors("Error creating inventory file for ansible", this.errors);
+            console.log(e.message);
         }
-        return this.errors.length > 0 ? false : true;
+    }
+
+    writePlaybook(resultObj) {
+        return new Promise((resolve,reject)=> {
+            try {
+                fs.writeFile(resultObj.self.playbookDir + `/${resultObj.playbook}.yml`,
+                    resultObj.self.playbooks[resultObj.playbook],
+                    (err)=> {
+                        if (err) {
+                            logger.logAndAddToErrors(`Error attempting to create playbook for ${playbook}`,
+                                resultObj.self.errors);
+                            reject(err);
+                        } else {
+                            resolve({self: resultObj.self});
+                        }
+                    });
+            } catch (e) {
+                console.log(e.message);
+            }
+        });
+    }
+
+    writeInventory(resultObj) {
+        return new Promise((resolve, reject)=> {
+            try {
+                let inventory = resultObj.self.inventory.join("/n/r");
+                fs.writeFile(resultObj.self.playbookDir + `/inventory`, inventory, (err)=> {
+                    if (err) {
+                        logger.logAndAddToErrors("Error creating inventory file for ansible",
+                            resultObj.self.errors);
+                        reject(err);
+                    }
+                    if (resultObj.self.errors.length > 0) {
+                        reject(resultObj.self.errors);
+                    } else {
+                        resolve("success");
+                    }
+                });
+            } catch (e) {
+                console.log(e.message);
+            }
+        });
     }
 
     generateHost(host) {
@@ -134,22 +218,50 @@ class AnsibleWorker extends Generator {
         return this.playbooks[host.name];
     }
 
-    getInfo(host){
-        if(host instanceof Host){
-            let host = host.name;
-            let proc = child_process_exec('ansible' ['-m setup',host]);
-            proc.stdout.on('data',(data)=>{
-                    console.log(data);
-            });
-            proc.stderr.on('data',(data)=>{
-                    console.log(data);
-            });
-        }else if (typeof host != 'string'){
+    getInfo(host) {
+        if (host instanceof Host && host.name) {
+            var hostname = host.name;
+        } else if (typeof host == 'string') {
+            hostname = host;
+        } else {
             logger.logAndThrow("The host parameter must be of type Host or a host name string.");
         }
 
+        let proc = child_process.exec(`ansible -m setup -i inventory ${hostname}`,
+            {cwd: this.playbookDir});
+        let promise = new Promise(function (resolve, reject) {
+            proc.stdout.on('data', (data)=> {
+                resolve(data);
+            });
+            proc.stderr.on('data', (data)=> {
+                reject(data);
+            });
+        });
+        return promise;
     }
-}
 
+    runPlaybook(host,opts) {
+        var opts = "";
+        if (host instanceof Host && host.name) {
+            var hostname = host.name;
+        } else if (typeof host == 'string') {
+            hostname = host;
+        } else {
+            logger.logAndThrow("The host parameter must be of type Host or a host name string.");
+        }
+        let proc = child_process.exec(`ansible-playbook -i inventory ${opts} ${hostname}.yml`,
+            {cwd: this.playbookDir});
+        let promise = new Promise(function (resolve, reject) {
+            proc.stdout.on('data', (data)=> {
+                resolve(data);
+            });
+            proc.stderr.on('data', (data)=> {
+                reject(data);
+            });
+        });
+        return promise;
+    }
+
+}
 
 export default AnsibleWorker;

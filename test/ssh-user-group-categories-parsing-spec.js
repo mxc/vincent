@@ -10,7 +10,7 @@ import GroupCategories from "../src/coremodel/includes/GroupCategories";
 
 //global.expect = require("chai").expect;
 
-var Loader = require('../src/utilities/Loader').default;
+var Loader = require('../src/utilities/FileDbLoader').default;
 describe("validating ssh custom config", function () {
 
     var validUsers = [
@@ -210,7 +210,7 @@ describe("validating ssh include config", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.sshconfigs.import(sshConfigs);
+    provider.sshConfigs.load(sshConfigs);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
@@ -346,7 +346,7 @@ describe("validating user categories include", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.userCategories.import(userCategories);
+    provider.userCategories.load(userCategories);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     it("should return a collection of valid hosts including users from " +
@@ -485,7 +485,7 @@ describe("validating group categories include", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.groupCategories.import(groupCategories);
+    provider.groupCategories.load(groupCategories);
     loader.loadHosts(hosts);
 
     it("should return a collection of valid hosts including group categories", function () {
@@ -665,8 +665,8 @@ describe("validating group categories include with duplicated groups", function 
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.userCategories.import(userCategories);
-    provider.groupCategories.import(groupCategories);
+    provider.userCategories.load(userCategories);
+    provider.groupCategories.load(groupCategories);
     loader.loadHosts(hosts);
 
 

@@ -8,8 +8,8 @@ import HostDef from './HostDef';
 
 class HostUser extends HostDef {
 
-    constructor(host, data) {
-        super(host);
+    constructor(provider, data) {
+        super(provider);
         this.data = {authorized_keys: []};
         this._export = {};
         this.errors = [];

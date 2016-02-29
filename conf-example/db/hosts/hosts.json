@@ -3,29 +3,29 @@
         "name": "www.example.com",
         "users": [
             {
-                "name": "user1",
+                "user":{"name": "user1"},
                 "authorized_keys": ["user1"]
             },
             {
-                "name": "user2",
+                "user":{"name": "user2"},
                 "authorized_keys": ["user1"]
             }
         ],
         "groups": [
             {
-                "name": "group1",
+                "group":{"name": "group1"},
                 "members": [
                     "user1"
                 ]
             },
             {
-                "name": "group2",
+                "group":{"name": "group2"},
                 "members": [
                     "user2"
                 ]
             },
             {
-                "name": "group3",
+                "group":{"name": "group3"},
                 "members": [
                     "user1",
                     "user2"
@@ -55,19 +55,19 @@
         "name": "www.test.com",
         "users": [
             {
-                "name": "user2",
+                "user":{"name": "user2"},
                 "authorized_keys": ["user1"]
             }
         ],
         "groups": [
             {
-                "name": "group2",
+                "group":{"name": "group2"},
                 "members": [
                     "user2"
                 ]
             },
             {
-                "name": "group3",
+                "group":{"name": "group3"},
                 "members": [
                     "user2"
                 ]
@@ -84,17 +84,17 @@
         "name": "www.abc.co.za",
         "users": [
             {
-                "name": "user1",
+                "user":{"name": "user1"},
                 "authorized_keys": ["user1", "user3"]
             },
             {
-                "name": "user2",
+                "user":{"name": "user2"},
                 "authorized_keys": ["user1"]
             }
         ],
         "groups": [
             {
-                "name": "group3",
+                "group":{"name": "group3"},
                 "members": [
                     "user2"
                 ]

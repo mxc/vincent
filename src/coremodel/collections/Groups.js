@@ -75,15 +75,19 @@ class Groups {
         }
     }
 
-    import(groupdata, errors) {
-        groupdata.forEach((data) => {
-            try {
-                var group = new Group(data);
-                this.add(group);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error validating group. ${e.message}`, errors);
-            }
-        });
+    load(groupDef, errors) {
+        if (Array.isArray(groupDef)) {
+            groupDef.forEach((data) => {
+                try {
+                    var group = new Group(data);
+                    this.add(group);
+                } catch (e) {
+                    logger.logAndAddToErrors(`Error validating group. ${e.message}`, errors);
+                }
+            });
+        }else {
+            throw new Error("Groupdata parameter must be an array of groupDef data");
+        }
     }
 
     export() {

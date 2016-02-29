@@ -4,11 +4,8 @@
 import Provider from "../src/Provider.js";
 import User from "../src/coremodel/User";
 import Group from "../src/coremodel/Group";
-//import Loader from '../src/utilities/Loader ';
-import AnsibleGenerator from "../src/modules/AnsibleWorker";
-var Loader = require('../src/utilities/Loader').default;
-
-
+import AnsibleEngine from "../src/modules/AnsibleWorker";
+var Loader = require('../src/utilities/FileDbLoader').default;
 
 
 describe("testing of yaml generator", function () {
@@ -46,11 +43,11 @@ describe("testing of yaml generator", function () {
             users: [
                 {
                     user: {name: "userA", state: "present"},
-                    authorized_keys: [{name:"userA", state:"present"}]
+                    authorized_keys: [{name: "userA", state: "present"}]
                 },
                 {
                     user: {name: "userB", state: "absent"},
-                    authorized_keys: [{name:"userA", state:"present"}]
+                    authorized_keys: [{name: "userA", state: "present"}]
                 }
             ],
             groups: [
@@ -73,25 +70,31 @@ describe("testing of yaml generator", function () {
             ]
         }];
 
-
-
     var provider = new Provider();
-    var gen = new AnsibleGenerator(provider);
+    var gen = provider.engine;
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(validHosts);
 
-    it("should write to the console", function () {
+    it("should generate playbook for host", function (done) {
         gen.generateHost(provider.hosts.find("www.example.com"));
-        expect(gen.export()).to.equal(true);
+        gen.export().then((result)=> {
+            expect(result).to.equal("success");
+            done();
+        });
     });
 
-    it("should get ansible facts",function(){
-        gen.getInfo(provider.hosts.find("www.example.com"));
+    it("should get ansible facts", function (done) {
+        gen.getInfo(provider.hosts.find("www.example.com")).then((result)=> {
+            //console.log(result);
+            done();
+        }, (error)=> {
+            //console.log(error);
+            done();
+        });
     })
-
 
 })
 

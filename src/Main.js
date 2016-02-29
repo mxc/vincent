@@ -4,7 +4,7 @@
 
 import Config from './Config';
 import Provider from './Provider';
-import Loader from './utilities/Loader';
+import Loader from './utilities/FileDbLoader';
 import Saver from './utilities/Saver';
 
 class Main{
@@ -29,7 +29,7 @@ class Main{
     }
 
     load(){
-        this.loader.import();
+        this.loader.load();
     }
 
     save(){

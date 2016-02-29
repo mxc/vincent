@@ -1,7 +1,7 @@
 import Provider from "../src/Provider.js";
 import User from "../src/coremodel/User";
 import Group from "../src/coremodel/Group";
-var Loader = require('../src/utilities/Loader').default;
+var Loader = require('../src/utilities/FileDbLoader').default;
 
 
 describe("validating host configuration", function () {

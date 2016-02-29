@@ -15,6 +15,7 @@ class SshConfigs {
         this._state="not loaded";
         this.data = {};
         this.data.configs = {};
+        this.provider = provider;
     }
 
 
@@ -31,21 +32,7 @@ class SshConfigs {
         return this.data.configs;
     }
 
-    import(sshconfigsData) {
-        if (sshconfigsData) {
-            this.load(sshconfigsData);
-            return;
-        }
-        let configDir = provider.config.get('confdir');
-        fs.readFile(configDir + '/db/includes/ssh-configs.json', (err, data)=> {
-            let sshconfigsData = JSON.parse(data);
-            try {
-                this.load(sshconfigsData);
-            } catch (e) {
-                logger.warn("Failed to load2 SSH Configs from file system.");
-            }
-        });
-    }
+
 
     load(sshconfigsData) {
         sshconfigsData.forEach((sshconfig)=> {

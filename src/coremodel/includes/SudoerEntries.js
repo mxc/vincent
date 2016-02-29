@@ -15,6 +15,7 @@ class SudoerEntries {
         this._state="not loaded";
         this.data = {};
         this.data.configs = {};
+        this.provider = provider;
     }
 
     add(SudoEntry){
@@ -27,23 +28,6 @@ class SudoerEntries {
 
     get state(){
         return this._state;
-    }
-
-    import(sudoerEntriesData) {
-        if (sudoerEntriesData) {
-            this.load(sudoerEntriesData);
-            return;
-        }
-        let configDir = provider.config.get('confdir');
-        fs.readFileSync(
-            configDir + '/db/includes/sudoer-entries.json', (err, data)=> {
-                sudoerEntriesData = JSON.parse(data);
-                try{
-                this.load(sudoerEntriesData);
-                } catch (e) {
-                    logger.warn("Failed to load2 Sudoer Entries from file system.");
-                }
-            });
     }
 
     load(sudoerEntriesData) {

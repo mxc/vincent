@@ -8,8 +8,8 @@ import logger from './../../Logger';
 
 class HostSudoEntry extends HostDef {
 
-    constructor(host, data) {
-        super(host);
+    constructor(provider,host, data) {
+        super(provider);
         this.errors = [];
         if (!data && !data.userList && !Array.isArray(data.userList)) {
             logger.logAndThrow("The data def parameter for SudoEntry must have a userList array property");

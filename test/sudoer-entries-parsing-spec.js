@@ -5,7 +5,7 @@
 
 global.expect = require("chai").expect
 import Provider from './../src/Provider';
-import Loader from   '../src/utilities/Loader';
+import Loader from   '../src/utilities/FileDbLoader';
 import User from "../src/coremodel/User";
 import Group from "../src/coremodel/Group";
 import SudoerEntries from "../src/coremodel/includes/SudoerEntries";
@@ -435,7 +435,7 @@ describe("validating host configuration with sudo entry include", function () {
     //inject mocks
     provider.groups.validGroups = validGroups;
     provider.users.validUsers = validUsers;
-    provider.sudoerEntries.import(sudoerEntries);
+    provider.sudoerEntries.load(sudoerEntries);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 

@@ -10,8 +10,8 @@ import logger from './../../Logger';
 
 class HostGroup extends HostDef {
 
-    constructor(host, data) {
-        super(host);
+    constructor(provider, data) {
+        super(provider);
         this.data = {members:[]};
         this.data.source = data;
         this.errors = [];

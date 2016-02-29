@@ -3,7 +3,7 @@
 import logger from './../Logger';
 import Base from './Base';
 
-class User extends Base{
+class User extends Base {
 
     constructor(data) {
         super();
@@ -25,7 +25,9 @@ class User extends Base{
             logger.logAndThrow("The parameter data must be a user name or an object with a mandatory property \"name\".");
         }
 
-        if(!data.state ||(data.state!="present" && data.state!="absent")){
+        if(!data.state){
+            data.state="present";
+        } else if (data.state!="present" && data.state!="absent"){
             logger.logAndThrow("User state must be \"present\" or \"absent\".");
         }
 
@@ -37,7 +39,7 @@ class User extends Base{
             name: data.name,
             key: data.key,
             uid: data.uid,
-            state: data.state?data.state:"present",
+            state: data.state?data.state:"present"
         };
         this._source =data;
     }

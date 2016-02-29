@@ -4,6 +4,7 @@
 import logger from '../../Logger';
 import Provider from '../../Provider';
 import fs from 'fs';
+require("babel-polyfill");
 
 class UserCategories {
 
@@ -11,38 +12,22 @@ class UserCategories {
         if (!provider || !(provider instanceof Provider)) {
             logger.logAndThrow("Parameter data provider must be of type provider");
         }
-        this._state ='not loaded';
+        this._state = 'not loaded';
         this.data = {};
         this.data.configs = {};
+        this.provider = provider;
     }
 
-    get configs(){
+    get configs() {
         return this.data.configs;
     }
 
-    add(userCategory){
+    add(userCategory) {
         //todo
     }
 
-    get state(){
+    get state() {
         return this._state;
-    }
-
-    import(userCategoriesData) {
-        if (userCategoriesData) {
-            this.load(userCategoriesData);
-            return;
-        }
-        let configDir = provider.config.get('confdir');
-        fs.readFile(
-            configDir + '/db/includes/user-categories.json', (err, data)=> {
-                userCategoriesData = JSON.parse(data);
-                try {
-                    this.load(userCategoriesData);
-                } catch (e) {
-                    logger.warn("Failed to load2 User Categories from file system.");
-                }
-            });
     }
 
     load(userCategoriesData) {
@@ -52,7 +37,7 @@ class UserCategories {
                     logger.logAndThrow("The data mus have properties name and config");
                 }
                 this.data.configs[userCategory.name] = userCategory.config;
-                this._state="loaded";
+                this._state = "loaded";
             });
         } else {
             throw new Error("The userCategoriesData variable should be an array of UserDefs.");

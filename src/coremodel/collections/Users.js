@@ -76,14 +76,14 @@ class Users {
 
     export() {
         var obj = [];
-        this.validUsers.forEach((user, index)=> {
+        this.validUsers.forEach((user)=> {
             obj.push(user.export());
         });
         return obj;
     }
 
-    import(userdata, errors) {
-        userdata.forEach((data) => {
+    load(userDef, errors) {
+        userDef.forEach((data) => {
             try {
                 var user = new User(data);
                 this.add(user);

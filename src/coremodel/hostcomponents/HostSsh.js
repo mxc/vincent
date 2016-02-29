@@ -7,8 +7,8 @@ import Ssh from './../Ssh';
 
 class HostSsh extends HostDef {
 
-    constructor(host,config) {
-        super(host);
+    constructor(provider,config) {
+        super(provider);
         this.data=new Ssh(config);
         this.errors = this.data.errors;
     }

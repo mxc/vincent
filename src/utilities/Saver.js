@@ -19,7 +19,6 @@ class Saver {
         fs.mkdir(historyDir);
         let dirItems = fs.readdirSync(dbDir);
         dirItems.forEach((item)=> {
-            console.log(item);
             fs.renameSync(dbDir+"/"+item, historyDir+"/"+item);
         });
         let groups = JSON.stringify(this.provider.groups.export(),null,2);

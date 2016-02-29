@@ -1,10 +1,12 @@
 import Users from './coremodel/collections/Users';
 import Groups from './coremodel/collections/Groups';
 import Hosts from './coremodel/collections/Hosts';
+import Database from './utilities/Database';
 import SshConfigs from './coremodel/includes/SshConfigs';
 import UserCategories from './coremodel/includes/UserCategories';
 import GroupCategories from './coremodel/includes/GroupCategories';
 import SudoerEntries from './coremodel/includes/SudoerEntries';
+import Engine from './modules/AnsibleWorker';
 import Config from './Config';
 
 class Provider {
@@ -17,10 +19,12 @@ class Provider {
         this.users = new Users(this);
         this.groups = new Groups(this);
         this.hosts = new Hosts(this);
-        this.sshconfigs = new SshConfigs(this);
+        this.sshConfigs = new SshConfigs(this);
         this.userCategories = new UserCategories(this);
         this.groupCategories = new GroupCategories(this);
         this.sudoerEntries = new SudoerEntries(this);
+        this.database = new Database(this);
+        this.engine = new Engine(this);
     }
 
 
@@ -32,7 +36,7 @@ class Provider {
 
     clearAll() {
         this.clear();
-        this.sshconfigs.clear();
+        this.sshConfigs.clear();
         this.userCategories.clear();
         this.sudoerEntries.clear();
     }

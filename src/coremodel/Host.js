@@ -16,7 +16,7 @@ class Host extends Base {
         super();
         this.errors = [];
         if (!provider || !(provider instanceof Provider)) {
-            throw new Error("Parameter provider must be provided for HostGroup.")
+            throw new Error("Parameter provider must be provided for Host.")
         }
         this.provider = provider;
         //check if we were provided with a host name or a data object
@@ -39,7 +39,6 @@ class Host extends Base {
             this.source = {};
             return;
         }
-
         if (!data.name) {
             logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
         }
@@ -93,6 +92,7 @@ class Host extends Base {
                         this.mergeUsers(foundHostUser, hostUser);
                     } else {
                         this.data.users.push(hostUser);
+                        hostUser.host=this;
                         if (!fromUserCategory) {
                             this._export.users.push(hostUser.export());
                         }
@@ -138,6 +138,7 @@ class Host extends Base {
                     this.mergeGroup(foundHostGroup, hostGroup);
                 } else {
                     this.data.groups.push(hostGroup);
+                    hostGroup.host=this;
                     if (!fromGroupCategory) {
                         this._export.groups.push(hostGroup.export());
                     }
@@ -172,8 +173,10 @@ class Host extends Base {
     }
 
     addUserCategory(userCategory) {
+        //find the user category definition
         let users = this.provider.userCategories.find(userCategory);
         if (users) {
+            //if exists add to the export
             let userCategoriesObj = this.findInclude("userCategories");
             if (!userCategoriesObj) {
                 userCategoriesObj = [];
@@ -181,9 +184,10 @@ class Host extends Base {
             }
             userCategoriesObj.push(userCategory);
             let errors = [];
+            //for each user in category add to the host
             users.forEach((userDef)=> {
                 try {
-                    let newHostUser = new HostUser(this, userDef);
+                    let newHostUser = new HostUser(this.provider, userDef);
                     this.addHostUser(newHostUser, true);
                 } catch (e) {
                     logger.warn(`Warning adding user category: ${e.message}`);
@@ -199,8 +203,11 @@ class Host extends Base {
     }
 
     addGroupCategory(groupCategory) {
+        //lookup host category group definition
         let groups = this.provider.groupCategories.find(groupCategory);
+        //if its valid
         if (groups) {
+            //add it to exports includes definition
             let groupCategoriesObj = this.findInclude("groupCategories");
             if (!groupCategoriesObj) {
                 groupCategoriesObj = [];
@@ -208,9 +215,10 @@ class Host extends Base {
             }
             groupCategoriesObj.push(groupCategory);
             let errors = [];
+            //add groups to the host definition
             groups.forEach((groupDef)=> {
                 try {
-                    let newGroup = new HostGroup(this, groupDef);
+                    let newGroup = new HostGroup(this.provider, groupDef);
                     this.addHostGroup(newGroup, true);
                 } catch (e) {
                     logger.warn(`Warning adding user category: ${e.message}`);
@@ -231,10 +239,12 @@ class Host extends Base {
 
     addSsh(config) {
         if (typeof config === 'object') {
-            this.data.hostSsh = new HostSsh(this, config);
+            this.data.hostSsh = new HostSsh(this.provider, config);
+            this.data.hostSsh.host=this;
             this._export.ssh = this.data.hostSsh.data.export();
         } else {
-            this.data.hostSsh = new HostSsh(this, this.provider.sshconfigs.find(config));
+            this.data.hostSsh = new HostSsh(this.provider, this.provider.sshConfigs.find(config));
+            this.data.hostSsh.host=this;
             this.checkIncludes();
             this._export.includes["ssh"] = config;
         }
@@ -255,11 +265,11 @@ class Host extends Base {
                     this._export.includes.sudoerEntries = [];
                 }
                 let sudoDataLookup = this.provider.sudoerEntries.find(sudoData);
-                let hostSudoEntry = new HostSudoEntry(this, sudoDataLookup);
+                let hostSudoEntry = new HostSudoEntry(this.provider,this, sudoDataLookup);
                 this.data.sudoerEntries.push(hostSudoEntry);
                 this._export.includes.sudoerEntries.push(sudoData);
             } else {
-                let hostSudoEntry = new HostSudoEntry(this, sudoData);
+                let hostSudoEntry = new HostSudoEntry(this.provider,this, sudoData);
                 this.data.sudoerEntries.push(hostSudoEntry);
                 if (!this._export.sudoerEntries) {
                     this._export.sudoerEntries = [];
@@ -268,7 +278,6 @@ class Host extends Base {
             }
         }
         catch (e) {
-            console.log(e.message);
             logger.logAndThrow(`Error adding SudoerEntry - ${e.message}`);
         }
     }

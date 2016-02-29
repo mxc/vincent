@@ -49,7 +49,20 @@ class Hosts {
         });
     }
 
-    import(hostDef) {
+    initHost(initHostDef){
+        if (typeof initHostDef =='object'){
+            if(!initHostDef.name){
+                throw new Error("Initialising a new host requires the initHost object to " +
+                    "have a name property.");
+            }
+            this.provider.hosts.load(initHostDef);
+            let host = this.provider.engine.generateHost(initHostDef.name);
+            this.provider.engine.export(host);
+            this.provider.database.initHost(host.name).then();
+        }
+    }
+
+    load(hostDef) {
         var hostData = {
             name: hostDef.name
         };
@@ -83,7 +96,7 @@ class Hosts {
             hostDef.users.forEach(
                 (userDef) => {
                     try {
-                        var hostUser = new HostUser(host, userDef);
+                        var hostUser = new HostUser(host.provider, userDef);
                         host.addHostUser(hostUser);
                         Array.prototype.push.apply(
                             this.errors[host.name],
@@ -114,7 +127,7 @@ class Hosts {
         if (hostDef.groups) {
             hostDef.groups.forEach((groupdef) => {
                 try {
-                    let hostGroup = new HostGroup(host, groupdef);
+                    let hostGroup = new HostGroup(host.provider, groupdef);
                     host.addHostGroup(hostGroup);
                     Array.prototype.push.apply(this.errors[host.name], hostGroup.errors);
                 } catch (e) {

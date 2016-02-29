@@ -7,18 +7,27 @@ import logger from './../../Logger';
 
 class HostDef {
 
-    constructor(host) {
-        if (!host || !(host instanceof Host)) {
-            throw new Error("Parameter host must be of type Host.");
+    constructor(provider) {
+        if (!provider || !(provider instanceof Provider)) {
+            throw new Error("Parameter provider must be of type provider.");
         } else {
-            this.host = host;
+            this.provider = provider;
         }
+    }
 
-        if (!host.provider || !(host.provider instanceof Provider)) {
-            throw new Error("Parameter provider must be provided for HostGroup.")
-        }else{
-            this.provider = host.provider;
+    set host(host){
+        if( !(host instanceof Host)){
+            throw new Error("Parameter host must be of type Host.");
         }
+        if(this.provider===host.provider) {
+            this._host = host;
+        }else{
+            throw new Error("The host provider and the objects provider must be the same object");
+        }
+    }
+
+    get host(){
+        return this._host;
     }
 
 }

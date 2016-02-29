@@ -16,6 +16,7 @@ class GroupCategories {
         this.data = {};
         this.data.configs = {};
         this._state="not loaded";
+        this.provider = provider;
     }
 
     get configs(){
@@ -28,23 +29,6 @@ class GroupCategories {
 
     get state(){
         return this._state;
-    }
-
-    import(groupCategoriesData) {
-        if (groupCategoriesData) {
-            this.load(groupCategoriesData);
-            return;
-        }
-        let configDir = provider.config.get('confdir');
-        fs.readFile(configDir
-            + '/db/includes/group-categories.json',(err,data)=> {
-            let groupCategoriesData = JSON.parse(data);
-            try{
-            this.load(groupCategoriesData);
-            } catch (e) {
-                logger.warn("Failed to load2 Group Categories from file system.");
-            }
-        });
     }
 
     load(groupCategoriesData) {

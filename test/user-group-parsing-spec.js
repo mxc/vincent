@@ -2,7 +2,7 @@
 
 global.expect = require("chai").expect
 import Provider from './../src/Provider';
-import Loader from   '../src/utilities/Loader';
+import Loader from   '../src/utilities/FileDbLoader';
 import User from "../src/coremodel/User";
 import Group from "../src/coremodel/Group";
 
