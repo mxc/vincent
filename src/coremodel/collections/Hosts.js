@@ -3,6 +3,7 @@
 import Host from './../Host';
 import HostUser from '../hostcomponents/HostUser';
 import HostGroup from '../hostcomponents/HostGroup';
+import RemoteAccess from '../hostcomponents/RemoteAccess';
 import SudoEntry from '../SudoEntry';
 import Provider from './../../Provider';
 import logger from './../../Logger';
@@ -88,6 +89,19 @@ class Hosts {
             let ssh = this.findIncludeInDef("ssh", hostDef.includes);
             if (ssh) {
                 host.addSsh(ssh);
+            }
+        }
+
+        //configure remoteAccess settings for host.
+        if(hostDef.remoteAccess){
+            try {
+                let remoteAccessDef = hostDef.remoteAccess;
+                let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
+                    remoteAccessDef.authentication, remoteAccessDef.sudoAuthentication);
+                host.setRemoteAccess(remoteAccess);
+            }catch(e){
+                logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
+                    this.errors[host.name]);
             }
         }
 

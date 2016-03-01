@@ -88,7 +88,7 @@ describe("File DB loader tests", function () {
             done();
         }, (error)=> {
             expect(provider.users.validUsers.length)
-                .to.equal(3);
+                .to.equal(4);
             expect(provider.groups.validGroups.length)
                 .to.equal(3);
             expect(provider.hosts.validHosts.length).to.equal(3);

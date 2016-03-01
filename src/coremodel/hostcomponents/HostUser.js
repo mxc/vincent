@@ -35,6 +35,9 @@ class HostUser extends HostDef {
                 }
                 if (data.authorized_keys) {
                     data.authorized_keys.forEach((authorizedUserDef)=> {
+                        if (typeof authorizedUserDef !== "object"){
+                            throw new Error("Authorized_keys must be an array of userdefs.");
+                        }
                         var user = this.provider.users.findUserByName(authorizedUserDef.name);
                         if (!user) {
                             logger.logAndAddToErrors(
@@ -49,7 +52,7 @@ class HostUser extends HostDef {
                     });
                 }
             } else {
-                logger.logAndThrow("The data parameter ofr HostUser must be an data object or undefined.");
+                logger.logAndThrow("The data parameter for HostUser must be an data object or undefined.");
             }
             this.data.source = data;
         }

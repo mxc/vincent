@@ -8,8 +8,8 @@
           "state": "present"
         },
         "authorized_keys": [
-          "user1",
-          "staff1"
+          {"name": "user1", "state": "present"},
+          {"name": "staff1", "state": "present"}
         ]
       },
       {
@@ -29,7 +29,7 @@
           "state": "present"
         },
         "authorized_keys": [
-          "user1"
+          {"name": "user1", "state": "present"}
         ]
       },
       {
@@ -49,8 +49,8 @@
           "state": "present"
         },
         "authorized_keys": [
-          "dev1",
-          "user2"
+          {"name": "dev1", "state": "present"},
+          {"name": "user2", "state": "present"}
         ]
       },
       {
@@ -59,8 +59,8 @@
           "state": "absent"
         },
         "authorized_keys": [
-          "user1",
-          "user2"
+          {"name": "user1", "state": "present"},
+          {"name": "user2", "state": "present"}
         ]
       }
     ]

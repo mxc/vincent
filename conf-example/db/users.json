@@ -17,5 +17,9 @@
     {
         "name": "user4",
         "state": "absent"
+    },
+    {
+        "name": "www-data",
+        "state": "present"
     }
 ]

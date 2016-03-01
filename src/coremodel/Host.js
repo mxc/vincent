@@ -2,6 +2,7 @@
 
 import Group from './Group';
 import HostGroup from '../coremodel/hostcomponents/HostGroup';
+import RemoteAccess from '../coremodel/hostcomponents/RemoteAccess';
 import HostUser from '../coremodel/hostcomponents/HostUser';
 import HostSsh from '../coremodel/hostcomponents/HostSsh';
 import HostSudoEntry from '../coremodel/hostcomponents/HostSudoEntry';
@@ -28,6 +29,7 @@ class Host extends Base {
             }
             this.data = {
                 name: data,
+                remoteAccess: new RemoteAccess(),
                 users: [],
                 groups: []
             };
@@ -44,6 +46,7 @@ class Host extends Base {
         }
         this.data = {
             name: data.name,
+            remoteAccess:new RemoteAccess(),
             users: [],
             groups: [],
             applications: [],
@@ -58,6 +61,18 @@ class Host extends Base {
 
     get name() {
         return this.data.name;
+    }
+
+    get remoteAccess(){
+        return this.data.remoteAccess;
+    }
+
+    get authentication(){
+        return this.data.authentication;
+    }
+
+    get sudoAuthentication(){
+        return this.data.sudoAuthentication;
     }
 
     set source(source) {
@@ -82,6 +97,14 @@ class Host extends Base {
         return this.data.sudoerEntries;
     }
 
+    setRemoteAccess(remoteAccess){
+        if (!remoteAccess instanceof RemoteAccess){
+            throw new Error("The parameter remoteAccessObj must be of type RemoteAccess");
+        }
+        this.data.remoteAccess=remoteAccess;
+        this._export.remoteAccess=remoteAccess;
+    }
+
     addHostUser(hostUser, fromUserCategory = false) {
         try {
             if (hostUser instanceof HostUser) {
@@ -92,7 +115,7 @@ class Host extends Base {
                         this.mergeUsers(foundHostUser, hostUser);
                     } else {
                         this.data.users.push(hostUser);
-                        hostUser.host=this;
+                        hostUser.host = this;
                         if (!fromUserCategory) {
                             this._export.users.push(hostUser.export());
                         }
@@ -104,7 +127,7 @@ class Host extends Base {
             } else {
                 logger.logAndThrow("The parameter hostUser must be of type HostUser.");
             }
-        }catch(e){
+        } catch (e) {
             throw e;
         }
     }
@@ -138,7 +161,7 @@ class Host extends Base {
                     this.mergeGroup(foundHostGroup, hostGroup);
                 } else {
                     this.data.groups.push(hostGroup);
-                    hostGroup.host=this;
+                    hostGroup.host = this;
                     if (!fromGroupCategory) {
                         this._export.groups.push(hostGroup.export());
                     }
@@ -191,15 +214,17 @@ class Host extends Base {
                     this.addHostUser(newHostUser, true);
                 } catch (e) {
                     logger.warn(`Warning adding user category: ${e.message}`);
-                    errors.push(`Error adding ${userDef.group.name} from user category ${userCategory} - ${e.message}`);
+                    errors.push(`Error adding ${userDef.user.name} from user category ${userCategory} - ${e.message}`);
                 }
             });
             if (errors.length > 0) {
                 throw new Error(errors.join("\n\r"));
             }
+
         } else {
             logger.logAndThrow("UserCategory ${userCategory} does not exist.");
         }
+
     }
 
     addGroupCategory(groupCategory) {
@@ -240,11 +265,11 @@ class Host extends Base {
     addSsh(config) {
         if (typeof config === 'object') {
             this.data.hostSsh = new HostSsh(this.provider, config);
-            this.data.hostSsh.host=this;
+            this.data.hostSsh.host = this;
             this._export.ssh = this.data.hostSsh.data.export();
         } else {
             this.data.hostSsh = new HostSsh(this.provider, this.provider.sshConfigs.find(config));
-            this.data.hostSsh.host=this;
+            this.data.hostSsh.host = this;
             this.checkIncludes();
             this._export.includes["ssh"] = config;
         }
@@ -265,11 +290,11 @@ class Host extends Base {
                     this._export.includes.sudoerEntries = [];
                 }
                 let sudoDataLookup = this.provider.sudoerEntries.find(sudoData);
-                let hostSudoEntry = new HostSudoEntry(this.provider,this, sudoDataLookup);
+                let hostSudoEntry = new HostSudoEntry(this.provider, this, sudoDataLookup);
                 this.data.sudoerEntries.push(hostSudoEntry);
                 this._export.includes.sudoerEntries.push(sudoData);
             } else {
-                let hostSudoEntry = new HostSudoEntry(this.provider,this, sudoData);
+                let hostSudoEntry = new HostSudoEntry(this.provider, this, sudoData);
                 this.data.sudoerEntries.push(hostSudoEntry);
                 if (!this._export.sudoerEntries) {
                     this._export.sudoerEntries = [];
