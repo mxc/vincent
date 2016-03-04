@@ -4,11 +4,14 @@
 
 import Provider from './../../Provider';
 import logger from './../../Logger';
+import Base from './../Base';
 
-class RemoteAccess {
+class RemoteAccess extends Base {
 
     constructor(remoteUser, authentication, sudoAuthentication) {
+        super();
         this.errors = [];
+        this._export={};
         if (!remoteUser) {
             //same means login as user executing vincent
             this.remoteUser = "same";
@@ -28,17 +31,33 @@ class RemoteAccess {
         }
 
         if (!sudoAuthentication) {
-            this.sudoAuthentication = false;
-        } else if (typeof sudoAuthentication !== 'boolean') {
+            sudoAuthentication = false;
+        } else if(typeof sudoAuthentication ==='string'){
+                try{
+                    sudoAuthentication = this.getBooleanValue(sudoAuthentication);
+                }catch(e){
+                    this.errors.push(e);
+                }
+        }
+
+        if (typeof sudoAuthentication !== 'boolean') {
             logger.logAndAddToErrors("sudoAuthentication must be a boolean value.", this.errors);
         } else {
             this.sudoAuthentication = sudoAuthentication;
         }
+        this._export={
+            remoteUser: this.remoteUser,
+            authentication: this.authentication,
+            sudoAuthentication: this.sudoAuthentication
+        };
         if (this.errors.length>0){
-            let string = this.errors.join("\n\r");
-            throw new Error("Invalid configuration settings provided for RemoteAccess object.\n\r" +
-                string);
+            let str = `Invalid configuration settings provided for RemoteAccess object./n/r${this.errors.join("/n/r")}`;
+            throw new Error(str);
         }
+    }
+
+    export(){
+        return this._export;
     }
 }
 export default RemoteAccess;

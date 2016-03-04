@@ -8,30 +8,31 @@ class User extends Base {
     constructor(data) {
         super();
         //check if we were provided with a user name or a data object
-        if (typeof data === 'string'){
+        if (typeof data === 'string') {
             var valid = /\w/;
             if (!valid.test(data)) {
                 throw new Error(`${data} is an invalid user name`);
             }
             this.data = {
                 name: data,
-                state:"present",
+                state: "present",
                 key: undefined,
-                uid:undefined
+                uid: undefined
             };
+            return;
         }
 
         if (!data.name) {
             logger.logAndThrow("The parameter data must be a user name or an object with a mandatory property \"name\".");
         }
 
-        if(!data.state){
-            data.state="present";
-        } else if (data.state!="present" && data.state!="absent"){
+        if (!data.state) {
+            data.state = "present";
+        } else if (data.state != "present" && data.state != "absent") {
             logger.logAndThrow("User state must be \"present\" or \"absent\".");
         }
 
-        if (data.uid &&  typeof data.uid !== 'number'){
+        if (data.uid && typeof data.uid !== 'number') {
             logger.logAndThrow("Uid must be a number");
         }
 
@@ -39,9 +40,9 @@ class User extends Base {
             name: data.name,
             key: data.key,
             uid: data.uid,
-            state: data.state?data.state:"present"
+            state: data.state ? data.state : "present"
         };
-        this._source =data;
+        this._source = data;
     }
 
     get name() {
@@ -55,10 +56,9 @@ class User extends Base {
     set state(state) {
         if (state !== "present" && state !== "absent") {
             logger.logAndThrow(`User state is either present or absent not ${state}`);
-        }else{
-            this.data.state=state;
+        } else {
+            this.data.state = state;
         }
-
     }
 
     get key() {
@@ -102,16 +102,16 @@ class User extends Base {
         return this;
     }
 
-    clone(){
-        return  new User(this.data);
+    clone() {
+        return new User(this.data);
     }
 
-    export(){
+    export() {
         return this.data;
     }
 
-    exportId(){
-        return {name:this.data.name, state: this.data.state };
+    exportId() {
+        return {name: this.data.name, state: this.data.state};
     }
 }
 

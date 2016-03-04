@@ -8,6 +8,8 @@ import yaml from 'js-yaml';
 import Host from '../coremodel/Host.js';
 import logger from '../Logger';
 import child_process from 'child_process';
+import events from 'events';
+
 require("babel-polyfill");
 
 class AnsibleWorker extends Worker {
@@ -25,7 +27,7 @@ class AnsibleWorker extends Worker {
         if (Array.isArray(hosts)) {
             hosts.forEach((host)=> {
                 if (host instanceof Host) {
-                    this.generateHost(host);
+                    this.loadEngineDefinition(host);
                 }
             });
         }
@@ -91,8 +93,8 @@ class AnsibleWorker extends Worker {
                     self: resultObj.self
                 }));
             }
-            return Promise.all(promises).then(()=>{
-                    return resultObj;
+            return Promise.all(promises).then(()=> {
+                return resultObj;
             });
         } catch (e) {
             console.log(e.message);
@@ -100,7 +102,7 @@ class AnsibleWorker extends Worker {
     }
 
     writePlaybook(resultObj) {
-        return new Promise((resolve,reject)=> {
+        return new Promise((resolve, reject)=> {
             try {
                 fs.writeFile(resultObj.self.playbookDir + `/${resultObj.playbook}.yml`,
                     resultObj.self.playbooks[resultObj.playbook],
@@ -141,60 +143,69 @@ class AnsibleWorker extends Worker {
         });
     }
 
-    generateHost(host) {
+    loadEngineDefinition(host) {
         this.inventory.push(host.name);
         var playbook = [];
         playbook.push({hosts: host.name, tasks: []});
-        //playbook.push({tasks: []});
         let tasks = playbook[0].tasks;
-        host.users.forEach((user)=> {
-            let ansibleUser = {
-                name: "User account state check",
-                user: `name=${user.name} state=${user.state}`,
-                sudo: 'yes'
-            };
-            if (user.uid) {
-                ansibleUser.user += ` uid={$user.uid}`;
-            }
-            tasks.push(ansibleUser);
-            user.authorized_keys.forEach((authorizedUser)=> {
-                let ansibleAuthorizedKey = {
-                    name: "User authorized key state check",
-                    authorized_key: {
-                        user: `${user.name}`,
-                        key: `{{ lookup('file','${authorizedUser.key}') }}`,
-                        manage_dir: 'yes',
-                        state: `${authorizedUser.state}`
-                    },
+        if (host.users) {
+            host.users.forEach((user)=> {
+                let ansibleUser = {
+                    name: "User account state check",
+                    user: `name=${user.name} state=${user.state}`,
                     sudo: 'yes'
                 };
-                tasks.push(ansibleAuthorizedKey);
+                if (user.uid) {
+                    ansibleUser.user += ` uid={$user.uid}`;
+                }
+                tasks.push(ansibleUser);
+                if (user.authorized_keys) {
+                    user.authorized_keys.forEach((authorizedUser)=> {
+                        let ansibleAuthorizedKey = {
+                            name: "User authorized key state check",
+                            authorized_key: {
+                                user: `${user.name}`,
+                                key: `{{ lookup('file','${authorizedUser.key}') }}`,
+                                manage_dir: 'yes',
+                                state: `${authorizedUser.state}`
+                            },
+                            sudo: 'yes'
+                        };
+                        tasks.push(ansibleAuthorizedKey);
+                    });
+                }
             });
-        });
-        host.groups.forEach((group)=> {
-            let ansibleGroup = {
-                name: "Group state check",
-                group: `name=${group.name} state=${group.state}`,
-                sudo: 'yes'
-            };
-            if (group.gid) {
-                ansibleGroup.group += ` gid={$group.gid}`;
-            }
-            tasks.push(ansibleGroup);
-        });
+        }
+        if (host.groups) {
+            host.groups.forEach((group)=> {
+                let ansibleGroup = {
+                    name: "Group state check",
+                    group: `name=${group.name} state=${group.state}`,
+                    sudo: 'yes'
+                };
+                if (group.gid) {
+                    ansibleGroup.group += ` gid={$group.gid}`;
+                }
+                tasks.push(ansibleGroup);
+            });
+        }
         if (host.ssh) {
             tasks.push({
                 name: "Ssh config PermitRoot state check",
-                lineinfile: `dest=/etc/ssh/sshd_config
-                   regexp='^PermitRootLogin yes|^PermitRootLogin no|^#PermitRootLogin yes'
-                   line='PermitRootLogin ${host.ssh.permitRoot}`,
+                lineinfile: {
+                    dest: '/etc/ssh/sshd_config',
+                    regexp: '^PermitRootLogin yes|^PermitRootLogin no|^#PermitRootLogin yes',
+                    line: `PermitRootLogin ${host.ssh.permitRoot}`
+                },
                 sudo: 'yes'
             });
             tasks.push({
                 name: "Ssh config PermitPassword state check",
-                lineinfile: `dest=/etc/ssh/sshd_config
-                   regexp='PasswordAuthentication yes|PasswordAuthentication no'
-                   line='PasswordAuthentication ${host.ssh.passwordAuthentication}`,
+                lineinfile: {
+                    dest: '/etc/ssh/sshd_config',
+                    regexp: 'PasswordAuthentication yes|PasswordAuthentication no',
+                    line: `PasswordAuthentication ${host.ssh.passwordAuthentication}`
+                },
                 sudo: 'yes'
             });
             if (host.ssh.validUsersOnly) {
@@ -207,9 +218,11 @@ class AnsibleWorker extends Worker {
                 });
                 tasks.push({
                     name: "Ssh config ValidUsers state check",
-                    lineinfile: `dest=/etc/ssh/sshd_config
-                   regexp='AllowUsers .*|#AllowUsers'
-                   line='AllowUsers ${users}`,
+                    lineinfile: {
+                        dest: '/etc/ssh/sshd_config',
+                        regexp: 'AllowUsers .*|#AllowUsers',
+                        line: `AllowUsers ${users}`
+                    },
                     sudo: 'yes'
                 });
             }
@@ -240,8 +253,8 @@ class AnsibleWorker extends Worker {
         return promise;
     }
 
-    runPlaybook(host,opts) {
-        var opts = "";
+    runPlaybook(host, callback, userPasswd, sudoPasswd) {
+
         if (host instanceof Host && host.name) {
             var hostname = host.name;
         } else if (typeof host == 'string') {
@@ -249,17 +262,48 @@ class AnsibleWorker extends Worker {
         } else {
             logger.logAndThrow("The host parameter must be of type Host or a host name string.");
         }
-        let proc = child_process.exec(`ansible-playbook -i inventory ${opts} ${hostname}.yml`,
-            {cwd: this.playbookDir});
-        let promise = new Promise(function (resolve, reject) {
-            proc.stdout.on('data', (data)=> {
-                resolve(data);
-            });
-            proc.stderr.on('data', (data)=> {
-                reject(data);
-            });
+
+        let opts = [`${hostname}.yml`];
+        opts.push("-i");
+        opts.push("inventory");
+
+        if (userPasswd) {
+            opts.push("--ask-pass");
+        }
+
+        if (sudoPasswd) {
+            opts.push("--ask-become-pass");
+        }
+
+        opts.push('--extra-vars');
+        opts.push(`"ansible_become_pass=dagama"`);
+
+        let proc = child_process.spawn("ansible-playbook", opts,
+            {cwd: this.playbookDir, detached: true});
+
+        proc.stdout.on('data', (data)=> {
+            if (data.toString().indexOf("SSH password:") != -1) {
+                proc.stdin.write(`${userPasswd}\n`);
+            } else if (data.toString().indexOf("SUDO password") != -1) {
+                proc.stdin.write(`${sudoPasswd}\n`);
+            } else {
+                if (data.indexOf("PLAY RECAP")!=-1){
+                    callback(data.toString());
+                }
+            }
         });
-        return promise;
+
+
+        proc.stderr.on('data', (data)=> {
+            if (data) {
+                if (data.toString().indexOf("SSH password:") != -1) {
+                    proc.stdin.write(`${userPasswd}\n`);
+                } else if (data.toString().indexOf("SUDO password") != -1) {
+                    proc.stdin.write(`${sudoPasswd}\n`);
+                }
+            }
+        });
+
     }
 
 }

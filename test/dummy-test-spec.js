@@ -69,7 +69,7 @@ describe("Test scratchpad", function () {
 
 });
 
-describe('Build up host programmaticly', function (done) {
+describe('Build up host programmaticly', function () {
     let provider = new Provider();
     let markU = new User({name: "mark", uid: 1000, key: '/home/mark/.ssh/newton/id_rsa.pub'});
     provider.users.add(markU);
@@ -81,10 +81,10 @@ describe('Build up host programmaticly', function (done) {
     host.addHostUser(hostuser1);
     provider.hosts.add(host);
     let ansiblegen = new AnsibleGenerator(provider);
-    ansiblegen.generateHost(host);
+    ansiblegen.loadEngineDefinition(host);
     ansiblegen.export();
     ansiblegen.getInfo(host).then((data)=> {
         //console.log(data);
         done();
-    }, done);
+    });
 });

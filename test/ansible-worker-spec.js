@@ -79,7 +79,7 @@ describe("testing of yaml generator", function () {
     loader.loadHosts(validHosts);
 
     it("should generate playbook for host", function (done) {
-        gen.generateHost(provider.hosts.find("www.example.com"));
+        gen.loadEngineDefinition(provider.hosts.find("www.example.com"));
         gen.export().then((result)=> {
             expect(result).to.equal("success");
             done();
@@ -95,8 +95,7 @@ describe("testing of yaml generator", function () {
             done();
         });
     })
-
-})
+});
 
 
 

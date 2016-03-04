@@ -21,22 +21,16 @@ class Hosts {
 
     add(host) {
         if (host instanceof Host) {
-            this.validHosts.push(host);
-            //var tmpGroup = this.findGroupByName(group.name);
-            //if (tmpGroup) {
-            //    if (tmpGroup.gid !== group.gid) {
-            //        logger.logAndThrow(`Group ${group.name} already exists with different group id`);
-            //    } else {
-            //        logger.logAndThrow(`Group ${group.name} already exists.`)
-            //    }
-            //} else {
-            //    tmpGroup = group.gid ? this.findGroupByGid(group.gid) : undefined;
-            //    if (tmpGroup) {
-            //        logger.logAndThrow(`Group ${group.name} with gid ${group.gid} already exists as ${tmpGroup.name} with gid ${tmpGroup.gid}.`);
-            //    } else {
-            //        this.validGroups.push(group);
-            //    }
-            //}
+            if (this.validHosts.find((cHost)=>{
+                        if (cHost.name===host.name){
+                            return cHost;
+                        }
+                })){
+                //todo Merge hosts?
+                throw new Error("Host already exists in model");
+            }else {
+                this.validHosts.push(host);
+            }
         } else {
             logger.logAndThrow("Parameter host must be of type Host");
         }
@@ -50,16 +44,21 @@ class Hosts {
         });
     }
 
-    initHost(initHostDef){
-        if (typeof initHostDef =='object'){
-            if(!initHostDef.name){
+    provisionHostForEngine(initHost){
+        if (typeof initHost =='object'){
+            if(!initHost.name){
                 throw new Error("Initialising a new host requires the initHost object to " +
                     "have a name property.");
             }
-            this.provider.hosts.load(initHostDef);
-            let host = this.provider.engine.generateHost(initHostDef.name);
-            this.provider.engine.export(host);
-            this.provider.database.initHost(host.name).then();
+            if(!initHost instanceof Host) {
+               initHost=this.provider.hosts.load(initHost);
+            }
+            let playbook = this.provider.engine.loadEngineDefinition(initHost);
+            this.provider.engine.export(playbook);
+            //this.provider.database.initHost(host.name).then();
+        }else{
+            throw new Error("The parameter to init host must be of type Host or " +
+                "an HostDef object");
         }
     }
 
@@ -215,6 +214,5 @@ class Hosts {
         }
     }
 }
-
 
 export default Hosts;

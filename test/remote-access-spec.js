@@ -197,7 +197,6 @@ describe("Hosts configuration with remote access definition", ()=> {
             remoteUser: "mark",
             authentication: "publicKey",
             sudoAuthentication: false,
-            errors: []
         });
     })
 });
@@ -281,11 +280,13 @@ describe("Hosts configuration with invalid remote access definition", ()=> {
     provider.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
-
     it("should log errors", ()=> {
-        expect(loader.errors.indexOf("Error adding remote access user - Invalid configuration settings provided" +
-            " for RemoteAccess object.\n\rAuthentication must be either \'password\' " +
-            "or \'publicKey\'.\n\rsudoAuthentication must be a boolean value.")).not.to.equal(-1);
+        expect(loader.errors.indexOf("Error adding remote access user - Invalid " +
+            "configuration settings provided for RemoteAccess object./n/r" +
+            "Authentication must be either 'password' or 'publicKey'./n/r" +
+            "Error: Boolean value must be 'true/yes' or 'false/no'/n/r" +
+            "sudoAuthentication must be a boolean value."
+        )).not.to.equal(-1);
     });
 
 });

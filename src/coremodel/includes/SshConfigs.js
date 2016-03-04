@@ -16,6 +16,7 @@ class SshConfigs {
         this.data = {};
         this.data.configs = {};
         this.provider = provider;
+        this.errors =[];
     }
 
 
@@ -36,8 +37,13 @@ class SshConfigs {
 
     load(sshconfigsData) {
         sshconfigsData.forEach((sshconfig)=> {
-            this.data.configs[sshconfig.name] = sshconfig.config;
-            this._state="loaded";
+            if (!sshconfig.config){
+                logger.logAndAddToErrors("Ssh config data must have a property of type 'config' " +
+                    "with a valid config definition",this.errors);
+            }else {
+                this.data.configs[sshconfig.name] = sshconfig.config;
+                this._state = "loaded";
+            }
         });
     }
 

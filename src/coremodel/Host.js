@@ -102,11 +102,10 @@ class Host extends Base {
             throw new Error("The parameter remoteAccessObj must be of type RemoteAccess");
         }
         this.data.remoteAccess=remoteAccess;
-        this._export.remoteAccess=remoteAccess;
+        this._export.remoteAccess=remoteAccess.export();
     }
 
     addHostUser(hostUser, fromUserCategory = false) {
-        try {
             if (hostUser instanceof HostUser) {
                 if (this.provider.users.findUser(hostUser.user)) {
                     var foundHostUser = this.findHostUser(hostUser);
@@ -127,9 +126,6 @@ class Host extends Base {
             } else {
                 logger.logAndThrow("The parameter hostUser must be of type HostUser.");
             }
-        } catch (e) {
-            throw e;
-        }
     }
 
     mergeUsers(existingUser, newUser) {
@@ -268,7 +264,12 @@ class Host extends Base {
             this.data.hostSsh.host = this;
             this._export.ssh = this.data.hostSsh.data.export();
         } else {
-            this.data.hostSsh = new HostSsh(this.provider, this.provider.sshConfigs.find(config));
+            let configDef = this.provider.sshConfigs.find(config);
+            if(!configDef){
+                throw new Error(`Ssh config '${config}' not found.`);
+            }
+            this.data.hostSsh = new HostSsh(this.provider,
+                configDef);
             this.data.hostSsh.host = this;
             this.checkIncludes();
             this._export.includes["ssh"] = config;
