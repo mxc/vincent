@@ -1,10 +1,10 @@
 "use strict";
 
-import User from './../User';
+import User from './User';
 import Provider from './../../Provider';
 import logger from './../../Logger';
 
-class Users {
+class UserManager {
 
     constructor(provider) {
         if (!provider instanceof Provider) {
@@ -34,7 +34,7 @@ class Users {
 
     //find a user in an array of User objects.
     //if the 2nd parameter is not provided it defaults to the
-    //array of validUsers contained in Users.
+    //array of validUsers contained in UserManager.
     findUser(user, validUsers) {
         if (!validUsers) {
             validUsers = this.validUsers;
@@ -99,4 +99,4 @@ class Users {
 
 }
 
-export default Users;
+export default UserManager;

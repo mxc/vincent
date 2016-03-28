@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-import Base from './Base';
+import Base from './../modules/base/Base';
 import logger from './../Logger';
 
 class Ssh extends Base {

@@ -2,22 +2,22 @@
  * Created by mark on 2016/02/21.
  */
 
-import Worker from '../coremodel/Worker';
+import Worker from '../base/Engine';
 import fs from 'fs';
 import yaml from 'js-yaml';
-import Host from '../coremodel/Host.js';
-import logger from '../Logger';
+import Host from '../host/Host.js';
+import logger from '../../Logger';
 import child_process from 'child_process';
 import events from 'events';
 
 require("babel-polyfill");
 
-class AnsibleWorker extends Worker {
+class AnsibleEngine extends Worker {
 
     constructor(provider) {
         super();
         this.inventory = [];
-        this.playbooks = {};
+        this.playbooks = {};//a  directory lookup cache for generated playbooks
         this.provider = provider;
         this.playbookDir = provider.config.get('confdir') + "/playbooks";
         this.errors = [];
@@ -77,6 +77,15 @@ class AnsibleWorker extends Worker {
         });
     }
 
+    /*
+    writePlaybooks takes a single object parameter whith the following properties
+                {
+                    host:<Host Object ,
+                    self: <AnsibleEngine Object>
+               }
+      If hosts is undefined then all hosts with playbooks have theur playbooks generated else just the required host has
+      its playboo generated.
+     */
     writePlaybooks(resultObj) {
         try {
             if (resultObj.host) {
@@ -101,6 +110,9 @@ class AnsibleWorker extends Worker {
         }
     }
 
+    /*
+    Write out the yml playbook file using javascript ansible object
+     */
     writePlaybook(resultObj) {
         return new Promise((resolve, reject)=> {
             try {
@@ -121,6 +133,9 @@ class AnsibleWorker extends Worker {
         });
     }
 
+    /*
+    creates the inventory filed needed by ansible to run playbooks.
+     */
     writeInventory(resultObj) {
         return new Promise((resolve, reject)=> {
             try {
@@ -143,6 +158,10 @@ class AnsibleWorker extends Worker {
         });
     }
 
+    /*
+    Create the ansible javascript object from our javascript host object. The ansible object holds the properties and
+    values as defined by ansible mdoules to be used to generate the yml file on export with writePlaybook().
+     */
     loadEngineDefinition(host) {
         this.inventory.push(host.name);
         var playbook = [];
@@ -227,10 +246,13 @@ class AnsibleWorker extends Worker {
                 });
             }
         }
-        this.playbooks[host.name] = yaml.safeDump(playbook);
+        this.playbooks[host.name] = yaml.safeDump(playbook); //cache the generated playbook\.
         return this.playbooks[host.name];
     }
 
+    /*
+    Method to retrieve host details using ansible target properties
+     */
     getInfo(host) {
         if (host instanceof Host && host.name) {
             var hostname = host.name;
@@ -253,6 +275,9 @@ class AnsibleWorker extends Worker {
         return promise;
     }
 
+    /*
+    Run an ansible playbook!
+     */
     runPlaybook(host, callback, userPasswd, sudoPasswd) {
 
         if (host instanceof Host && host.name) {
@@ -308,4 +333,4 @@ class AnsibleWorker extends Worker {
 
 }
 
-export default AnsibleWorker;
+export default AnsibleEngine;

@@ -1,6 +1,6 @@
 "use strict";
 
-import Group from './../Group';
+import Group from './Group';
 import logger from './../../Logger';
 import Provider from './../../Provider';
 

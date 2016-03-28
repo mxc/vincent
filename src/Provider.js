@@ -1,22 +1,32 @@
-import Users from './coremodel/collections/Users';
-import Groups from './coremodel/collections/Groups';
-import Hosts from './coremodel/collections/Hosts';
+import UserManager from './modules/user/UserManager';
+import Groups from './modules/group/Groups';
+import Hosts from './modules/host/Hosts';
 import Database from './utilities/Database';
 import SshConfigs from './coremodel/includes/SshConfigs';
-import UserCategories from './coremodel/includes/UserCategories';
-import GroupCategories from './coremodel/includes/GroupCategories';
+import UserCategories from './modules/user/UserCategories';
+import GroupCategories from './modules/group/GroupCategories';
 import SudoerEntries from './coremodel/includes/SudoerEntries';
-import Engine from './modules/AnsibleWorker';
+import Engine from './modules/engines/AnsibleEngine';
 import Config from './Config';
+import System from 'systemjs';
+import fs from 'fs';
+import path from 'path';
+import ModuleLoader from './utilities/ModuleLoader';
+
+/* This test will load propoerties from the config.ini file in the cwd. Database login credentials shoul be supplied
+ thre.  */
 
 class Provider {
 
     constructor(path) {
-        if (!path){
-            path = process.cwd();
+        this.managers = {};
+        this.path = path;
+        if (!this.path) {
+            this.path = process.cwd();
         }
-        this.config = new Config(path+"/config.ini");
-        this.users = new Users(this);
+
+        this.config = new Config(this.path + "/config.ini");
+        this.users = new UserManager(this);
         this.groups = new Groups(this);
         this.hosts = new Hosts(this);
         this.sshConfigs = new SshConfigs(this);
@@ -26,6 +36,12 @@ class Provider {
         this.database = new Database(this);
         this.engine = new Engine(this);
     }
+
+    loadManagers() {
+            let mpath=path.resolve(this.path,'src/modules');
+            return ModuleLoader.parseDirectory(mpath,'Manager',this.managers);
+    }
+
 
 
     clear() {

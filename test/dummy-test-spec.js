@@ -5,16 +5,16 @@
 
 
 import Provider from '../src/Provider';
-import User from "../src/coremodel/User";
-import Host from "../src/coremodel/Host";
-import HostUser from "../src/coremodel/hostcomponents/HostUser";
-import Group from "../src/coremodel/Group";
+import User from "../src/modules/user/User";
+import Host from "../src/modules/host/Host";
+import HostUser from "../src/modules/user/HostUser";
+import Group from "../src/modules/group/Group";
 import SshConfigs from "../src/coremodel/includes/SshConfigs";
-import UserCategories from "../src/coremodel/includes/UserCategories";
-import GroupCategories from "../src/coremodel/includes/GroupCategories";
-import AnsibleGenerator from "../src/modules/AnsibleWorker";
+import UserCategories from "../src/modules/user/UserCategories";
+import GroupCategories from "../src/modules/group/GroupCategories";
+import AnsibleGenerator from "../src/modules/engines/AnsibleEngine";
 
-describe("Test scratchpad", function () {
+describe("***********Test scratchpad", function () {
 
     var validUsers = [
         new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
@@ -69,7 +69,17 @@ describe("Test scratchpad", function () {
 
 });
 
-describe('Build up host programmaticly', function () {
+describe('Test async loading of dynamic modules', function () {
+    it('should  work', (done)=> {
+        let provider = new Provider();
+        provider.loadManagers().then((result)=>{
+            console.log(provider.managers);
+            done();
+        }).catch(e=>{console.log(e)});
+    });
+});
+
+describe('Build up host programmaticaly', function () {
     let provider = new Provider();
     let markU = new User({name: "mark", uid: 1000, key: '/home/mark/.ssh/newton/id_rsa.pub'});
     provider.users.add(markU);

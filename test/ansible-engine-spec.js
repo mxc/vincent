@@ -2,13 +2,13 @@
  * Created by mark on 2016/02/21.
  */
 import Provider from "../src/Provider.js";
-import User from "../src/coremodel/User";
-import Group from "../src/coremodel/Group";
-import AnsibleEngine from "../src/modules/AnsibleWorker";
+import User from "../src/modules/user/User";
+import Group from "../src/modules/group/Group";
+import AnsibleEngine from "../src/modules/engines/AnsibleEngine";
 var Loader = require('../src/utilities/FileDbLoader').default;
 
 
-describe("testing of yaml generator", function () {
+describe("testing of yaml generator it", function () {
     "use strict";
 
     var validUsers = [

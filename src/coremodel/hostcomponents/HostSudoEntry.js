@@ -1,7 +1,7 @@
 /**
  * Created by mark on 2016/02/21.
  */
-import HostDef from './HostDef';
+import HostDef from './../../modules/base/HostDef';
 import SudoEntry from './../SudoEntry';
 import Provider from './../../Provider';
 import logger from './../../Logger';

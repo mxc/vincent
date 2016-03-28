@@ -2,9 +2,9 @@
 
 import Provider from './../../Provider';
 import logger from './../../Logger';
-import User from './../User';
-import Host from './../Host';
-import HostDef from './HostDef';
+import User from './User';
+import Host from '../host/Host';
+import HostDef from './../base/HostDef';
 
 class HostUser extends HostDef {
 

@@ -1,11 +1,11 @@
 "use strict";
 
 import Provider from '../Provider';
-import User from '../coremodel/User';
-import Group from '../coremodel/Group';
-import Host from '../coremodel/Host';
-import HostUser from '../coremodel/hostcomponents/HostUser';
-import HostGroup from '../coremodel/hostcomponents/HostGroup';
+import User from '../modules/user/User';
+import Group from '../modules/group/Group';
+import Host from '../modules/host/Host';
+import HostUser from '../modules/user/HostUser';
+import HostGroup from '../modules/group/HostGroup';
 import logger from '../Logger';
 import fs from 'fs';
 import Loader from './Loader';

@@ -1,7 +1,7 @@
 "use strict";
 
-import logger from './../Logger';
-import Base from './Base';
+import logger from './../../Logger';
+import Base from './../base/Base';
 
 class Group extends Base {
 

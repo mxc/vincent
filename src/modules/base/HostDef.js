@@ -2,7 +2,7 @@
  * Created by mark on 2016/02/20.
  */
 import Provider from './../../Provider';
-import Host from './../Host';
+import Host from '../host/Host';
 import logger from './../../Logger';
 
 class HostDef {

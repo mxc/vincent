@@ -1,12 +1,12 @@
 "use strict";
 
-import Host from './../Host';
-import HostUser from '../hostcomponents/HostUser';
-import HostGroup from '../hostcomponents/HostGroup';
-import RemoteAccess from '../hostcomponents/RemoteAccess';
-import SudoEntry from '../SudoEntry';
-import Provider from './../../Provider';
-import logger from './../../Logger';
+import Host from './Host';
+import HostUser from '../user/HostUser';
+import HostGroup from '../group/HostGroup';
+import RemoteAccess from '../../coremodel/hostcomponents/RemoteAccess';
+import SudoEntry from '../../coremodel/SudoEntry';
+import Provider from '../../Provider';
+import logger from '../../Logger';
 
 class Hosts {
 
@@ -44,6 +44,9 @@ class Hosts {
         });
     }
 
+    /*
+    Method to provision a host for the specific engine.
+     */
     provisionHostForEngine(initHost){
         if (typeof initHost =='object'){
             if(!initHost.name){

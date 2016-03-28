@@ -2,11 +2,11 @@
 
 
 import Provider from '../src/Provider';
-import User from "../src/coremodel/User";
-import Group from "../src/coremodel/Group";
+import User from "../src/modules/user/User";
+import Group from "../src/modules/group/Group";
 import SshConfigs from "../src/coremodel/includes/SshConfigs";
-import UserCategories from "../src/coremodel/includes/UserCategories";
-import GroupCategories from "../src/coremodel/includes/GroupCategories";
+import UserCategories from "../src/modules/user/UserCategories";
+import GroupCategories from "../src/modules/group/GroupCategories";
 
 //global.expect = require("chai").expect;
 
@@ -705,7 +705,7 @@ describe("validating group categories include with duplicated groups", function 
             .equal(JSON.stringify(validHosts));
     });
 
-    it('should not duplicate groups in groupCategories and groups collections', function () {
+    it('should not duplicate groups in groupCategories and groups controllers', function () {
         expect(provider.hosts.find("web01.example.co.za").groups.length).to.equal(3);
     });
 

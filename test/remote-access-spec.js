@@ -2,8 +2,8 @@
  * Created by mark on 2016/02/29.
  */
 import Provider from "../src/Provider.js";
-import User from "../src/coremodel/User";
-import Group from "../src/coremodel/Group";
+import User from "../src/modules/user/User";
+import Group from "../src/modules/group/Group";
 import Loader from '../src/utilities/FileDbLoader';
 
 describe("Hosts configuration without remote access definition", ()=> {

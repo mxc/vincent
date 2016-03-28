@@ -3,9 +3,9 @@
  */
 
 import Provider from './../../Provider';
-import Group from './../Group';
-import User from './../User';
-import HostDef from './HostDef';
+import Group from './Group';
+import User from './../user/User';
+import HostDef from './../base/HostDef';
 import logger from './../../Logger';
 
 class HostGroup extends HostDef {
@@ -90,7 +90,7 @@ class HostGroup extends HostDef {
 
     addMember(user) {
         if (user instanceof User) {
-            //Users should be in global object Coach
+            //UserManager should be in global object Coach
             var validUser = this.provider.users.findUser(user);
             if (validUser && validUser.state != "absent") {
                 //if (!this.data.members) {

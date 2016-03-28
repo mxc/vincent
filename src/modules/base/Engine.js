@@ -3,7 +3,7 @@
  */
 
 
-class Worker {
+class Engine {
 
     constructor(){
 
@@ -23,4 +23,4 @@ class Worker {
     }
 }
 
-export default Worker;
+export default Engine;

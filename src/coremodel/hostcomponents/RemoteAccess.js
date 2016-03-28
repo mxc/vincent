@@ -4,7 +4,7 @@
 
 import Provider from './../../Provider';
 import logger from './../../Logger';
-import Base from './../Base';
+import Base from './../../modules/base/Base';
 
 class RemoteAccess extends Base {
 

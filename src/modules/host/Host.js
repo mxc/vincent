@@ -1,15 +1,15 @@
 'use strict';
 
-import Group from './Group';
-import HostGroup from '../coremodel/hostcomponents/HostGroup';
-import RemoteAccess from '../coremodel/hostcomponents/RemoteAccess';
-import HostUser from '../coremodel/hostcomponents/HostUser';
-import HostSsh from '../coremodel/hostcomponents/HostSsh';
-import HostSudoEntry from '../coremodel/hostcomponents/HostSudoEntry';
-import SudoEntry from '../coremodel/SudoEntry';
-import Provider from './../Provider';
-import logger from './../Logger';
-import Base from './Base';
+import Group from '../group/Group';
+import HostGroup from '../group/HostGroup';
+import RemoteAccess from '../../coremodel/hostcomponents/RemoteAccess';
+import HostUser from '../user/HostUser';
+import HostSsh from '../../coremodel/hostcomponents/HostSsh';
+import HostSudoEntry from '../../coremodel/hostcomponents/HostSudoEntry';
+import SudoEntry from '../../coremodel/SudoEntry';
+import Provider from '../../Provider';
+import logger from '../../Logger';
+import Base from '../../modules/base/Base';
 
 class Host extends Base {
 

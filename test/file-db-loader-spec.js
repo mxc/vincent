@@ -5,13 +5,13 @@
 
 
 import Provider from '../src/Provider';
-import User from "../src/coremodel/User";
-import Host from "../src/coremodel/Host";
-import HostUser from "../src/coremodel/hostcomponents/HostUser";
-import Group from "../src/coremodel/Group";
+import User from "../src/modules/user/User";
+import Host from "../src/modules/host/Host";
+import HostUser from "../src/modules/user/HostUser";
+import Group from "../src/modules/group/Group";
 import SshConfigs from "../src/coremodel/includes/SshConfigs";
-import UserCategories from "../src/coremodel/includes/UserCategories";
-import GroupCategories from "../src/coremodel/includes/GroupCategories";
+import UserCategories from "../src/modules/user/UserCategories";
+import GroupCategories from "../src/modules/group/GroupCategories";
 import Loader from "../src/utilities/FileDbLoader";
 
 describe("File DB loader tests", function () {
