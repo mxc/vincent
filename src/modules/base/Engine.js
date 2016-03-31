@@ -10,16 +10,16 @@ class Engine {
     }
 
     run(host){
-
+        throw new Error ("Method must be overridden in child object");
     }
 
 
     export(host){
-
+        throw new Error ("Method must be overridden in child object");
     }
 
     getInfo(host){
-
+        throw new Error ("Method must be overridden in child object");
     }
 }
 

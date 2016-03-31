@@ -3,19 +3,18 @@
  */
 import logger from '../../Logger';
 import Provider from '../../Provider';
-import fs from 'fs';
 require("babel-polyfill");
 
 class UserCategories {
 
-    constructor(provider) {
-        if (!provider || !(provider instanceof Provider)) {
-            logger.logAndThrow("Parameter data provider must be of type provider");
-        }
+    constructor() {
+        // if (!provider || !(provider instanceof Provider)) {
+        //     logger.logAndThrow("Parameter data provider must be of type provider");
+        // }
         this._state = 'not loaded';
         this.data = {};
         this.data.configs = {};
-        this.provider = provider;
+        //this.provider = provider;
     }
 
     get configs() {

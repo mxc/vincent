@@ -2,21 +2,13 @@
  * Created by mark on 2016/02/20.
  */
 import logger from '../../Logger';
-import Provider from '../../Provider';
-import fs from 'fs';
 
 class GroupCategories {
 
-    constructor(provider) {
-
-        if (!provider || !(provider instanceof Provider)) {
-            logger.logAndThrow("Parameter data provider must be of type provider");
-        }
-
+    constructor() {
         this.data = {};
         this.data.configs = {};
         this._state="not loaded";
-        this.provider = provider;
     }
 
     get configs(){

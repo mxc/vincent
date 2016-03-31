@@ -32,9 +32,11 @@ class Group extends Base {
         }
         this.data = {
             name: data.name,
-            gid: data.gid,
             state: data.state ? data.state : "present",
         };
+        if(data.gid){
+            this.data.gid= data.gid;
+        }
         this._source = data;
     }
 

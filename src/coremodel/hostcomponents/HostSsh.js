@@ -2,7 +2,7 @@
  * Created by mark on 2016/02/19.
  */
 
-import HostDef from './../../modules/base/HostDef';
+import HostDef from './../../modules/base/HostComponent';
 import Ssh from './../Ssh';
 
 class HostSsh extends HostDef {

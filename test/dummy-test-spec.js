@@ -9,9 +9,6 @@ import User from "../src/modules/user/User";
 import Host from "../src/modules/host/Host";
 import HostUser from "../src/modules/user/HostUser";
 import Group from "../src/modules/group/Group";
-import SshConfigs from "../src/coremodel/includes/SshConfigs";
-import UserCategories from "../src/modules/user/UserCategories";
-import GroupCategories from "../src/modules/group/GroupCategories";
 import AnsibleGenerator from "../src/modules/engines/AnsibleEngine";
 
 describe("***********Test scratchpad", function () {
@@ -73,7 +70,7 @@ describe('Test async loading of dynamic modules', function () {
     it('should  work', (done)=> {
         let provider = new Provider();
         provider.loadManagers().then((result)=>{
-            console.log(provider.managers);
+            //console.log(provider.managers);
             done();
         }).catch(e=>{console.log(e)});
     });
@@ -82,13 +79,13 @@ describe('Test async loading of dynamic modules', function () {
 describe('Build up host programmaticaly', function () {
     let provider = new Provider();
     let markU = new User({name: "mark", uid: 1000, key: '/home/mark/.ssh/newton/id_rsa.pub'});
-    provider.users.add(markU);
+    provider.managers.users.addValidUser(markU);
     let demoU = new User({name: "demo", uid: 1001});
-    provider.users.add(demoU);
+    provider.managers.users.addValidUser(demoU);
     let host = new Host(provider, '192.168.122.137');
     let hostuser1 = new HostUser(provider, {user: demoU});
     hostuser1.addAuthorizedUser(markU, "present");
-    host.addHostUser(hostuser1);
+    provider.managers.users.addHostUser(host,hostuser1);
     provider.hosts.add(host);
     let ansiblegen = new AnsibleGenerator(provider);
     ansiblegen.loadEngineDefinition(host);

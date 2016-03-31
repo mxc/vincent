@@ -16,53 +16,64 @@ class SudoEntry extends Base {
     constructor(data) {
         super();
         this.data = {};
-        this._export={};
-        if (!data) {
+        this._export = {};
+        if (typeof data === 'string') {
             //this.data.name = data;
+            this.data.name = data;
             this.data.userList = [];
-            this._export.name=data;
-            this._export.userList=[];
+            this._export.name = data;
+            this._export.userList = [];
             return;
-        }
-        //if (!data.name) {
-        //    throw new Error("A SudoEntry must have a name identifier.");
-        //} else {
-        //    this.data.name = data.name;
-        //    this._export.name=data.name;
-        //}
-        if (Array.isArray(data.userList)) {
-            this.data.userList = data.userList;
+        } else if (typeof data === 'object') {
+
+            if (Array.isArray(data.userList)) {
+                this.data.userList = data.userList;
+            } else {
+                throw new Error("A SudoEntry must have a userList property of type array.")
+            }
+            if (data.userList) {
+                this.data.commandSpec = data.commandSpec;
+            } else {
+                throw new Error("A SudoEntry must have a commandSpec property.")
+            }
         } else {
-            throw new Error("A SudoEntry must have a userList property of type array.")
+            throw new Error("A SudoEntry constructor must have a string name or SudoEntry object as a parameter");
         }
-        if (data.userList) {
-            this.data.commandSpec = data.commandSpec;
+    }
+
+    addGroup(group) {
+        if (!this.data.userList) {
+            this.data.userList = [];
+        }
+        if (!this._export.userList) {
+            this._export.userList = [];
+        }
+        if (group instanceof HostGroup) {
+            this.data.userList.push({group: group});
+            this._export.userList.push({group: group.group.exportId()});
         } else {
-            throw new Error("A SudoEntry must have a commandSpec property.")
+            throw new Error("The userObj must be of type HostUser or HostGroup")
         }
     }
 
     addUser(userObj) {
-        if(!this.data.userList){
-            this.data.userList=[];
+        if (!this.data.userList) {
+            this.data.userList = [];
         }
-        if(!this._export.userList){
-            this._export.userList=[];
+        if (!this._export.userList) {
+            this._export.userList = [];
         }
         if (userObj instanceof HostUser) {
             this.data.userList.push({user: userObj});
             this._export.userList.push({user: userObj.user.exportId()});
-        }else if (userObj instanceof HostGroup) {
-            this.data.userList.push({group: userObj});
-            this._export.userList.push({group: userObj.group.exportId()});
-        }else{
+        } else {
             throw new Error("The userObj must be of type HostUser or HostGroup")
         }
     }
 
     set commandSpec(data) {
         this.data.commandSpec = data;
-        this._export.commandSpec=data;
+        this._export.commandSpec = data;
     }
 
     export() {
@@ -76,23 +87,23 @@ class SudoEntry extends Base {
         this.data.userList.forEach((userEntry, index)=> {
             if (userEntry['group']) {
                 entry = `%${userEntry['group'].name}`;
-                if (index < num-1) {
-                    entry+= ",";
+                if (index < num - 1) {
+                    entry += ",";
                 }
             } else {
                 entry += userEntry['user'].name;
-                if (index < num-1) {
-                    entry+= ",";
+                if (index < num - 1) {
+                    entry += ",";
                 }
             }
         });
-        entry+=` ALL = (${this.data.commandSpec.runAs})`;
-        entry+= ` ${this.data.commandSpec.options} `;
+        entry += ` ALL = (${this.data.commandSpec.runAs})`;
+        entry += ` ${this.data.commandSpec.options} `;
         num = this.data.commandSpec.cmdList.length;
-        this.data.commandSpec.cmdList.forEach((cmd,index)=> {
-            entry+=cmd;
-            if (index < num-1) {
-                entry +=",";
+        this.data.commandSpec.cmdList.forEach((cmd, index)=> {
+            entry += cmd;
+            if (index < num - 1) {
+                entry += ",";
             }
         });
         return entry;

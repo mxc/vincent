@@ -167,8 +167,9 @@ class AnsibleEngine extends Worker {
         var playbook = [];
         playbook.push({hosts: host.name, tasks: []});
         let tasks = playbook[0].tasks;
-        if (host.users) {
-            host.users.forEach((user)=> {
+        let hostUsers = this.provider.managers.users.getHostUsers(host);
+        if (hostUsers) {
+            hostUsers.forEach((user)=> {
                 let ansibleUser = {
                     name: "User account state check",
                     user: `name=${user.name} state=${user.state}`,
@@ -229,10 +230,10 @@ class AnsibleEngine extends Worker {
             });
             if (host.ssh.validUsersOnly) {
                 let users = '';
-                host.users.forEach((user, index)=> {
-                    user += user.name;
-                    if (index < host.users.length - 1) {
-                        user += ",";
+                hostUsers.forEach((user, index)=> {
+                    users += user.name;
+                    if (index < hostUsers.length - 1) {
+                        users += ",";
                     }
                 });
                 tasks.push({

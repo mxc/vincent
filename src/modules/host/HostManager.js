@@ -1,19 +1,18 @@
 "use strict";
 
 import Host from './Host';
-import HostUser from '../user/HostUser';
-import HostGroup from '../group/HostGroup';
 import RemoteAccess from '../../coremodel/hostcomponents/RemoteAccess';
-import SudoEntry from '../../coremodel/SudoEntry';
 import Provider from '../../Provider';
 import logger from '../../Logger';
+import Manager from '../base/Manager';
 
-class Hosts {
+class HostManager extends Manager {
 
     constructor(provider) {
         if (!provider instanceof Provider) {
             throw new Error("Parameter provider must be an instance of provider");
         }
+        super();
         this.provider = provider;
         this.validHosts = [];
         this.errors = {};
@@ -61,14 +60,16 @@ class Hosts {
             //this.provider.database.initHost(host.name).then();
         }else{
             throw new Error("The parameter to init host must be of type Host or " +
-                "an HostDef object");
+                "an HostComponent object");
         }
     }
 
     load(hostDef) {
+        
         var hostData = {
             name: hostDef.name
         };
+        
         let host = {};
 
         //create host instance
@@ -107,66 +108,23 @@ class Hosts {
             }
         }
 
-        //add users to host
-        if (hostDef.users) {
-            hostDef.users.forEach(
-                (userDef) => {
-                    try {
-                        var hostUser = new HostUser(host.provider, userDef);
-                        host.addHostUser(hostUser);
-                        Array.prototype.push.apply(
-                            this.errors[host.name],
-                            hostUser.errors);
-                    }
-                    catch (e) {
-                        logger.logAndAddToErrors(`Error adding host user - ${e.message}`,
-                            this.errors[host.name]);
-                    }
-                });
+        try {
+            this.provider.managers.users.updateHost(this,host,hostDef);
+        }catch(e){
+            logger.logAndAddToErrors(`Error loading users - ${e.message}`,
+                this.errors[host.name]);
+        }
+        
+
+
+        try {
+            this.provider.managers.groupManager.updateHost(this,host,hostDef);
+        }catch(e){
+            logger.logAndAddToErrors(`Error loading groups - ${e.message}`,
+                this.errors[host.name]);
         }
 
-        //Add user categories into the user array
-        if (hostDef.includes) {
-            let userCategories = this.findIncludeInDef("userCategories", hostDef.includes);
-            if (userCategories) {
-                userCategories.forEach((userCategory) => {
-                    try {
-                        host.addUserCategory(userCategory);
-                    } catch (e) {
-                        this.errors[host.name].push(e.message);
-                    }
-                });
-            }
-        }
-
-        //group and group membership validation
-        if (hostDef.groups) {
-            hostDef.groups.forEach((groupdef) => {
-                try {
-                    let hostGroup = new HostGroup(host.provider, groupdef);
-                    host.addHostGroup(hostGroup);
-                    Array.prototype.push.apply(this.errors[host.name], hostGroup.errors);
-                } catch (e) {
-                    logger.logAndAddToErrors(`Error adding host group - ${e.message}`,
-                        this.errors[host.name]);
-                }
-            });
-        }
-
-        //Add group categories into the groups array
-        if (hostDef.includes) {
-            let groupCategories = this.findIncludeInDef("groupCategories", hostDef.includes);
-            if (groupCategories) {
-                groupCategories.forEach((groupCategory) => {
-                    try {
-                        host.addGroupCategory(groupCategory);
-                    } catch (e) {
-                        this.errors[host.name].push(e.message);
-                    }
-                });
-            }
-        }
-
+ 
         if (hostDef.sudoerEntries) {
                 hostDef.sudoerEntries.forEach((sudoEntryData)=> {
                     try {
@@ -218,4 +176,4 @@ class Hosts {
     }
 }
 
-export default Hosts;
+export default HostManager;

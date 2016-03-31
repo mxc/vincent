@@ -1,12 +1,13 @@
 'use strict';
 
-import Provider from './../../Provider';
 import logger from './../../Logger';
 import User from './User';
-import Host from '../host/Host';
-import HostDef from './../base/HostDef';
+import HostComponent from './../base/HostComponent';
 
-class HostUser extends HostDef {
+/*
+Host user is a user with a list of authorized keys associate with this user account.
+ */
+class HostUser extends HostComponent {
 
     constructor(provider, data) {
         super(provider);
@@ -16,13 +17,13 @@ class HostUser extends HostDef {
         if (data) {
             if (typeof data === "object") {
                 //find the user from the list of parsed users for group and
-                //add user to this definition. If the user data has a state
+                //addValidGroup user to this definition. If the user data has a state
                 //of absent it will override the state of the global user definition
                 //note: all the values of the global group are copied. Only state may change.
                 if (!data.user || !data.user.name) {
                     logger.logAndThrow("The parameter data for HostUser must have a property \"user\".");
                 } else {
-                    var user = this.provider.users.findUserByName(data.user.name);
+                    var user = this.provider.managers.users.findValidUserByName(data.user.name);
                     if (user) {
                         this.data.user = user.clone();
                         if (data.user.state === "absent") {
@@ -38,7 +39,7 @@ class HostUser extends HostDef {
                         if (typeof authorizedUserDef !== "object"){
                             throw new Error("Authorized_keys must be an array of userdefs.");
                         }
-                        var user = this.provider.users.findUserByName(authorizedUserDef.name);
+                        var user = this.provider.managers.users.findValidUserByName(authorizedUserDef.name);
                         if (!user) {
                             logger.logAndAddToErrors(
                                 `User with name ${authorizedUserDef.name} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
@@ -65,15 +66,15 @@ class HostUser extends HostDef {
             return;
         }
         if (user instanceof User) {
-            var validUser = this.provider.users.findUser(user);
+            var validUser = this.provider.managers.users.findValidUser(user);
             //if this is not a valid user or the user is valid
-            //but marked as globally absent then don't add keys
+            //but marked as globally absent then don't addValidGroup keys
             if (!validUser || !validUser.key) {
                 logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined`);
                 return;
             }
             //detect if user already in keys
-            if (!this.provider.users.findUser(user, this.data.authorized_keys)) {
+            if (!this.provider.managers.users.findValidUser(user, this.data.authorized_keys)) {
                 let authorizedUser = user.clone();
                 if (state === "absent") {
                     authorizedUser.state = "absent";

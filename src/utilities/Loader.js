@@ -15,14 +15,18 @@ class Loader {
     }
 
     loadGroups(groupData) {
-        this.provider.groups.load(groupData, this.errors);
-        return this.provider.groups.validGroups;
+        this.provider.managers.groupManager.load(groupData, this.errors);
+        return this.provider.managers.groupManager.validGroups;
     }
 
     loadUsers(userData) {
-        this.provider.users.load(userData, this.errors);
-        return this.provider.users.validUsers;
+        this.provider.managers.users.load(userData, this.errors);
+        return this.provider.managers.users.validUsers;
     }
+
+    // this.provider.managers.forEach(manager => {
+    //             manager.load();
+    //     });
 
     loadHosts(hosts) {
         //filter and clean up cloned hosts
@@ -39,11 +43,11 @@ class Loader {
     }
 
     loadUserCategories(userCategoriesData){
-        this.provider.userCategories.load(userCategoriesData);
+        this.provider.managers.users.userCategories.load(userCategoriesData);
     }
 
     loadGroupCategories(groupCategoriesData){
-        this.provider.groupCategories.load(groupCategoriesData);
+        this.provider.managers.groupManager.groupCategories.load(groupCategoriesData);
     }
 
     loadSshConfigs(sshConfigsData){

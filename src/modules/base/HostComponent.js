@@ -5,7 +5,7 @@ import Provider from './../../Provider';
 import Host from '../host/Host';
 import logger from './../../Logger';
 
-class HostDef {
+class HostComponent {
 
     constructor(provider) {
         if (!provider || !(provider instanceof Provider)) {
@@ -32,4 +32,4 @@ class HostDef {
 
 }
 
-export default HostDef;
+export default HostComponent;

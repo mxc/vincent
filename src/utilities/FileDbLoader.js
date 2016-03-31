@@ -27,7 +27,7 @@ class FileDbLoader extends Loader {
             groupCategories = JSON.parse(fs.readFileSync(this.config.confdir + 'includes/group-categories.js'));
         }
 
-        //parse category groups to load2 for members which reference a user category.
+        //parse category groups to load for members which reference a user category.
         for (var groupCategory in groupCategories) {
             groupCategories[groupCategory].forEach((group)=> {
                 var parsedGroupMembers = [];

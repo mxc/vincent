@@ -33,10 +33,10 @@ class SudoerEntries {
     load(sudoerEntriesData) {
         if (Array.isArray(sudoerEntriesData)) {
             sudoerEntriesData.forEach((sudoerEntryData)=> {
-                if (!sudoerEntryData.name || !sudoerEntryData.config) {
-                    logger.logAndThrow("The data mus have properties name and config");
+                if (!sudoerEntryData.name || !sudoerEntryData.userList || !sudoerEntryData.commandSpec) {
+                    logger.logAndThrow("The data mus have properties name, userList and commandSpec");
                 }
-                this.data.configs[sudoerEntryData.name] = sudoerEntryData.config;
+                this.data.configs[sudoerEntryData.name] = sudoerEntryData;
                 this._state="loaded";
             });
         } else {

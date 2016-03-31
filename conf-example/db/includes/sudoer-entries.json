@@ -1,44 +1,40 @@
 [
   {
     "name": "developers",
-    "config": {
-      "userList": [
-        {
-          "group": {
-            "name": "group1"
-          }
-        },
-        {
-          "user": {
-            "name": "user1"
-          }
+    "userList": [
+      {
+        "group": {
+          "name": "group1"
         }
-      ],
-      "commandSpec": {
-        "cmdList": [
-          "/bin/vi"
-        ],
-        "runAs": "ALL:ALL",
-        "options": "NOPASSWD:"
+      },
+      {
+        "user": {
+          "name": "user1"
+        }
       }
+    ],
+    "commandSpec": {
+      "cmdList": [
+        "/bin/vi"
+      ],
+      "runAs": "ALL:ALL",
+      "options": "NOPASSWD:"
     }
   },
   {
     "name": "backupOperators",
-    "config": {
-      "userList": [
-        {
-          "user": {
-            "name": "user3"
-          }
+    "userList": [
+      {
+        "user": {
+          "name": "user3"
         }
-      ],
-      "commandSpec": {
-        "cmdList": [
-          "/usr/local/backup.sh"
-        ],
-        "runAs": "ALL:ALL"
       }
+    ],
+    "commandSpec": {
+      "cmdList": [
+        "/usr/local/backup.sh"
+      ],
+      "runAs": "ALL:ALL"
     }
   }
 ]

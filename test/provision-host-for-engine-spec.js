@@ -7,7 +7,7 @@ import Group from "../src/modules/group/Group";
 import HostUser from "../src/modules/user/HostUser";
 import RemoteAccess from "../src/coremodel/hostcomponents/RemoteAccess";
 import Host from "../src/modules/host/Host";
-import Hosts from "../src/modules/host/Hosts";
+import Hosts from "../src/modules/host/HostManager";
 import Loader from '../src/utilities/FileDbLoader';
 
 
@@ -30,18 +30,18 @@ describe('When a new host is initialised for the ansible engine', ()=> {
             let host = new Host(provider, "192.168.122.137");
             let ansibleUser = new User("ansibleAdmin");
             let mark = new User({name: "mark", key: "/home/mark/.ssh/newton/id_rsa.pub"});
-            provider.users.add(ansibleUser);
-            provider.users.add(mark);
+            provider.managers.users.addValidUser(ansibleUser);
+            provider.managers.users.addValidUser(mark);
             let ansibleHostUser = new HostUser(provider,
                 {
                     user: ansibleUser,
                     authorized_keys: [{name: "mark", state: "present"}]
                 }
             );
-            host.addHostUser(ansibleHostUser);
+            provider.managers.users.addHostUser(host,ansibleHostUser);
             host.addSsh("strict");
             host.setRemoteAccess(new RemoteAccess("ansibleAdmin", "password", true));
-            provider.hosts.add(host);
+            //provider.manager.addValidGroup(host);
             provider.hosts.provisionHostForEngine(host);
             done();
             //provider.engine.runPlaybook(host,(data)=>{ console.log(data); done();},'dagama','dagama');

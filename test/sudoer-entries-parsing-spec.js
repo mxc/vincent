@@ -3,7 +3,7 @@
  */
 'use strict';
 
-global.expect = require("chai").expect;
+import  {assert, expect} from 'chai';
 import Provider from './../src/Provider';
 import Loader from   '../src/utilities/FileDbLoader';
 import User from "../src/modules/user/User";
@@ -74,6 +74,7 @@ describe("validating host configuration with sudoer entry config", function () {
             ],
             sudoerEntries: [
                 {
+                    "name": "vi",
                     "userList": [
                         {
                             "group": {
@@ -99,12 +100,12 @@ describe("validating host configuration with sudoer entry config", function () {
 
     var provider = new Provider();
     //inject mocks
-    provider.groups.validGroups = validGroups;
-    provider.users.validUsers = validUsers;
+    provider.managers.groupManager.validGroups = validGroups;
+    provider.managers.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
-    it('should load2 sudo entries correctly', function () {
+    it('should load sudo entries correctly', function () {
         var validHosts = [
             {
                 name: "www.example.co.za",
@@ -137,6 +138,7 @@ describe("validating host configuration with sudoer entry config", function () {
                 ],
                 sudoerEntries: [
                     {
+                        "name": "vi",
                         "userList": [
                             {
                                 "group": {
@@ -161,7 +163,7 @@ describe("validating host configuration with sudoer entry config", function () {
                     }
                 ]
             }];
-        expect(JSON.stringify(provider.hosts.export())).to.equal(JSON.stringify(validHosts));
+        expect(provider.hosts.export()).to.deep.equal(validHosts);
     });
 
     it('should produce the correct line for insertion into sudoer file', function () {
@@ -235,6 +237,7 @@ describe("validating host configuration with sudo entry and invalid users", func
             ],
             sudoerEntries: [
                 {
+                    "name": "vi",
                     "userList": [
                         {
                             "group": {
@@ -260,8 +263,8 @@ describe("validating host configuration with sudo entry and invalid users", func
 
     var provider = new Provider();
     //inject mocks
-    provider.groups.validGroups = validGroups;
-    provider.users.validUsers = validUsers;
+    provider.managers.groupManager.validGroups = validGroups;
+    provider.managers.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
@@ -298,6 +301,7 @@ describe("validating host configuration with sudo entry and invalid users", func
                 ],
                 sudoerEntries: [
                     {
+                        "name": "vi",
                         "userList": [
                             {
                                 "user": {
@@ -316,7 +320,7 @@ describe("validating host configuration with sudo entry and invalid users", func
                     }
                 ]
             }];
-        expect(JSON.stringify(provider.hosts.export())).to.equal(JSON.stringify(validHosts));
+        expect(provider.hosts.export()).to.deep.equal(validHosts);
     });
 });
 
@@ -351,42 +355,38 @@ describe("validating host configuration with sudo entry include", function () {
     var sudoerEntries = [
         {
             "name": "dev",
-            "config": {
-                "userList": [
-                    {
-                        "group": {
-                            "name": "group1"
-                        }
-                    },
-                    {
-                        "user": {
-                            "name": "user1"
-                        }
+            "userList": [
+                {
+                    "group": {
+                        "name": "group1"
                     }
-                ],
-                "commandSpec": {
-                    "cmdList": [
-                        "/bin/vi"
-                    ],
-                    "runAs": "ALL:ALL",
-                    "options": "NOPASSWD:"
+                },
+                {
+                    "user": {
+                        "name": "user1"
+                    }
                 }
+            ],
+            "commandSpec": {
+                "cmdList": [
+                    "/bin/vi"
+                ],
+                "runAs": "ALL:ALL",
+                "options": "NOPASSWD:"
             }
         },
         {
             "name": "ops",
-            "config": {
-                "userList": [
-                    {
-                        "user": {
-                            "name": "user3"
-                        }
+            "userList": [
+                {
+                    "user": {
+                        "name": "user3"
                     }
-                ],
-                "commandSpec": {
-                    "cmdList": ["/usr/local/backup.sh"],
-                    "runAs": "ALL:ALL"
                 }
+            ],
+            "commandSpec": {
+                "cmdList": ["/usr/local/backup.sh"],
+                "runAs": "ALL:ALL"
             }
         }
     ];
@@ -433,8 +433,8 @@ describe("validating host configuration with sudo entry include", function () {
 
     var provider = new Provider();
     //inject mocks
-    provider.groups.validGroups = validGroups;
-    provider.users.validUsers = validUsers;
+    provider.managers.groupManager.validGroups = validGroups;
+    provider.managers.users.validUsers = validUsers;
     provider.sudoerEntries.load(sudoerEntries);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
@@ -474,6 +474,6 @@ describe("validating host configuration with sudo entry include", function () {
                     sudoerEntries: ["dev", "ops"]
                 }
             }];
-        expect(JSON.stringify(provider.hosts.export())).to.equal(JSON.stringify(validHosts));
+        expect(provider.hosts.export()).to.deep.equal(validHosts);
     });
 });

@@ -22,8 +22,8 @@ describe("File DB loader tests", function () {
     it('should load user categories', (done)=> {
         loader.importUserCategories().then((result)=> {
             if (result === 'success') {
-                expect(provider.userCategories.configs["staff-user-category"].length).to.equal(2);
-                expect(provider.userCategories.configs["devs-user-category"][0].user.name)
+                expect(provider.managers.users.userCategories.configs["staff-user-category"].length).to.equal(2);
+                expect(provider.managers.users.userCategories.configs["devs-user-category"][0].user.name)
                     .to.equal("dev1");
             }
             done();
@@ -36,8 +36,8 @@ describe("File DB loader tests", function () {
     it('should load group categories', (done)=> {
         loader.importGroupCategories().then((result)=> {
             if (result === 'success') {
-                expect(provider.groupCategories.configs["server-groups"].length).to.equal(1);
-                expect(provider.groupCategories.configs["desktop-groups"][0].group.name)
+                expect(provider.managers.groupManager.groupCategories.configs["server-groups"].length).to.equal(1);
+                expect(provider.managers.groupManager.groupCategories.configs["desktop-groups"][0].group.name)
                     .to.equal("ansible-full");
             }
             done();
@@ -87,9 +87,9 @@ describe("File DB loader tests", function () {
             }
             done();
         }, (error)=> {
-            expect(provider.users.validUsers.length)
+            expect(provider.managers.users.validUsers.length)
                 .to.equal(4);
-            expect(provider.groups.validGroups.length)
+            expect(provider.managers.groupManager.validGroups.length)
                 .to.equal(3);
             expect(provider.hosts.validHosts.length).to.equal(3);
             expect(error).to.equal("load completed with errors.");

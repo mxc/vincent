@@ -6,7 +6,7 @@ import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import Loader from '../src/utilities/FileDbLoader';
 
-describe("Hosts configuration without remote access definition", ()=> {
+describe("HostManager configuration without remote access definition", ()=> {
     "use strict";
     var validUsers = [
         new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
@@ -76,8 +76,8 @@ describe("Hosts configuration without remote access definition", ()=> {
 
     var provider = new Provider();
     //inject mocks
-    provider.groups.validGroups = validGroups;
-    provider.users.validUsers = validUsers;
+    provider.managers.groupManager.validGroups = validGroups;
+    provider.managers.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     let host = provider.hosts.find("www.example.com");
@@ -94,13 +94,13 @@ describe("Hosts configuration without remote access definition", ()=> {
         expect(host.remoteAccess.sudoAuthentication).to.equal(false);
     });
 
-    it("should not add definition to model export", ()=> {
+    it("should not addValidGroup definition to model export", ()=> {
         expect(host.export().remoteAccess).to.equal(undefined);
     })
 });
 
 
-describe("Hosts configuration with remote access definition", ()=> {
+describe("HostManager configuration with remote access definition", ()=> {
     "use strict";
     var validUsers = [
         new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
@@ -174,8 +174,8 @@ describe("Hosts configuration with remote access definition", ()=> {
 
     var provider = new Provider();
     //inject mocks
-    provider.groups.validGroups = validGroups;
-    provider.users.validUsers = validUsers;
+    provider.managers.groupManager.validGroups = validGroups;
+    provider.managers.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     let host = provider.hosts.find("www.example.com");
@@ -192,7 +192,7 @@ describe("Hosts configuration with remote access definition", ()=> {
         expect(host.remoteAccess.sudoAuthentication).to.equal(false);
     });
 
-    it("should not add definition to model export", ()=> {
+    it("should not addValidGroup definition to model export", ()=> {
         expect(host.export().remoteAccess).to.deep.equal({
             remoteUser: "mark",
             authentication: "publicKey",
@@ -201,7 +201,7 @@ describe("Hosts configuration with remote access definition", ()=> {
     })
 });
 
-describe("Hosts configuration with invalid remote access definition", ()=> {
+describe("HostManager configuration with invalid remote access definition", ()=> {
     "use strict";
     var validUsers = [
         new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
@@ -276,8 +276,8 @@ describe("Hosts configuration with invalid remote access definition", ()=> {
 
     var provider = new Provider();
     //inject mocks
-    provider.groups.validGroups = validGroups;
-    provider.users.validUsers = validUsers;
+    provider.managers.groupManager.validGroups = validGroups;
+    provider.managers.users.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     it("should log errors", ()=> {

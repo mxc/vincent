@@ -21,13 +21,22 @@
     "systemjs": "^0.19.24"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --harmony --reporter spec",
+    "test": "./node_modules/.bin/mocha  --compilers js:babel-core/register --reporter spec",
     "compile": "babel --presets es2015,stage-1 -d lib/ src/",
     "prepublish": "npm run compile"
   },
   "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-cli": "^6.5.1",
+    "babel-core": "^6.5.2",
+    "babel-plugin-syntax-async-functions": "^6.5.0",
+    "babel-plugin-transform-regenerator": "^6.5.2",
+    "babel-polyfill": "^6.5.0",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-1": "^6.5.0",
     "chai": "^3.5.0",
     "del": "^2.2.0",
+    "es6-module-loader": "^0.17.11",
     "mocha": "^2.4.5",
     "rename": "^1.0.3"
   }

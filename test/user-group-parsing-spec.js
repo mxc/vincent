@@ -60,7 +60,7 @@ describe("validating group configuration", function () {
                 state: 'present'
             }
         ];
-        expect(JSON.stringify(provider.groups.export())).to.eql(JSON.stringify(validGroups));
+        expect(provider.managers.groupManager.export()).to.deep.equal(validGroups);
     });
 
 });
@@ -90,7 +90,7 @@ describe("validating user configuration", function () {
             {name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'},
             {name: 'user4', key: undefined, state: 'absent', uid: undefined}
         ];
-        expect(JSON.stringify(provider.users.export())).to.eql(JSON.stringify(validUsers));
+        expect(provider.managers.users.export()).to.deep.equal(validUsers);
     });
 
 });

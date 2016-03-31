@@ -1,7 +1,7 @@
 /**
  * Created by mark on 2016/02/21.
  */
-import HostDef from './../../modules/base/HostDef';
+import HostDef from './../../modules/base/HostComponent';
 import SudoEntry from './../SudoEntry';
 import Provider from './../../Provider';
 import logger from './../../Logger';
@@ -14,18 +14,18 @@ class HostSudoEntry extends HostDef {
         if (!data && !data.userList && !Array.isArray(data.userList)) {
             logger.logAndThrow("The data def parameter for SudoEntry must have a userList array property");
         }
-        this.data = new SudoEntry();
+        this.data = new SudoEntry(data.name);
         data.userList.forEach((userEntry)=> {
             //determine if this is a group or user reference
             let added = false;
             if (userEntry.group) {
-                let group = host.findGroup(userEntry.group.name);
+                let group = this.provider.managers.groupManager.findHostGroupByName(host,userEntry.group.name);
                 if (group) {
-                    this.data.addUser(group);
+                    this.data.addGroup(group);
                     added = true;
                 }
             } else {
-                let user = host.findUser(userEntry.user.name);
+                let user = this.provider.managers.users.findHostUserByName(host,userEntry.user.name);
                 if (user) {
                     this.data.addUser(user);
                     added = true;

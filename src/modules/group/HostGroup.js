@@ -2,13 +2,11 @@
  * Created by mark on 2016/02/13.
  */
 
-import Provider from './../../Provider';
-import Group from './Group';
 import User from './../user/User';
-import HostDef from './../base/HostDef';
+import HostComponent from './../base/HostComponent';
 import logger from './../../Logger';
 
-class HostGroup extends HostDef {
+class HostGroup extends HostComponent {
 
     constructor(provider, data) {
         super(provider);
@@ -18,13 +16,13 @@ class HostGroup extends HostDef {
         if (data) {
             if (typeof data === "object") {
                 //find the group from the list of parsed groups for host and
-                //add group to this definition. If the group data has a state
+                //addValidGroup group to this definition. If the group data has a state
                 //of absent it will override the state of the global group definition
                 //note: all the values of the global group are copied. Only state may change.
                 if (!data.group || !data.group.name) {
                     logger.logAndThrow("The data object for HostGroup must have a property \"group\".");
                 } else {
-                    var group = this.provider.groups.findGroupByName(data.group.name);
+                    var group = this.provider.managers.groupManager.findValidGroupByName(data.group.name);
                     if (group) {
                         this.data.group = group.clone();
                         if (data.group.state === "absent") {
@@ -37,7 +35,7 @@ class HostGroup extends HostDef {
 
                 if (data.members) {
                     data.members.forEach((username)=> {
-                        let user = this.provider.users.findUserByName(username);
+                        let user = this.provider.managers.users.findValidUserByName(username);
                         if (user) {
                             try {
                                 this.addMember(user);
@@ -45,11 +43,11 @@ class HostGroup extends HostDef {
                                 logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
                             }
                         } else {
-                            //is this a user category? If so add all members from the category
-                            let members = this.provider.userCategories.find(username);
+                            //is this a user category? If so addValidGroup all members from the category
+                            let members = this.provider.managers.users.userCategories.find(username);
                             if (members) {
                                 members.forEach((hostUserData)=> {
-                                    let user = this.provider.users.findUserByName(hostUserData.user.name);
+                                    let user = this.provider.managers.users.findValidUserByName(hostUserData.user.name);
                                     try {
                                         this.addMember(user);
                                     } catch (e) {
@@ -90,8 +88,8 @@ class HostGroup extends HostDef {
 
     addMember(user) {
         if (user instanceof User) {
-            //UserManager should be in global object Coach
-            var validUser = this.provider.users.findUser(user);
+            //UserManager should be in global object cache
+            var validUser = this.provider.managers.users.findValidUser(user);
             if (validUser && validUser.state != "absent") {
                 //if (!this.data.members) {
                 //    this.data.members = [];
