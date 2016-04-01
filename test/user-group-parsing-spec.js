@@ -68,18 +68,18 @@ describe("validating group configuration", function () {
 describe("validating user configuration", function () {
     var provider = new Provider();
     var base = new Loader(provider);
-    base.loadUsers(users);
+    provider.managers.userManager.loadUsersFromJson(users);
 
     it("should detect duplicate user names", function () {
-        expect(base.errors.indexOf("Error validating user. User user2 already exists.")).not.to.equal(-1);
+        expect(provider.managers.userManager.errors.indexOf("Error validating user. User user2 already exists.")).not.to.equal(-1);
     });
 
     it("should detect duplicate uids", function () {
-        expect(base.errors.indexOf("Error validating user. User user6 already exists with uid 1000.")).not.to.equal(-1);
+        expect(provider.managers.userManager.errors.indexOf("Error validating user. User user6 already exists with uid 1000.")).not.to.equal(-1);
     });
 
     it("should detect the creation of user objects with no user name", function () {
-        expect(base.errors.indexOf("Error validating user. The parameter data must be a user name or an object with a mandatory property \"name\"."))
+        expect(provider.managers.userManager.errors.indexOf("Error validating user. The parameter data must be a user name or an object with a mandatory property \"name\"."))
             .not.to.equal(-1);
     });
 
@@ -90,7 +90,7 @@ describe("validating user configuration", function () {
             {name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'},
             {name: 'user4', key: undefined, state: 'absent', uid: undefined}
         ];
-        expect(provider.managers.users.export()).to.deep.equal(validUsers);
+        expect(provider.managers.userManager.export()).to.deep.equal(validUsers);
     });
 
 });

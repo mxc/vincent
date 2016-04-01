@@ -74,12 +74,12 @@ describe("testing of yaml generator it", function () {
     var gen = provider.engine;
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(validHosts);
 
     it("should generate playbook for host", function (done) {
-        gen.loadEngineDefinition(provider.hosts.find("www.example.com"));
+        gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
         gen.export().then((result)=> {
             expect(result).to.equal("success");
             done();

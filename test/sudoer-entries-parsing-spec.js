@@ -101,11 +101,11 @@ describe("validating host configuration with sudoer entry config", function () {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
-    it('should load sudo entries correctly', function () {
+    it('should loadFromJson sudo entries correctly', function () {
         var validHosts = [
             {
                 name: "www.example.co.za",
@@ -163,11 +163,11 @@ describe("validating host configuration with sudoer entry config", function () {
                     }
                 ]
             }];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 
     it('should produce the correct line for insertion into sudoer file', function () {
-        expect(provider.hosts.find("www.example.co.za").sudoerEntries[0].sudoEntry.entry).to.equal('%group1,user1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
+        expect(provider.managers.hostManager.find("www.example.co.za").sudoerEntries[0].sudoEntry.entry).to.equal('%group1,user1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
     });
 
 });
@@ -264,7 +264,7 @@ describe("validating host configuration with sudo entry and invalid users", func
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
@@ -320,7 +320,7 @@ describe("validating host configuration with sudo entry and invalid users", func
                     }
                 ]
             }];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 });
 
@@ -434,7 +434,7 @@ describe("validating host configuration with sudo entry include", function () {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     provider.sudoerEntries.load(sudoerEntries);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
@@ -474,6 +474,6 @@ describe("validating host configuration with sudo entry include", function () {
                     sudoerEntries: ["dev", "ops"]
                 }
             }];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 });

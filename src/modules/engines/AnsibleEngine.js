@@ -167,7 +167,7 @@ class AnsibleEngine extends Worker {
         var playbook = [];
         playbook.push({hosts: host.name, tasks: []});
         let tasks = playbook[0].tasks;
-        let hostUsers = this.provider.managers.users.getHostUsers(host);
+        let hostUsers = this.provider.managers.userManager.getHostUsers(host);
         if (hostUsers) {
             hostUsers.forEach((user)=> {
                 let ansibleUser = {

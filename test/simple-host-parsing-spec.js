@@ -151,7 +151,7 @@ describe("validating host configuration", function () {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
 
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
@@ -261,6 +261,6 @@ describe("validating host configuration", function () {
                 ]
             }
         ];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 });

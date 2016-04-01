@@ -30,19 +30,19 @@ describe('When a new host is initialised for the ansible engine', ()=> {
             let host = new Host(provider, "192.168.122.137");
             let ansibleUser = new User("ansibleAdmin");
             let mark = new User({name: "mark", key: "/home/mark/.ssh/newton/id_rsa.pub"});
-            provider.managers.users.addValidUser(ansibleUser);
-            provider.managers.users.addValidUser(mark);
+            provider.managers.userManager.addValidUser(ansibleUser);
+            provider.managers.userManager.addValidUser(mark);
             let ansibleHostUser = new HostUser(provider,
                 {
                     user: ansibleUser,
                     authorized_keys: [{name: "mark", state: "present"}]
                 }
             );
-            provider.managers.users.addHostUser(host,ansibleHostUser);
+            provider.managers.userManager.addHostUser(host,ansibleHostUser);
             host.addSsh("strict");
             host.setRemoteAccess(new RemoteAccess("ansibleAdmin", "password", true));
             //provider.manager.addValidGroup(host);
-            provider.hosts.provisionHostForEngine(host);
+            provider.managers.hostManager.provisionHostForEngine(host);
             done();
             //provider.engine.runPlaybook(host,(data)=>{ console.log(data); done();},'dagama','dagama');
 

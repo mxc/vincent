@@ -69,7 +69,7 @@ describe("***********Test scratchpad", function () {
 describe('Test async loading of dynamic modules', function () {
     it('should  work', (done)=> {
         let provider = new Provider();
-        provider.loadManagers().then((result)=>{
+        provider.createManagers().then((result)=>{
             //console.log(provider.managers);
             done();
         }).catch(e=>{console.log(e)});
@@ -79,14 +79,14 @@ describe('Test async loading of dynamic modules', function () {
 describe('Build up host programmaticaly', function () {
     let provider = new Provider();
     let markU = new User({name: "mark", uid: 1000, key: '/home/mark/.ssh/newton/id_rsa.pub'});
-    provider.managers.users.addValidUser(markU);
+    provider.managers.userManager.addValidUser(markU);
     let demoU = new User({name: "demo", uid: 1001});
-    provider.managers.users.addValidUser(demoU);
+    provider.managers.userManager.addValidUser(demoU);
     let host = new Host(provider, '192.168.122.137');
     let hostuser1 = new HostUser(provider, {user: demoU});
     hostuser1.addAuthorizedUser(markU, "present");
-    provider.managers.users.addHostUser(host,hostuser1);
-    provider.hosts.add(host);
+    provider.managers.userManager.addHostUser(host,hostuser1);
+    provider.managers.hostManager.add(host);
     let ansiblegen = new AnsibleGenerator(provider);
     ansiblegen.loadEngineDefinition(host);
     ansiblegen.export();

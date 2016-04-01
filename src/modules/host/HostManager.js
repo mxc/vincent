@@ -18,6 +18,10 @@ class HostManager extends Manager {
         this.errors = {};
     }
 
+    initialiseHost(){
+        
+    }
+
     add(host) {
         if (host instanceof Host) {
             if (this.validHosts.find((cHost)=>{
@@ -53,7 +57,7 @@ class HostManager extends Manager {
                     "have a name property.");
             }
             if(!initHost instanceof Host) {
-               initHost=this.provider.hosts.load(initHost);
+               initHost=this.provider.managers.hostManager.load(initHost);
             }
             let playbook = this.provider.engine.loadEngineDefinition(initHost);
             this.provider.engine.export(playbook);
@@ -109,7 +113,7 @@ class HostManager extends Manager {
         }
 
         try {
-            this.provider.managers.users.updateHost(this,host,hostDef);
+            this.provider.managers.userManager.updateHost(this,host,hostDef);
         }catch(e){
             logger.logAndAddToErrors(`Error loading users - ${e.message}`,
                 this.errors[host.name]);

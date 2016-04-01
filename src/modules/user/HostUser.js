@@ -23,7 +23,7 @@ class HostUser extends HostComponent {
                 if (!data.user || !data.user.name) {
                     logger.logAndThrow("The parameter data for HostUser must have a property \"user\".");
                 } else {
-                    var user = this.provider.managers.users.findValidUserByName(data.user.name);
+                    var user = this.provider.managers.userManager.findValidUserByName(data.user.name);
                     if (user) {
                         this.data.user = user.clone();
                         if (data.user.state === "absent") {
@@ -39,7 +39,7 @@ class HostUser extends HostComponent {
                         if (typeof authorizedUserDef !== "object"){
                             throw new Error("Authorized_keys must be an array of userdefs.");
                         }
-                        var user = this.provider.managers.users.findValidUserByName(authorizedUserDef.name);
+                        var user = this.provider.managers.userManager.findValidUserByName(authorizedUserDef.name);
                         if (!user) {
                             logger.logAndAddToErrors(
                                 `User with name ${authorizedUserDef.name} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
@@ -66,7 +66,7 @@ class HostUser extends HostComponent {
             return;
         }
         if (user instanceof User) {
-            var validUser = this.provider.managers.users.findValidUser(user);
+            var validUser = this.provider.managers.userManager.findValidUser(user);
             //if this is not a valid user or the user is valid
             //but marked as globally absent then don't addValidGroup keys
             if (!validUser || !validUser.key) {
@@ -74,7 +74,7 @@ class HostUser extends HostComponent {
                 return;
             }
             //detect if user already in keys
-            if (!this.provider.managers.users.findValidUser(user, this.data.authorized_keys)) {
+            if (!this.provider.managers.userManager.findValidUser(user, this.data.authorized_keys)) {
                 let authorizedUser = user.clone();
                 if (state === "absent") {
                     authorizedUser.state = "absent";

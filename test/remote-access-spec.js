@@ -77,10 +77,10 @@ describe("HostManager configuration without remote access definition", ()=> {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
-    let host = provider.hosts.find("www.example.com");
+    let host = provider.managers.hostManager.find("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("same");
@@ -175,10 +175,10 @@ describe("HostManager configuration with remote access definition", ()=> {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
-    let host = provider.hosts.find("www.example.com");
+    let host = provider.managers.hostManager.find("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("mark");
@@ -277,7 +277,7 @@ describe("HostManager configuration with invalid remote access definition", ()=>
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     it("should log errors", ()=> {

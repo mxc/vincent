@@ -71,7 +71,7 @@ describe("validating ssh custom config", function () {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
 
@@ -115,7 +115,7 @@ describe("validating ssh custom config", function () {
                 }
             }
         ];
-        assert.deepEqual(provider.hosts.export(),validHosts);
+        assert.deepEqual(provider.managers.hostManager.export(),validHosts);
 
     });
 });
@@ -207,7 +207,7 @@ describe("validating ssh include config", function () {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     provider.sshConfigs.load(sshConfigs);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
@@ -250,8 +250,8 @@ describe("validating ssh include config", function () {
                 }
             }
         ];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
-        let host = provider.hosts.find("web01.example.co.za");
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+        let host = provider.managers.hostManager.find("web01.example.co.za");
 
         expect(host.ssh).to.deep.equal({
             permitRoot: false,
@@ -343,8 +343,8 @@ describe("validating user categories include", function () {
     var provider = new Provider();
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
-    provider.managers.users.userCategories.load(userCategories);
+    provider.managers.userManager.validUsers = validUsers;
+    provider.managers.userManager.userCategories.loadFromJson(userCategories);
     var loader = new Loader(provider);
     loader.loadHosts(hosts);
     it("should return a collection of valid hosts including users from " +
@@ -376,12 +376,12 @@ describe("validating user categories include", function () {
                 }
             }
         ];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 
     it('should addValidGroup the users in user category to the host\'s users' +
         ' and not addValidGroup duplicates', function () {
-        expect(provider.managers.users.getHostUsers(provider.hosts.find("web01.example.co.za")).length).to.equal(4);
+        expect(provider.managers.userManager.getHostUsers(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(4);
     })
 });
 
@@ -479,7 +479,7 @@ describe("validating group categories include", function () {
     var loader = new Loader(provider);
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
+    provider.managers.userManager.validUsers = validUsers;
     provider.managers.groupManager.groupCategories.load(groupCategories);
     loader.loadHosts(hosts);
 
@@ -525,11 +525,11 @@ describe("validating group categories include", function () {
                 }
             ]
             ;
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 
     it('should add the groups in group category to the host\'s groups', function () {
-        expect(provider.managers.groupManager.getGroups(provider.hosts.find("web01.example.co.za")).length).to.equal(4);
+        expect(provider.managers.groupManager.getGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(4);
     })
 
     it('should not add invalid groups in the group category', function () {
@@ -657,8 +657,8 @@ describe("validating group categories include with duplicated groups", function 
     var loader = new Loader(provider);
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
-    provider.managers.users.validUsers = validUsers;
-    provider.managers.users.userCategories.load(userCategories);
+    provider.managers.userManager.validUsers = validUsers;
+    provider.managers.userManager.userCategories.loadFromJson(userCategories);
     provider.managers.groupManager.groupCategories.load(groupCategories);
     loader.loadHosts(hosts);
 
@@ -694,16 +694,16 @@ describe("validating group categories include with duplicated groups", function 
                 }
             }
         ];
-        expect(provider.hosts.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 
     it('should not duplicate groups in groupCategories and groups controllers', () => {
-        expect(provider.managers.groupManager.getGroups(provider.hosts.find("web01.example.co.za")).length).to.equal(3);
+        expect(provider.managers.groupManager.getGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(3);
     });
 
     it('should expand group members to include user from user categories ' +
         ' that are members of a group category members array',  () =>{
-        expect(provider.managers.groupManager.findHostGroupByName(provider.hosts.find("web01.example.co.za"),"group2")
+        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.find("web01.example.co.za"),"group2")
             .members.length)
             .to.equal(1);
     });

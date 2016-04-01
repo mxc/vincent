@@ -35,7 +35,7 @@ class HostGroup extends HostComponent {
 
                 if (data.members) {
                     data.members.forEach((username)=> {
-                        let user = this.provider.managers.users.findValidUserByName(username);
+                        let user = this.provider.managers.userManager.findValidUserByName(username);
                         if (user) {
                             try {
                                 this.addMember(user);
@@ -44,10 +44,10 @@ class HostGroup extends HostComponent {
                             }
                         } else {
                             //is this a user category? If so addValidGroup all members from the category
-                            let members = this.provider.managers.users.userCategories.find(username);
+                            let members = this.provider.managers.userManager.userCategories.find(username);
                             if (members) {
                                 members.forEach((hostUserData)=> {
-                                    let user = this.provider.managers.users.findValidUserByName(hostUserData.user.name);
+                                    let user = this.provider.managers.userManager.findValidUserByName(hostUserData.user.name);
                                     try {
                                         this.addMember(user);
                                     } catch (e) {
@@ -89,7 +89,7 @@ class HostGroup extends HostComponent {
     addMember(user) {
         if (user instanceof User) {
             //UserManager should be in global object cache
-            var validUser = this.provider.managers.users.findValidUser(user);
+            var validUser = this.provider.managers.userManager.findValidUser(user);
             if (validUser && validUser.state != "absent") {
                 //if (!this.data.members) {
                 //    this.data.members = [];

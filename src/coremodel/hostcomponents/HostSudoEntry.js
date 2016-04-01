@@ -25,7 +25,7 @@ class HostSudoEntry extends HostDef {
                     added = true;
                 }
             } else {
-                let user = this.provider.managers.users.findHostUserByName(host,userEntry.user.name);
+                let user = this.provider.managers.userManager.findHostUserByName(host,userEntry.user.name);
                 if (user) {
                     this.data.addUser(user);
                     added = true;

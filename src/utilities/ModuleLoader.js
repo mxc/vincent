@@ -5,7 +5,7 @@
 import {System} from 'es6-module-loader';
 import UserManager from  './../modules/user/UserManager';
 import GroupManager from  './../modules/group/GroupManager';
-
+import HostManager from './../modules/host/HostManager'
 
 
 class ModuleLoader {
@@ -24,8 +24,9 @@ class ModuleLoader {
 
     static parseDirectory(dir, match, provider) {
         let promise = new Promise(resolve =>{
-            provider.managers['users'] = new UserManager(provider);
-            provider.managers['groupManager'] = new GroupManager(provider);
+            provider.managers.userManager = new UserManager(provider);
+            provider.managers.groupManager = new GroupManager(provider);
+            provider.managers.hostManager = new HostManager(provider);
             resolve();
         });
         return promise;

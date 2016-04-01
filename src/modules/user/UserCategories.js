@@ -29,7 +29,7 @@ class UserCategories {
         return this._state;
     }
 
-    load(userCategoriesData) {
+    loadFromJson(userCategoriesData) {
         if (Array.isArray(userCategoriesData)) {
             userCategoriesData.forEach((userCategory)=> {
                 if (!userCategory.name || !userCategory.config) {

@@ -12,6 +12,10 @@ class Manager {
         throw new Error ("Method must be overridden in child object");
     }
     
+    loadFromFile(){
+        throw new Error ("Method must be overridden in child object");        
+    }
+    
 }
 
 export default Manager;

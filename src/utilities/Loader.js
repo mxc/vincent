@@ -13,38 +13,38 @@ class Loader {
         this.errors = [];
         this.provider = provider;
     }
-
+   
+    
+    
     loadGroups(groupData) {
         this.provider.managers.groupManager.load(groupData, this.errors);
         return this.provider.managers.groupManager.validGroups;
     }
 
-    loadUsers(userData) {
-        this.provider.managers.users.load(userData, this.errors);
-        return this.provider.managers.users.validUsers;
-    }
+    // loadUsersFromJson(userData) {
+    //     this.provider.managers.userManager.loadFromJson(userData, this.errors);
+    //     return this.provider.managers.userManager.validUsers;
+    // }
 
     // this.provider.managers.forEach(manager => {
-    //             manager.load();
+    //             manager.loadFromJson();
     //     });
 
     loadHosts(hosts) {
         //filter and clean up cloned hosts
         hosts.forEach((hostDef) => {
             try {
-                let host = this.provider.hosts.load(hostDef);
-                Array.prototype.push.apply(this.errors, this.provider.hosts.errors[host.name]);
+                let host = this.provider.managers.hostManager.load(hostDef);
+                Array.prototype.push.apply(this.errors, this.provider.managers.hostManager.errors[host.name]);
             }
             catch (e) {
                 this.errors.push(e.message);
             }
         });
-        return this.provider.hosts.validHosts;
+        return this.provider.managers.hostManager.validHosts;
     }
 
-    loadUserCategories(userCategoriesData){
-        this.provider.managers.users.userCategories.load(userCategoriesData);
-    }
+
 
     loadGroupCategories(groupCategoriesData){
         this.provider.managers.groupManager.groupCategories.load(groupCategoriesData);
@@ -64,29 +64,29 @@ class Loader {
         host["ssh"] = sshConfig;
     }
 
-    findValidUser(username, validUsers) {
-        if (Array.isArray(validUsers)) {
-            return validUsers.find((item) => {
-                if (item.name === username) {
-                    return item;
-                }
-            });
-        } else {
-            this.errors.push(`failed to search for user ${username} - provided validUsers was not defined`);
-        }
-    }
-
-    findValidGroup(groupName, validGroups) {
-        if (Array.isArray(validGroups)) {
-            return validGroups.find((item) => {
-                if (item.name === groupName) {
-                    return item;
-                }
-            });
-        } else {
-            this.errors.push(`failed to search for group  ${groupName} - provided validGroups was not defined`);
-        }
-    }
+    // findValidUser(username, validUsers) {
+    //     if (Array.isArray(validUsers)) {
+    //         return validUsers.find((item) => {
+    //             if (item.name === username) {
+    //                 return item;
+    //             }
+    //         });
+    //     } else {
+    //         this.errors.push(`failed to search for user ${username} - provided validUsers was not defined`);
+    //     }
+    // }
+    //
+    // findValidGroup(groupName, validGroups) {
+    //     if (Array.isArray(validGroups)) {
+    //         return validGroups.find((item) => {
+    //             if (item.name === groupName) {
+    //                 return item;
+    //             }
+    //         });
+    //     } else {
+    //         this.errors.push(`failed to search for group  ${groupName} - provided validGroups was not defined`);
+    //     }
+    // }
 }
 
 export default Loader;

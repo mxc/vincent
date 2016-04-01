@@ -17,11 +17,12 @@ class UserManager extends Manager {
         this.provider = provider;
         this.validUsers = [];
         this.userCategories = new UserCategories();
+        this.errors = [];
     }
 
-    initialiseHost(host){
-        host.data['users'] =[];
-        host._export['users']=[];
+    initialiseHost(host) {
+        host.data['users'] = [];
+        host._export['users'] = [];
     }
 
     //The list of users which are valid for this environment
@@ -92,16 +93,54 @@ class UserManager extends Manager {
         return obj;
     }
 
-    load(userDef, errors) {
+    loadUsersFromJson(userDef) {
         userDef.forEach((data) => {
             try {
                 var user = new User(data);
                 this.addValidUser(user);
             } catch (e) {
-                logger.logAndAddToErrors(`Error validating user. ${e.message}`, errors);
+                logger.logAndAddToErrors(`Error validating user. ${e.message}`, this.errors);
             }
         });
     }
+
+    loadFromFile() {
+        let promises = [];
+
+        promises.push(new Promise((resolve, reject)=> {
+                this.provider.loadFromFile("users.json").then(data=> {
+                    this.loadUsersFromJson(data);
+                    resolve("success");
+                }).catch(e=> {
+                    logger.logAndAddToErrors(`could not load users.json file - ${e.message}`, this.errors);
+                    reject(e);
+                });
+            })
+        );
+
+        promises.push(new Promise((resolve, reject)=> {
+                this.provider.loadFromFile("includes/user-categories.json").then(data=> {
+                    this.loadUserCategoriesFromJson(data);
+                    resolve("success");
+                }).catch(e=> {
+                    logger.logAndAddToErrors(`Failed to loadFromJson User Categories from file system - ${e}`, this.errors);
+                    reject(e);
+                });
+            })
+        );
+
+        return Promise.all(promises);
+    }
+
+    loadUserCategoriesFromJson(userCategoryData) {
+        this.userCategories.loadFromJson(userCategoryData);
+    }
+
+
+    // loadUsersFromJson(userData) {
+    //     this.load(userData);
+    //     //return this.provider.managers.userManager.validUsers;
+    // }
 
     clear() {
         this.validUsers = [];
@@ -111,13 +150,13 @@ class UserManager extends Manager {
         return host.data.users;
     }
 
-    addHostUser(host,hostUser, fromUserCategory = false) {
+    addHostUser(host, hostUser, fromUserCategory = false) {
         if (hostUser instanceof HostUser) {
             if (this.findValidUser(hostUser.user)) {
-                var foundHostUser = this.findHostUser(host,hostUser);
+                var foundHostUser = this.findHostUser(host, hostUser);
                 if (foundHostUser) {
                     logger.info(`User ${hostUser.user.name} already exists on host,merging authorized_keys.`);
-                    this.mergeHostUsers(host,foundHostUser, hostUser);
+                    this.mergeHostUsers(host, foundHostUser, hostUser);
                 } else {
                     host.data.users.push(hostUser);
                     hostUser.host = host;
@@ -147,7 +186,7 @@ class UserManager extends Manager {
         });
     }
 
-    findHostUser(host,hostUser) {
+    findHostUser(host, hostUser) {
         return host.data.users.find((huser)=> {
             if (huser.user.equals(hostUser.user)) {
                 return huser;
@@ -155,7 +194,7 @@ class UserManager extends Manager {
         });
     }
 
-    findHostUserByName(host,userName) {
+    findHostUserByName(host, userName) {
         return host.data.users.find((hostUser) => {
             if (hostUser.name === userName) {
                 return hostUser;
@@ -163,13 +202,13 @@ class UserManager extends Manager {
         });
     }
 
-    updateHost(hosts, host, hostDef){
+    updateHost(hosts, host, hostDef) {
         if (hostDef.users) {
             hostDef.users.forEach(
                 (userDef) => {
                     try {
                         let hostUser = new HostUser(host.provider, userDef);
-                        this.addHostUser(host,hostUser);
+                        this.addHostUser(host, hostUser);
                         Array.prototype.push.apply(
                             hosts.errors[host.name],
                             hostUser.errors);
@@ -184,12 +223,12 @@ class UserManager extends Manager {
         if (hostDef.includes) {
             let userCategories = hostDef.includes.userCategories;
             if (userCategories) {
-                if (!host._export.includes){
-                    host._export.includes={};
+                if (!host._export.includes) {
+                    host._export.includes = {};
                 }
                 userCategories.forEach((userCategory) => {
                     try {
-                        this.addUserCategory(host,userCategory);
+                        this.addUserCategory(host, userCategory);
                     } catch (e) {
                         hosts.errors[host.name].push(e.message);
                     }
@@ -200,9 +239,9 @@ class UserManager extends Manager {
     }
 
 
-    addUserCategory(host,userCategory) {
+    addUserCategory(host, userCategory) {
         //find the user category definition
-        let users = this.provider.managers.users.userCategories.find(userCategory);
+        let users = this.provider.managers.userManager.userCategories.find(userCategory);
         if (users) {
             //if exists add to the export
             let userCategoriesObj = host._export.includes.userCategories;
@@ -216,7 +255,7 @@ class UserManager extends Manager {
             users.forEach((userDef)=> {
                 try {
                     let newHostUser = new HostUser(this.provider, userDef);
-                    this.addHostUser(host,newHostUser, true);
+                    this.addHostUser(host, newHostUser, true);
                 } catch (e) {
                     logger.warn(`Warning adding user category: ${e.message}`);
                     errors.push(`Error adding ${userDef.user.name} from user category ${userCategory} - ${e.message}`);
