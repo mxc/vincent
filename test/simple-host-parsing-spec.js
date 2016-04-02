@@ -2,7 +2,7 @@ import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import Loader from '../src/utilities/FileDbLoader';
-
+import {expect} from 'chai';
 
 describe("validating host configuration", function () {
 
@@ -153,36 +153,37 @@ describe("validating host configuration", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
 
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    //var loader = new Loader(provider);
+    provider.managers.hostManager.loadHosts(hosts);
 
     it("should detect hosts without a name property", function () {
-        expect(loader.errors.indexOf("Error adding host - The parameter data must be a hostname " +
+        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - The parameter data must be a hostname " +
             "or an object with a mandatory property \"name\".")).not.to.equal(-1);
     });
 
     it("should detect undefined users", function () {
-        expect(loader.errors.indexOf("Error adding host user - The user waldo does not exist " +
+        expect(provider.managers.hostManager.errors["www.test.com"].indexOf("Error adding host user - The user waldo does not exist " +
             "in valid users.")).not.to.equal(-1);
     });
 
     it("should detect group members that are undefined for host", function () {
-        expect(loader.errors.indexOf("Error adding host user - The user waldo does not exist " +
-            "in valid users.")).not.to.equal(-1);
+        expect(provider.managers.hostManager.errors["www.test.com"].indexOf("There was an error adding members to the " +
+            "group group2. Cannot add member to group. Parameter user with name user2 is not a valid user or user " +
+            "is absent.")).not.to.equal(-1);
     });
 
     it("should detect undefined groups", function () {
-        expect(loader.errors.indexOf("Error adding host group - The group group10 does " +
+        expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("Error adding host group - The group group10 does " +
             "not exist in valid groups.")).not.to.equal(-1);
     });
 
     it("should detect undefined user in users authorized_keys list", function () {
-        expect(loader.errors.indexOf("User with name waldo cannot be added as authorized " +
+        expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("User with name waldo cannot be added as authorized " +
             "user to user1 as the user is invalid.")).not.to.equal(-1);
     });
 
     it("should detect defined user with missing key in user's authorized_keys list", function () {
-        expect(loader.errors.indexOf("There was an error adding an authorised key to the " +
+        expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("There was an error adding an authorised key to the " +
             "user user1. The user user4 is not in validUsers or does not have a " +
             "public key defined")).not.to.equal(-1);
     });

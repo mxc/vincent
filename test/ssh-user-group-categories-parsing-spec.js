@@ -4,11 +4,8 @@
 import Provider from '../src/Provider';
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
-import {assert,expect} from 'chai';
+import {assert, expect} from 'chai';
 
-//global.expect = require("chai").expect;
-
-var Loader = require('../src/utilities/FileDbLoader').default;
 describe("validating ssh custom config", function () {
 
     var validUsers = [
@@ -72,8 +69,7 @@ describe("validating ssh custom config", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    provider.managers.hostManager.loadHosts(hosts);
 
     it("should return an collection of valid hosts including ssh configs", function () {
         var validHosts = [
@@ -83,14 +79,14 @@ describe("validating ssh custom config", function () {
                     {
                         user: {
                             name: "user1",
-                            state: "present",
+                            state: "present"
                         },
                         authorized_keys: [{name: "user1", state: "present"}]
                     }, {
                         user: {
                             name: "user2",
                             state: "absent"
-                        },
+                        }
                     }
                 ],
                 groups: [
@@ -115,7 +111,7 @@ describe("validating ssh custom config", function () {
                 }
             }
         ];
-        assert.deepEqual(provider.managers.hostManager.export(),validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
 
     });
 });
@@ -208,11 +204,10 @@ describe("validating ssh include config", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.sshConfigs.load(sshConfigs);
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    provider.managers.sshManager.loadFromJson(sshConfigs);
+    provider.managers.hostManager.loadHosts(hosts);
 
-    it("should return an collection of valid hosts including ssh configs", function () {
+    it("should return an collection of valid hosts including ssh  include configs", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
@@ -222,12 +217,12 @@ describe("validating ssh include config", function () {
                             name: "user1",
                             state: "present"
                         },
-                        authorized_keys: [{name: "user1", state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"}]
                     }, {
                         user: {
                             name: "user2",
                             state: "absent"
-                        },
+                        }
                     }
                 ],
                 groups: [
@@ -242,7 +237,7 @@ describe("validating ssh include config", function () {
                         group: {
                             name: "group2",
                             state: "present"
-                        },
+                        }
                     }
                 ],
                 includes: {
@@ -345,8 +340,8 @@ describe("validating user categories include", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.userManager.userCategories.loadFromJson(userCategories);
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    //var loader = new Loader(provider);
+    provider.managers.hostManager.loadHosts(hosts);
     it("should return a collection of valid hosts including users from " +
         "user categories configs", function () {
         var validHosts = [
@@ -358,7 +353,7 @@ describe("validating user categories include", function () {
                             name: "userA",
                             state: "present"
                         },
-                        authorized_keys: [{name: "user1", state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"}]
                     }
                 ],
                 groups: [
@@ -476,12 +471,12 @@ describe("validating group categories include", function () {
     ];
 
     var provider = new Provider();
-    var loader = new Loader(provider);
+    //var loader = new Loader(provider);
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.managers.groupManager.groupCategories.load(groupCategories);
-    loader.loadHosts(hosts);
+    provider.managers.groupManager.groupCategories.loadFromJson(groupCategories);
+    provider.managers.hostManager.loadHosts(hosts);
 
     it("should return a collection of valid hosts including group categories", function () {
         var validHosts = [
@@ -502,12 +497,12 @@ describe("validating group categories include", function () {
                                     name: "user1",
                                     state: "present"
                                 },
-                                {name: "user3", state:"present"}
+                                {name: "user3", state: "present"}
                             ]
                         },
                         {
                             user: {name: "user1", state: "present"},
-                            authorized_keys: [{name: "user1", state:"present" }]
+                            authorized_keys: [{name: "user1", state: "present"}]
                         }
                     ],
                     groups: [
@@ -529,16 +524,16 @@ describe("validating group categories include", function () {
     });
 
     it('should add the groups in group category to the host\'s groups', function () {
-        expect(provider.managers.groupManager.getGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(4);
+        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(4);
     })
 
     it('should not add invalid groups in the group category', function () {
-        expect(loader.errors.indexOf('Error adding group5 from group category ' +
+        expect(provider.managers.hostManager.errors["web01.example.co.za"].indexOf('Error adding group5 from group category ' +
             'groupcat1 - The group group5 does not exist in valid groups.')).to.not.equal(-1);
     });
 
     it('should not add invalid users as group members', function () {
-        expect(loader.errors.indexOf('There was an error adding members' +
+        expect(provider.managers.hostManager.errors["web01.example.co.za"].indexOf('There was an error adding members' +
             ' to the group group1. Cannot add member to group. Parameter' +
             ' user with name user2 is not a valid user or user is absent.')).to.not.equal(-1);
     })
@@ -601,7 +596,7 @@ describe("validating group categories include with duplicated groups", function 
             "name": "cat2",
             "config": [
                 {user: {name: "user3"}, state: "present"},
-                {user: {name: "user1"}, authorized_keys: [{name:"user2"}, {name:"user1"}]}
+                {user: {name: "user1"}, authorized_keys: [{name: "user2"}, {name: "user1"}]}
             ]
         }
     ];
@@ -654,13 +649,13 @@ describe("validating group categories include with duplicated groups", function 
     ];
 
     var provider = new Provider();
-    var loader = new Loader(provider);
+    //var loader = new Loader(provider);
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.userManager.userCategories.loadFromJson(userCategories);
-    provider.managers.groupManager.groupCategories.load(groupCategories);
-    loader.loadHosts(hosts);
+    provider.managers.groupManager.groupCategories.loadFromJson(groupCategories);
+    provider.managers.hostManager.loadHosts(hosts);
 
 
     it("should return an collection of valid hosts including de-duplicated group categories", function () {
@@ -670,12 +665,12 @@ describe("validating group categories include with duplicated groups", function 
                 users: [
                     {
                         user: {name: "userA", state: "present"},
-                        authorized_keys: [{name: "user1",state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"}]
                     },
                     {
                         user: {name: "user3", state: "present"},
-                        authorized_keys: [{name: "user1",state:"present"},
-                            {name: "user3",state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"},
+                            {name: "user3", state: "present"}]
                     }
                 ],
                 groups: [
@@ -698,12 +693,12 @@ describe("validating group categories include with duplicated groups", function 
     });
 
     it('should not duplicate groups in groupCategories and groups controllers', () => {
-        expect(provider.managers.groupManager.getGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(3);
+        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(3);
     });
 
     it('should expand group members to include user from user categories ' +
-        ' that are members of a group category members array',  () =>{
-        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.find("web01.example.co.za"),"group2")
+        'that are members of a group category members array', () => {
+        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.find("web01.example.co.za"), "group2")
             .members.length)
             .to.equal(1);
     });

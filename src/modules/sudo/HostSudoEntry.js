@@ -1,12 +1,11 @@
 /**
  * Created by mark on 2016/02/21.
  */
-import HostDef from './../../modules/base/HostComponent';
-import SudoEntry from './../SudoEntry';
-import Provider from './../../Provider';
+import HostComponent from './../base/HostComponent';
+import SudoEntry from './SudoEntry';
 import logger from './../../Logger';
 
-class HostSudoEntry extends HostDef {
+class HostSudoEntry extends HostComponent {
 
     constructor(provider,host, data) {
         super(provider);

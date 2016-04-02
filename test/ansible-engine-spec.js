@@ -6,6 +6,7 @@ import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import AnsibleEngine from "../src/modules/engines/AnsibleEngine";
 var Loader = require('../src/utilities/FileDbLoader').default;
+import {expect} from 'chai';
 
 
 describe("testing of yaml generator it", function () {
@@ -76,7 +77,7 @@ describe("testing of yaml generator it", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     var loader = new Loader(provider);
-    loader.loadHosts(validHosts);
+    provider.managers.hostManager.loadHosts(validHosts);
 
     it("should generate playbook for host", function (done) {
         gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));

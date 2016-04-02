@@ -7,8 +7,7 @@ import Group from "../src/modules/group/Group";
 import HostUser from "../src/modules/user/HostUser";
 import RemoteAccess from "../src/coremodel/hostcomponents/RemoteAccess";
 import Host from "../src/modules/host/Host";
-import Hosts from "../src/modules/host/HostManager";
-import Loader from '../src/utilities/FileDbLoader';
+import {expect} from 'chai';
 
 
 describe('When a new host is initialised for the ansible engine', ()=> {
@@ -17,7 +16,7 @@ describe('When a new host is initialised for the ansible engine', ()=> {
         function (done) {
             this.timeout(15000);
             let provider = new Provider();
-            provider.sshConfigs.load([
+            provider.managers.sshManager.loadFromJson([
                 {
                     name: "strict",
                     config: {
@@ -39,7 +38,7 @@ describe('When a new host is initialised for the ansible engine', ()=> {
                 }
             );
             provider.managers.userManager.addHostUser(host,ansibleHostUser);
-            host.addSsh("strict");
+            provider.managers.sshManager.addSsh(host,"strict");
             host.setRemoteAccess(new RemoteAccess("ansibleAdmin", "password", true));
             //provider.manager.addValidGroup(host);
             provider.managers.hostManager.provisionHostForEngine(host);

@@ -6,6 +6,7 @@
 
 import Provider from '../src/Provider';
 import Loader from "../src/utilities/FileDbLoader";
+import {expect} from 'chai';
 
 describe("File DB loader tests", function () {
 
@@ -20,31 +21,29 @@ describe("File DB loader tests", function () {
                     .to.equal("dev1");
             }
             done();
-        }).catch(e=>{
-            console.log(e);
+        }).catch(e=> {
             throw (e);
         });
     });
 
     it('should load group categories', (done)=> {
-        loader.importGroupCategories().then((result)=> {
+        provider.managers.groupManager.loadFromFile().then((result)=> {
             if (result === 'success') {
                 expect(provider.managers.groupManager.groupCategories.configs["server-groups"].length).to.equal(1);
                 expect(provider.managers.groupManager.groupCategories.configs["desktop-groups"][0].group.name)
                     .to.equal("ansible-full");
             }
             done();
-        }).catch(e=>{
-            console.log(e);
+        }).catch(e=> {
             throw (e);
         });
     });
 
     it('should load ssh configs', (done)=> {
-        loader.importSshConfigs().then((result)=> {
+        provider.managers.sshManager.loadFromFile().then((result)=> {
             if (result === 'success') {
-                expect(provider.sshConfigs.configs["strict"].permitRoot).to.equal("no");
-                expect(provider.sshConfigs.configs["loose"].validUsersOnly)
+                expect(provider.managers.sshManager.configs["strict"].permitRoot).to.equal("no");
+                expect(provider.managers.sshManager.configs["loose"].validUsersOnly)
                     .to.equal("false");
             }
             done();
@@ -79,18 +78,22 @@ describe("File DB loader tests", function () {
             done();
         }, (error)=> {
             provider.managers.userManager.loadFromFile().then(result=> {
+                provider.managers.groupManager.loadFromFile();
+            }).then(result => {
                 expect(provider.managers.userManager.validUsers.length)
                     .to.equal(4);
                 expect(provider.managers.groupManager.validGroups.length)
                     .to.equal(3);
                 expect(provider.managers.hostManager.validHosts.length).to.equal(3);
-                expect(error).to.equal("loadFromJson completed with errors.");
+                expect(error).to.equal("load completed with errors.");
                 done();
+            }).catch(e=> {
+                console.log(e);
+                throw (e);
             });
-        }).catch(e=>{
+        }).catch(e=> {
             console.log(e);
             throw (e);
         });
     });
 });
-

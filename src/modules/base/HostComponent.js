@@ -3,7 +3,6 @@
  */
 import Provider from './../../Provider';
 import Host from '../host/Host';
-import logger from './../../Logger';
 
 class HostComponent {
 

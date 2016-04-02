@@ -10,7 +10,7 @@ class HostGroup extends HostComponent {
 
     constructor(provider, data) {
         super(provider);
-        this.data = {members:[]};
+        this.data = {members: []};
         this.data.source = data;
         this.errors = [];
         if (data) {
@@ -54,6 +54,9 @@ class HostGroup extends HostComponent {
                                         logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
                                     }
                                 });
+                            } else {
+                                logger.logAndAddToErrors(`There was an error adding member ${username} to the group ${data.group.name}. ` +
+                                    ` User is not valid.`, this.errors);
                             }
                         }
                     });
@@ -130,7 +133,7 @@ class HostGroup extends HostComponent {
     export() {
         var obj = {};
         obj.group = this.data.group.exportId();
-        if (this.data.members.length>0) {
+        if (this.data.members.length > 0) {
             obj.members = [];
             this.data.members.forEach((member)=> {
                 obj.members.push(member.name);

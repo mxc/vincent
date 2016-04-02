@@ -8,7 +8,7 @@ import Provider from './../src/Provider';
 import Loader from   '../src/utilities/FileDbLoader';
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
-import SudoerEntries from "../src/coremodel/includes/SudoerEntries";
+import SudoerEntries from "../src/modules/sudo/SudoManager";
 
 describe("validating host configuration with sudoer entry config", function () {
 
@@ -102,8 +102,8 @@ describe("validating host configuration with sudoer entry config", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    //var loader = new Loader(provider);
+    provider.managers.hostManager.loadHosts(hosts);
 
     it('should loadFromJson sudo entries correctly', function () {
         var validHosts = [
@@ -265,8 +265,8 @@ describe("validating host configuration with sudo entry and invalid users", func
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    //var loader = new Loader(provider);
+    provider.managers.hostManager.loadHosts(hosts);
 
     it('should not include invalid group4 in sudo entries ', function () {
         var validHosts = [
@@ -436,8 +436,8 @@ describe("validating host configuration with sudo entry include", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.sudoerEntries.load(sudoerEntries);
-    var loader = new Loader(provider);
-    loader.loadHosts(hosts);
+    //var loader = new Loader(provider);
+    provider.managers.hostManager.loadHosts(hosts);
 
     it('should generate a export host string with include statement for sudoEntries', function () {
         var validHosts = [

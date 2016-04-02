@@ -15,11 +15,13 @@ class HostManager extends Manager {
         super();
         this.provider = provider;
         this.validHosts = [];
-        this.errors = {};
+        this.errors = {
+            manager:[]
+        };
     }
 
-    initialiseHost(){
-        
+    initialiseHost(host){
+        //na for host manager
     }
 
     add(host) {
@@ -68,7 +70,21 @@ class HostManager extends Manager {
         }
     }
 
-    load(hostDef) {
+    loadHosts(hosts) {
+        //filter and clean up cloned hosts
+        hosts.forEach((hostDef) => {
+            try {
+                let host = this.loadFromJson(hostDef);
+            }
+            catch (e) {
+                logger.logAndAddToErrors(`Error loading host - ${e.message}`,
+                    this.errors.manager);
+            }
+        });
+        return this.validHosts;
+    }
+    
+    loadFromJson(hostDef) {
         
         var hostData = {
             name: hostDef.name
@@ -81,22 +97,7 @@ class HostManager extends Manager {
             host = new Host(this.provider, hostData);
             this.errors[host.name] = [];
         } catch (e) {
-            logger.logAndThrow(`Error adding host - ${e.message}`);
-        }
-
-        //Configure hostSsh for host if configured
-        if (hostDef.ssh) {
-            try {
-                host.addSsh(hostDef.ssh);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error adding ssh to host - ${e.message}`,
-                    this.errors[host.name]);
-            }
-        } else if (hostDef.includes) {
-            let ssh = this.findIncludeInDef("ssh", hostDef.includes);
-            if (ssh) {
-                host.addSsh(ssh);
-            }
+            logger.logAndThrow(e.message);
         }
 
         //configure remoteAccess settings for host.
@@ -118,8 +119,6 @@ class HostManager extends Manager {
             logger.logAndAddToErrors(`Error loading users - ${e.message}`,
                 this.errors[host.name]);
         }
-        
-
 
         try {
             this.provider.managers.groupManager.updateHost(this,host,hostDef);
@@ -128,28 +127,11 @@ class HostManager extends Manager {
                 this.errors[host.name]);
         }
 
- 
-        if (hostDef.sudoerEntries) {
-                hostDef.sudoerEntries.forEach((sudoEntryData)=> {
-                    try {
-                        host.addSudoEntry(sudoEntryData);
-                    } catch (e) {
-                        this.errors[host.name].push(e.message);
-                    }
-                });
-        }
-
-        if (hostDef.includes) {
-            let sudoerEntries = this.findIncludeInDef("sudoerEntries", hostDef.includes);
-            if (sudoerEntries) {
-                sudoerEntries.forEach((sudoEntry) => {
-                    try {
-                        host.addSudoEntry(sudoEntry);
-                    } catch (e) {
-                        this.errors[host.name].push(e.message);
-                    }
-                });
-            }
+        try {
+            this.provider.managers.sshManager.updateHost(this,host,hostDef);
+        }catch(e){
+            logger.logAndAddToErrors(`Error loading ssh - ${e.message}`,
+                this.errors[host.name]);
         }
 
         host.source = hostDef;
@@ -178,6 +160,7 @@ class HostManager extends Manager {
             return;
         }
     }
+
 }
 
 export default HostManager;

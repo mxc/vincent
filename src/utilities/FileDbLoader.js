@@ -10,36 +10,36 @@ class FileDbLoader extends Loader {
         super(provider);
     }
 
-    setGroupCategories(groupCategories) {
-        //we need to lookup user categories in group categories so there is
-        //a loading dependency order.
-        if (!this.userCategories) {
-            logger.logAndThrow("user categories must be set before loading group categories");
-        }
-
-        if (!groupCategories) {
-            groupCategories = JSON.parse(fs.readFileSync(this.config.confdir + 'includes/group-categories.js'));
-        }
-
-        //parse category groups to loadFromJson for members which reference a user category.
-        for (var groupCategory in groupCategories) {
-            groupCategories[groupCategory].forEach((group)=> {
-                var parsedGroupMembers = [];
-                group.members.forEach((member)=> {
-                    if (this.userCategories[member]) {
-                        var usernames = this.userCategories[member].map((user)=> {
-                            return user.name;
-                        });
-                        parsedGroupMembers = parsedGroupMembers.concat(usernames);
-                    } else {
-                        parsedGroupMembers.push(member)
-                    }
-                });
-                group.members = parsedGroupMembers;
-            });
-        }
-        this.groupCategories = groupCategories;
-    }
+    // setGroupCategories(groupCategories) {
+    //     //we need to lookup user categories in group categories so there is
+    //     //a loading dependency order.
+    //     if (!this.userCategories) {
+    //         logger.logAndThrow("user categories must be set before loading group categories");
+    //     }
+    //
+    //     if (!groupCategories) {
+    //         groupCategories = JSON.parse(fs.readFileSync(this.config.confdir + 'includes/group-categories.js'));
+    //     }
+    //
+    //     //parse category groups to loadFromJson for members which reference a user category.
+    //     for (var groupCategory in groupCategories) {
+    //         groupCategories[groupCategory].forEach((group)=> {
+    //             var parsedGroupMembers = [];
+    //             group.members.forEach((member)=> {
+    //                 if (this.userCategories[member]) {
+    //                     var usernames = this.userCategories[member].map((user)=> {
+    //                         return user.name;
+    //                     });
+    //                     parsedGroupMembers = parsedGroupMembers.concat(usernames);
+    //                 } else {
+    //                     parsedGroupMembers.push(member)
+    //                 }
+    //             });
+    //             group.members = parsedGroupMembers;
+    //         });
+    //     }
+    //     this.groupCategories = groupCategories;
+    // }
 
     //Load model from JSON files.
     //ToDo refactor into methods for importUser, importGroup etc
@@ -49,40 +49,13 @@ class FileDbLoader extends Loader {
             this.errors.length = 0;
             let dbDir = this.provider.config.get('confdir') + '/db';
             try {
-                //user configuration
-                // fs.readFile(dbDir + '/users.json', 'utf-8', (err, data)=> {
-                //     if (err) {
-                //         throw new Error(err);
-                //     }
-                //     try {
-                //         let users = JSON.parse(data);
-                //         this.loadUsersFromJson(users);
-                //     } catch (e) {
-                //         logger.logAndAddToErrors(`Error loading the users config - ${e.message}.`,
-                //             this.errors);
-                //         //if we can't loadFromJson users we won't be able to loadFromJson hosts so throw error
-                //         throw e;
-                //     }
-                ////group configuration
-                fs.readFile(dbDir + '/groups.json', 'utf-8', (err, data)=> {
-                    if (err) {
-                        reject(new Error(err));
-                    }
-                    try {
-                        let groups = JSON.parse(data);
-                        this.loadGroups(groups);
-                    } catch (e) {
-                        logger.logAndAddToErrors(`Error loading groups config - ${e.message}.`, this.errors);
-                        //if we can't loadFromJson groups we probably won't be able to loadFromJson hosts
-                        //reject(d);
-                    }
                     //hosts configuration
                     fs.readdir(dbDir + '/hosts', (err, hostConfigs)=> {
                         hostConfigs.forEach((config)=> {
                             let data = fs.readFileSync(dbDir + `/hosts/${config}`, 'utf-8');
                             try {
                                 let hosts = JSON.parse(data);
-                                this.loadHosts(hosts);
+                                this.provider.managers.hostManager.loadHosts(hosts);
                             } catch (e) {
                                 logger.logAndAddToErrors(`Error loading host config - ${e.message}.`, this.errors);
                                 //reject(e);
@@ -94,45 +67,9 @@ class FileDbLoader extends Loader {
                             resolve("success");
                         }
                     });
-                });
-                //let users = JSON.parse(fs.readFileSync(dbDir + '/users.json', 'utf-8'));
-                //this.loadUsersFromJson(users);
             } catch (e) {
                 logger.logAndThrow(`Error loading the users config - ${e.message}`, this.errors);
             }
-        });
-    }
-
-    importGroupCategories() {
-        return new Promise((resolve, reject)=> {
-            let configDir = this.provider.config.get('confdir');
-            fs.readFile(configDir
-                + '/db/includes/group-categories.json', (err, data)=> {
-                let groupCategoriesData = JSON.parse(data);
-                try {
-                    this.loadGroupCategories(groupCategoriesData);
-                    resolve("success");
-                } catch (e) {
-                    logger.warn("Failed to loadFromJson Group Categories from file system.");
-                    reject(e.message);
-                }
-            });
-        });
-    }
-
-    importSshConfigs() {
-        return new Promise((resolve, reject)=> {
-            let configDir = this.provider.config.get('confdir');
-            fs.readFile(configDir + '/db/includes/ssh-configs.json', (err, data)=> {
-                let sshConfigsData = JSON.parse(data);
-                try {
-                    this.loadSshConfigs(sshConfigsData);
-                    resolve("success");
-                } catch (e) {
-                    logger.warn("Failed to loadFromJson SSH Configs from file system.");
-                    reject(e.message);
-                }
-            });
         });
     }
 

@@ -23,7 +23,7 @@ class GroupCategories {
         return this._state;
     }
 
-    load(groupCategoriesData) {
+    loadFromJson(groupCategoriesData) {
         if (Array.isArray(groupCategoriesData)) {
             groupCategoriesData.forEach((groupCategory)=> {
                 if (!groupCategory.name || !groupCategory.config) {

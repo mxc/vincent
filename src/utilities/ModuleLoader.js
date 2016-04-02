@@ -6,7 +6,11 @@ import {System} from 'es6-module-loader';
 import UserManager from  './../modules/user/UserManager';
 import GroupManager from  './../modules/group/GroupManager';
 import HostManager from './../modules/host/HostManager'
-
+import UserAnsibleEngine from './../modules/user/engine/AnsibleEngine';
+import GroupAnsibleEngine from './../modules/group/engine/AnsibleEngine';
+import SshAnsibleEngine from './../modules/ssh/engine/AnsibleEngine';
+import SudoAnsibleEngine from './../modules/sudo/engine/AnsibleEngine';
+import SSHManager from './../modules/ssh/SshManager';
 
 class ModuleLoader {
 
@@ -18,15 +22,34 @@ class ModuleLoader {
         }
     }
 
+    /** mocked for now **/
+    static loadEngines(dir){
+        let name = dir;
+        let engines = {};
+        if (name==='user') {
+            engines['ansible'] = new UserAnsibleEngine();
+        }else if (name==='group'){
+            engines['ansible'] = new GroupAnsibleEngine();
+        }else if (name==='ssh'){
+            engines['ansible'] = new SshAnsibleEngine();
+        }else if (name==='sudo'){
+            engines['ansible'] = new SudoAnsibleEngine();
+        }
+        return engines;
+    }
+
     /*
     Currently node does not support es2015 module loading. All the polyfills tried fail to work with transpiling
      */
 
     static parseDirectory(dir, match, provider) {
         let promise = new Promise(resolve =>{
+            //let userManager = new UserManager(provider);
+            //userManager.getWeight();
             provider.managers.userManager = new UserManager(provider);
             provider.managers.groupManager = new GroupManager(provider);
             provider.managers.hostManager = new HostManager(provider);
+            provider.managers.sshManager = new SSHManager(provider);
             resolve();
         });
         return promise;

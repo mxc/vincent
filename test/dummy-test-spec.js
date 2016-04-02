@@ -10,6 +10,7 @@ import Host from "../src/modules/host/Host";
 import HostUser from "../src/modules/user/HostUser";
 import Group from "../src/modules/group/Group";
 import AnsibleGenerator from "../src/modules/engines/AnsibleEngine";
+import {expect} from 'chai';
 
 describe("***********Test scratchpad", function () {
 

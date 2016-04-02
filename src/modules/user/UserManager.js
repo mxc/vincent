@@ -6,6 +6,7 @@ import HostUser from './HostUser';
 import Provider from './../../Provider';
 import logger from './../../Logger';
 import Manager from '../base/Manager';
+import ModuleLoader from '../../utilities/ModuleLoader';
 
 class UserManager extends Manager {
 
@@ -18,8 +19,17 @@ class UserManager extends Manager {
         this.validUsers = [];
         this.userCategories = new UserCategories();
         this.errors = [];
+        this.engines = ModuleLoader.loadEngines('user');
     }
 
+    exportToEngine(engine,host,struct){
+        this.engines[engine].exportToEngine(host,struct);
+    }
+
+    getWeigth(){
+        return 1000;
+    }
+    
     initialiseHost(host) {
         host.data['users'] = [];
         host._export['users'] = [];
@@ -93,7 +103,7 @@ class UserManager extends Manager {
         return obj;
     }
 
-    loadUsersFromJson(userDef) {
+    loadFromJson(userDef) {
         userDef.forEach((data) => {
             try {
                 var user = new User(data);
@@ -109,9 +119,10 @@ class UserManager extends Manager {
 
         promises.push(new Promise((resolve, reject)=> {
                 this.provider.loadFromFile("users.json").then(data=> {
-                    this.loadUsersFromJson(data);
+                    this.loadFromJson(data);
                     resolve("success");
                 }).catch(e=> {
+                    console.log(e);
                     logger.logAndAddToErrors(`could not load users.json file - ${e.message}`, this.errors);
                     reject(e);
                 });
@@ -123,7 +134,8 @@ class UserManager extends Manager {
                     this.loadUserCategoriesFromJson(data);
                     resolve("success");
                 }).catch(e=> {
-                    logger.logAndAddToErrors(`Failed to loadFromJson User Categories from file system - ${e}`, this.errors);
+                    console.log(e);
+                    logger.logAndAddToErrors(`Failed to load User Categories from file system - ${e}`, this.errors);
                     reject(e);
                 });
             })
@@ -135,12 +147,6 @@ class UserManager extends Manager {
     loadUserCategoriesFromJson(userCategoryData) {
         this.userCategories.loadFromJson(userCategoryData);
     }
-
-
-    // loadUsersFromJson(userData) {
-    //     this.load(userData);
-    //     //return this.provider.managers.userManager.validUsers;
-    // }
 
     clear() {
         this.validUsers = [];
@@ -223,9 +229,10 @@ class UserManager extends Manager {
         if (hostDef.includes) {
             let userCategories = hostDef.includes.userCategories;
             if (userCategories) {
-                if (!host._export.includes) {
-                    host._export.includes = {};
-                }
+                // if (!host._export.includes) {
+                //     host._export.includes = {};
+                // }
+                host.checkIncludes();
                 userCategories.forEach((userCategory) => {
                     try {
                         this.addUserCategory(host, userCategory);
@@ -235,9 +242,7 @@ class UserManager extends Manager {
                 });
             }
         }
-
     }
-
 
     addUserCategory(host, userCategory) {
         //find the user category definition

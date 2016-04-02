@@ -8,7 +8,7 @@ import yaml from 'js-yaml';
 import Host from '../host/Host.js';
 import logger from '../../Logger';
 import child_process from 'child_process';
-import events from 'events';
+import Manager from '../base/Manager';
 
 require("babel-polyfill");
 
@@ -167,86 +167,13 @@ class AnsibleEngine extends Worker {
         var playbook = [];
         playbook.push({hosts: host.name, tasks: []});
         let tasks = playbook[0].tasks;
-        let hostUsers = this.provider.managers.userManager.getHostUsers(host);
-        if (hostUsers) {
-            hostUsers.forEach((user)=> {
-                let ansibleUser = {
-                    name: "User account state check",
-                    user: `name=${user.name} state=${user.state}`,
-                    sudo: 'yes'
-                };
-                if (user.uid) {
-                    ansibleUser.user += ` uid={$user.uid}`;
+        
+        for(let manager in this.provider.managers){
+                if (manager instanceof Manager) {
+                    manager.exportToEngine("ansible", host, tasks);
                 }
-                tasks.push(ansibleUser);
-                if (user.authorized_keys) {
-                    user.authorized_keys.forEach((authorizedUser)=> {
-                        let ansibleAuthorizedKey = {
-                            name: "User authorized key state check",
-                            authorized_key: {
-                                user: `${user.name}`,
-                                key: `{{ lookup('file','${authorizedUser.key}') }}`,
-                                manage_dir: 'yes',
-                                state: `${authorizedUser.state}`
-                            },
-                            sudo: 'yes'
-                        };
-                        tasks.push(ansibleAuthorizedKey);
-                    });
-                }
-            });
-        }
-        if (host.groups) {
-            host.groups.forEach((group)=> {
-                let ansibleGroup = {
-                    name: "Group state check",
-                    group: `name=${group.name} state=${group.state}`,
-                    sudo: 'yes'
-                };
-                if (group.gid) {
-                    ansibleGroup.group += ` gid={$group.gid}`;
-                }
-                tasks.push(ansibleGroup);
-            });
-        }
-        if (host.ssh) {
-            tasks.push({
-                name: "Ssh config PermitRoot state check",
-                lineinfile: {
-                    dest: '/etc/ssh/sshd_config',
-                    regexp: '^PermitRootLogin yes|^PermitRootLogin no|^#PermitRootLogin yes',
-                    line: `PermitRootLogin ${host.ssh.permitRoot}`
-                },
-                sudo: 'yes'
-            });
-            tasks.push({
-                name: "Ssh config PermitPassword state check",
-                lineinfile: {
-                    dest: '/etc/ssh/sshd_config',
-                    regexp: 'PasswordAuthentication yes|PasswordAuthentication no',
-                    line: `PasswordAuthentication ${host.ssh.passwordAuthentication}`
-                },
-                sudo: 'yes'
-            });
-            if (host.ssh.validUsersOnly) {
-                let users = '';
-                hostUsers.forEach((user, index)=> {
-                    users += user.name;
-                    if (index < hostUsers.length - 1) {
-                        users += ",";
-                    }
-                });
-                tasks.push({
-                    name: "Ssh config ValidUsers state check",
-                    lineinfile: {
-                        dest: '/etc/ssh/sshd_config',
-                        regexp: 'AllowUsers .*|#AllowUsers',
-                        line: `AllowUsers ${users}`
-                    },
-                    sudo: 'yes'
-                });
-            }
-        }
+        };
+
         this.playbooks[host.name] = yaml.safeDump(playbook); //cache the generated playbook\.
         return this.playbooks[host.name];
     }

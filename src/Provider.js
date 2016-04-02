@@ -1,6 +1,5 @@
 import Database from './utilities/Database';
-import SshConfigs from './coremodel/includes/SshConfigs';
-import SudoerEntries from './coremodel/includes/SudoerEntries';
+import SudoerEntries from './modules/sudo/SudoManager';
 import Engine from './modules/engines/AnsibleEngine';
 import Config from './Config';
 import path from 'path';
@@ -16,41 +15,39 @@ class Provider {
         if (!this.path) {
             this.path = process.cwd();
         }
-
+        this.createManagers();
         this.config = new Config(this.path + "/config.ini");
-        this.sshConfigs = new SshConfigs(this);
         this.sudoerEntries = new SudoerEntries(this);
         this.database = new Database(this);
         this.engine = new Engine(this);
-        this.createManagers();
     }
 
     /*
-    Create all mannagers
+     Create all managers
      */
     createManagers() {
-            let mpath=path.resolve(this.path,'lib/modules');
-            return ModuleLoader.parseDirectory(mpath,'Manager',this);
+        let mpath = path.resolve(this.path, 'lib/modules');
+        return ModuleLoader.parseDirectory(mpath, 'Manager', this);
     }
 
     /*
-    Populate data for managers
+     Populate data for managers from text files.
      */
-    loadManagersFromFiles(){
+    loadManagersFromFiles() {
         let promises = [];
-        this.managers.forEach(manager=>{
+        this.managers.forEach(manager=> {
             promises.push(manager.loadFromFile());
         });
         return Promise.all(promises);
     }
 
-    loadFromFile(filename){
+    loadFromFile(filename) {
         let dbDir = this.getConfigDir();
-        return new Promise((resolve,reject)=>{
+        return new Promise((resolve, reject)=> {
             fs.readFile(`${dbDir}/${filename}`, 'utf-8', (err, data)=> {
                 if (err) {
                     reject(err.message);
-                }else {
+                } else {
                     try {
                         let json = JSON.parse(data);
                         resolve(json);
@@ -61,23 +58,25 @@ class Provider {
             })
         });
     }
-    
-    getConfigDir(){
-        return  this.config.get('confdir') + '/db';
+
+    getConfigDir() {
+        return this.config.get('confdir') + '/db';
     }
 
     clear() {
-        this.users.clear();
-        this.groups.clear();
-        this.hosts.clear();
+        for (let manager in this.managers) {
+            if (manager instanceof Manager) {
+                manager.clear();
+            }
+        }
     }
 
-    clearAll() {
-        this.clear();
-        this.sshConfigs.clear();
-        this.userCategories.clear();
-        this.sudoerEntries.clear();
-    }
+    // clearAll() {
+    //     this.clear();
+    //     this.sshConfigs.clear();
+    //     this.userCategories.clear();
+    //     this.sudoerEntries.clear();
+    // }
 
 }
 

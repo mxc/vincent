@@ -1,10 +1,8 @@
 'use strict';
 
-global.expect = require("chai").expect
 import Provider from './../src/Provider';
 import Loader from   '../src/utilities/FileDbLoader';
-import User from "../src/modules/user/User";
-import Group from "../src/modules/group/Group";
+import {expect} from 'chai';
 
 var groups = [
     {name: 'group1'},
@@ -30,18 +28,18 @@ var users = [
 describe("validating group configuration", function () {
     var provider = new Provider();
     var loader = new Loader(provider);
-    loader.loadGroups(groups);
+    provider.managers.groupManager.loadFromJson(groups);
 
     it("should detect duplicate group names", function () {
-        expect(loader.errors.indexOf("Error validating group. Group group2 already exists.")).not.to.equal(-1);
+        expect(provider.managers.groupManager.errors.indexOf("Error validating group. Group group2 already exists.")).not.to.equal(-1);
     });
 
     it("should detect duplicate gids", function () {
-        expect(loader.errors.indexOf("Error validating group. Group group4 with gid 1000 already exists as group3 with gid 1000.")).not.to.equal(-1);
+        expect(provider.managers.groupManager.errors.indexOf("Error validating group. Group group4 with gid 1000 already exists as group3 with gid 1000.")).not.to.equal(-1);
     });
 
     it("should detect groups with missing name property", function () {
-        expect(loader.errors.indexOf("Error validating group. The parameter data must be a group name or an object with a mandatory property \"name\".")).not.to.equal(-1);
+        expect(provider.managers.groupManager.errors.indexOf("Error validating group. The parameter data must be a group name or an object with a mandatory property \"name\".")).not.to.equal(-1);
     });
 
     it("should return an array of valid groups", function () {
@@ -62,13 +60,12 @@ describe("validating group configuration", function () {
         ];
         expect(provider.managers.groupManager.export()).to.deep.equal(validGroups);
     });
-
 });
 
 describe("validating user configuration", function () {
     var provider = new Provider();
     var base = new Loader(provider);
-    provider.managers.userManager.loadUsersFromJson(users);
+    provider.managers.userManager.loadFromJson(users);
 
     it("should detect duplicate user names", function () {
         expect(provider.managers.userManager.errors.indexOf("Error validating user. User user2 already exists.")).not.to.equal(-1);

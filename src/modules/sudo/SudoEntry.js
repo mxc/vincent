@@ -4,12 +4,8 @@
  * and open the template in the editor.
  */
 
-import Base from '../modules/base/Base';
-import logger from '../Logger';
-import Group from '../modules/group/Group';
-import HostUser from '../modules/user/HostUser';
-import HostGroup from '../modules/group/HostGroup';
-import User from '../modules/user/User';
+import Base from '../base/Base';
+import HostUser from '../user/HostUser';
 
 class SudoEntry extends Base {
 
