@@ -2,17 +2,18 @@
  * Created by mark on 2016/02/21.
  */
 
-import Worker from '../base/Engine';
+import Engine from '../base/Engine';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import Host from '../host/Host.js';
 import logger from '../../Logger';
 import child_process from 'child_process';
 import Manager from '../base/Manager';
+import HostManager from '../host/HostManager';
 
 require("babel-polyfill");
 
-class AnsibleEngine extends Worker {
+class AnsibleEngine extends Engine {
 
     constructor(provider) {
         super();
@@ -33,6 +34,31 @@ class AnsibleEngine extends Worker {
         }
     }
 
+    clean() {
+        return new Promise((resolve)=> {
+            fs.stat(this.playbookDir, (err)=> {
+                if (!err) {
+                    fs.readdir(this.playbookDir, (err, files)=> {
+                        if (err) {
+                            logger.logAndThrow("Error attempting to list playbook directory");
+                        } else {
+                            resolve(files);
+                        }
+                    });
+                } else {
+                    reject("no files to delte");
+                }
+            });
+        }).then(files=> {
+            files.forEach(file=> {
+                let fullpath = path.resolve(this.playbookDir, file);
+                fs.unlink(fullpath);
+            })
+        }, result=> {
+            logger.info(result);
+        });
+    }
+
     export(host) {
         return new Promise((resolve, reject)=> {
             this.mkPlayBookDir()
@@ -40,8 +66,10 @@ class AnsibleEngine extends Worker {
                     if (host instanceof Host) {
                         resultObject.host = host;
                         return this.writePlaybooks(resultObject);
-                    } else {
+                    } else if (!host) {
                         return this.writePlaybooks(resultObject);
+                    } else {
+                        throw new Error("Parameter must be of type Host or undefined");
                     }
                 })
                 .then(this.writeInventory)
@@ -78,13 +106,13 @@ class AnsibleEngine extends Worker {
     }
 
     /*
-    writePlaybooks takes a single object parameter whith the following properties
-                {
-                    host:<Host Object ,
-                    self: <AnsibleEngine Object>
-               }
-      If hosts is undefined then all hosts with playbooks have theur playbooks generated else just the required host has
-      its playboo generated.
+     writePlaybooks takes a single object parameter with the following properties
+     {
+     host:<Host Object ,
+     self: <AnsibleEngine Object>
+     }
+     If hosts is undefined then all hosts with playbooks have their playbooks generated else just the required host has
+     its playbook generated.
      */
     writePlaybooks(resultObj) {
         try {
@@ -111,16 +139,16 @@ class AnsibleEngine extends Worker {
     }
 
     /*
-    Write out the yml playbook file using javascript ansible object
+     Write out the yml playbook file using javascript ansible object
      */
     writePlaybook(resultObj) {
         return new Promise((resolve, reject)=> {
             try {
                 fs.writeFile(resultObj.self.playbookDir + `/${resultObj.playbook}.yml`,
-                    resultObj.self.playbooks[resultObj.playbook],
+                    resultObj.self.playbooks[resultObj.playbook].yml,
                     (err)=> {
                         if (err) {
-                            logger.logAndAddToErrors(`Error attempting to create playbook for ${playbook}`,
+                            logger.logAndAddToErrors(`Error attempting to create playbook for ${resultObj.playbook}`,
                                 resultObj.self.errors);
                             reject(err);
                         } else {
@@ -134,7 +162,7 @@ class AnsibleEngine extends Worker {
     }
 
     /*
-    creates the inventory filed needed by ansible to run playbooks.
+     creates the inventory filed needed by ansible to run playbooks.
      */
     writeInventory(resultObj) {
         return new Promise((resolve, reject)=> {
@@ -159,27 +187,31 @@ class AnsibleEngine extends Worker {
     }
 
     /*
-    Create the ansible javascript object from our javascript host object. The ansible object holds the properties and
-    values as defined by ansible mdoules to be used to generate the yml file on export with writePlaybook().
+     Create the ansible javascript object from vincent's javascript host object. The ansible object holds the properties and
+     values as defined by ansible modules to be used to generate the yml file on export with writePlaybook().
      */
     loadEngineDefinition(host) {
         this.inventory.push(host.name);
+        //needs to be an array to generate correct yml for ansible
         var playbook = [];
         playbook.push({hosts: host.name, tasks: []});
         let tasks = playbook[0].tasks;
-        
-        for(let manager in this.provider.managers){
-                if (manager instanceof Manager) {
-                    manager.exportToEngine("ansible", host, tasks);
-                }
-        };
 
-        this.playbooks[host.name] = yaml.safeDump(playbook); //cache the generated playbook\.
-        return this.playbooks[host.name];
+        for (let manager in this.provider.managers) {
+            if (this.provider.managers[manager] instanceof Manager) {
+                if (this.provider.managers[manager] instanceof HostManager) continue;
+                this.provider.managers[manager].exportToEngine("ansible", host, tasks);
+            }
+        }
+        ;
+        this.playbooks[host.name] = {};
+        this.playbooks[host.name].yml = yaml.safeDump(playbook); //cache the generated yml for playbook.
+        this.playbooks[host.name].object = playbook; //cache the generated object for playbook.
+        return this.playbooks[host.name].yml;
     }
 
     /*
-    Method to retrieve host details using ansible target properties
+     Method to retrieve host details using ansible target properties
      */
     getInfo(host) {
         if (host instanceof Host && host.name) {
@@ -204,7 +236,7 @@ class AnsibleEngine extends Worker {
     }
 
     /*
-    Run an ansible playbook!
+     Run an ansible playbook!
      */
     runPlaybook(host, callback, userPasswd, sudoPasswd) {
 
@@ -240,7 +272,7 @@ class AnsibleEngine extends Worker {
             } else if (data.toString().indexOf("SUDO password") != -1) {
                 proc.stdin.write(`${sudoPasswd}\n`);
             } else {
-                if (data.indexOf("PLAY RECAP")!=-1){
+                if (data.indexOf("PLAY RECAP") != -1) {
                     callback(data.toString());
                 }
             }

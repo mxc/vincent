@@ -4,7 +4,6 @@
 import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
-import Loader from '../src/utilities/FileDbLoader';
 import {expect} from 'chai';
 
 describe("HostManager configuration without remote access definition", ()=> {
@@ -79,7 +78,6 @@ describe("HostManager configuration without remote access definition", ()=> {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    //var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(hosts);
     let host = provider.managers.hostManager.find("www.example.com");
 
@@ -177,7 +175,6 @@ describe("HostManager configuration with remote access definition", ()=> {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    //var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(hosts);
     let host = provider.managers.hostManager.find("www.example.com");
 
@@ -279,7 +276,6 @@ describe("HostManager configuration with invalid remote access definition", ()=>
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    //var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(hosts);
     it("should log errors", ()=> {
         expect(provider.managers.hostManager.errors["www.example.com"].indexOf("Error adding remote access user - Invalid " +

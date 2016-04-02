@@ -1,7 +1,6 @@
 'use strict';
 
 import Provider from './../src/Provider';
-import Loader from   '../src/utilities/FileDbLoader';
 import {expect} from 'chai';
 
 var groups = [
@@ -27,7 +26,6 @@ var users = [
 
 describe("validating group configuration", function () {
     var provider = new Provider();
-    var loader = new Loader(provider);
     provider.managers.groupManager.loadFromJson(groups);
 
     it("should detect duplicate group names", function () {
@@ -64,7 +62,6 @@ describe("validating group configuration", function () {
 
 describe("validating user configuration", function () {
     var provider = new Provider();
-    var base = new Loader(provider);
     provider.managers.userManager.loadFromJson(users);
 
     it("should detect duplicate user names", function () {

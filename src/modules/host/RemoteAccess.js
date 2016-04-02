@@ -2,9 +2,9 @@
  * Created by mark on 2016/02/29.
  */
 
-import Provider from './../../Provider';
+
 import logger from './../../Logger';
-import Base from './../../modules/base/Base';
+import Base from './../base/Base';
 
 class RemoteAccess extends Base {
 

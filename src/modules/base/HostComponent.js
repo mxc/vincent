@@ -1,6 +1,7 @@
 /**
- * Created by mark on 2016/02/20.
+ * Created by mark on 4/2/16.
  */
+
 import Provider from './../../Provider';
 import Host from '../host/Host';
 
@@ -15,7 +16,7 @@ class HostComponent {
     }
 
     set host(host){
-        if( !(host instanceof Host)){
+        if(!(host instanceof Host)){
             throw new Error("Parameter host must be of type Host.");
         }
         if(this.provider===host.provider) {

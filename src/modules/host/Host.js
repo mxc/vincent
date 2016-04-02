@@ -1,9 +1,6 @@
 'use strict';
 
-import HostGroup from '../group/HostGroup';
-import RemoteAccess from '../../coremodel/hostcomponents/RemoteAccess';
-import HostSsh from '../ssh/HostSsh';
-import HostSudoEntry from '../sudo/HostSudoEntry';
+import RemoteAccess from './RemoteAccess';
 import Provider from '../../Provider';
 import logger from '../../Logger';
 import Base from '../../modules/base/Base';
@@ -33,12 +30,6 @@ class Host extends Base {
                 name: data.name,
             };
             this.source = {};
-            //give modules opportunity to addValidGroup their data structures to host data and _export objects
-            for (var manager in this.provider.managers) {
-                if (this.provider.managers[manager].initialiseHost) {
-                    this.provider.managers[manager].initialiseHost(this);
-                }
-            }
             return;
         }
         if (!data.name) {

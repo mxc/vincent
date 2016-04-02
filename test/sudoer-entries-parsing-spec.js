@@ -5,7 +5,6 @@
 
 import  {assert, expect} from 'chai';
 import Provider from './../src/Provider';
-import Loader from   '../src/utilities/FileDbLoader';
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import SudoerEntries from "../src/modules/sudo/SudoManager";
@@ -102,10 +101,9 @@ describe("validating host configuration with sudoer entry config", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    //var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(hosts);
 
-    it('should loadFromJson sudo entries correctly', function () {
+    it('should load sudo entries correctly', function () {
         var validHosts = [
             {
                 name: "www.example.co.za",
@@ -167,7 +165,8 @@ describe("validating host configuration with sudoer entry config", function () {
     });
 
     it('should produce the correct line for insertion into sudoer file', function () {
-        expect(provider.managers.hostManager.find("www.example.co.za").sudoerEntries[0].sudoEntry.entry).to.equal('%group1,user1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
+        let host = provider.managers.hostManager.find("www.example.co.za");
+        expect(provider.managers.sudoManager.getSudoerEntries(host)[0].sudoEntry.entry).to.equal('%group1,user1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
     });
 
 });
@@ -265,7 +264,6 @@ describe("validating host configuration with sudo entry and invalid users", func
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    //var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(hosts);
 
     it('should not include invalid group4 in sudo entries ', function () {
@@ -435,8 +433,7 @@ describe("validating host configuration with sudo entry include", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.sudoerEntries.load(sudoerEntries);
-    //var loader = new Loader(provider);
+    provider.managers.sudoManager.loadFromJson(sudoerEntries);
     provider.managers.hostManager.loadHosts(hosts);
 
     it('should generate a export host string with include statement for sudoEntries', function () {

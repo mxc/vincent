@@ -19,7 +19,7 @@ class GroupManager extends Manager {
         this.validGroups = [];
         this.groupCategories = new GroupCategories();
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('group');
+        this.engines = ModuleLoader.loadEngines('group',provider);
     }
 
     exportToEngine(engine,host,struct){
@@ -30,10 +30,10 @@ class GroupManager extends Manager {
         return 2000;
     }
     
-    initialiseHost(host) {
-        host.data['groups'] = [];
-        host._export['groups'] = [];
-    }
+    // initialiseHost(host) {
+    //     host.data['groups'] = [];
+    //     host._export['groups'] = [];
+    // }
 
     addValidGroup(group) {
         if (group instanceof Group) {
@@ -223,6 +223,16 @@ class GroupManager extends Manager {
     }
 
     addHostGroup(host, hostGroup, fromGroupCategory = false) {
+
+        //update host for hostUsers
+        if (!host.data.groups){
+            host.data.groups = [];
+        }
+
+        if (!host._export.groups){
+            host._export.groups=[];
+        }
+
         if (hostGroup instanceof HostGroup) {
             //is the group valid?
             if (this.findValidGroup(hostGroup.group)) {

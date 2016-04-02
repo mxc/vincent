@@ -1,10 +1,11 @@
 "use strict";
 
 import Host from './Host';
-import RemoteAccess from '../../coremodel/hostcomponents/RemoteAccess';
+import RemoteAccess from './RemoteAccess';
 import Provider from '../../Provider';
 import logger from '../../Logger';
 import Manager from '../base/Manager';
+import fs from 'fs';
 
 class HostManager extends Manager {
 
@@ -16,24 +17,24 @@ class HostManager extends Manager {
         this.provider = provider;
         this.validHosts = [];
         this.errors = {
-            manager:[]
+            manager: []
         };
     }
 
-    initialiseHost(host){
-        //na for host manager
+    exportToEngine(engine,host,struct){
+        //na
     }
-
+    
     add(host) {
         if (host instanceof Host) {
-            if (this.validHosts.find((cHost)=>{
-                        if (cHost.name===host.name){
-                            return cHost;
-                        }
-                })){
+            if (this.validHosts.find((cHost)=> {
+                    if (cHost.name === host.name) {
+                        return cHost;
+                    }
+                })) {
                 //todo Merge hosts?
                 throw new Error("Host already exists in model");
-            }else {
+            } else {
                 this.validHosts.push(host);
             }
         } else {
@@ -49,22 +50,40 @@ class HostManager extends Manager {
         });
     }
 
+    loadFromFile() {
+        this.errors.length = 0;
+        let dbDir = this.provider.config.get('confdir') + '/db';
+        //hosts configuration
+        let promises = [];
+        fs.readdir(dbDir + '/hosts', (err, hostConfigs)=> {
+            hostConfigs.forEach((config)=> {
+                promises.push(new Promise(resolve=> {
+                    this.provider.loadFromFile(`host/${config}`).then(data=> {
+                        this.loadFromJson(data);
+                        resolve("success");
+                    });
+                }));
+            });
+        });
+        return Promise.all(promises);
+    }
+
     /*
-    Method to provision a host for the specific engine.
+     Method to provision a host for the specific engine.
      */
-    provisionHostForEngine(initHost){
-        if (typeof initHost =='object'){
-            if(!initHost.name){
+    provisionHostForEngine(targetHost) {
+        if (typeof targetHost == 'object') {
+            if (!targetHost.name) {
                 throw new Error("Initialising a new host requires the initHost object to " +
                     "have a name property.");
             }
-            if(!initHost instanceof Host) {
-               initHost=this.provider.managers.hostManager.load(initHost);
+            if (!targetHost instanceof Host) {
+                targetHost = this.provider.managers.hostManager.load(targetHost);
             }
-            let playbook = this.provider.engine.loadEngineDefinition(initHost);
+            let playbook = this.provider.engine.loadEngineDefinition(targetHost);
             this.provider.engine.export(playbook);
             //this.provider.database.initHost(host.name).then();
-        }else{
+        } else {
             throw new Error("The parameter to init host must be of type Host or " +
                 "an HostComponent object");
         }
@@ -83,13 +102,13 @@ class HostManager extends Manager {
         });
         return this.validHosts;
     }
-    
+
     loadFromJson(hostDef) {
-        
+
         var hostData = {
             name: hostDef.name
         };
-        
+
         let host = {};
 
         //create host instance
@@ -101,35 +120,43 @@ class HostManager extends Manager {
         }
 
         //configure remoteAccess settings for host.
-        if(hostDef.remoteAccess){
+        if (hostDef.remoteAccess) {
             try {
                 let remoteAccessDef = hostDef.remoteAccess;
                 let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
                     remoteAccessDef.authentication, remoteAccessDef.sudoAuthentication);
                 host.setRemoteAccess(remoteAccess);
-            }catch(e){
+            } catch (e) {
                 logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
                     this.errors[host.name]);
             }
         }
 
         try {
-            this.provider.managers.userManager.updateHost(this,host,hostDef);
-        }catch(e){
+            this.provider.managers.userManager.updateHost(this, host, hostDef);
+        } catch (e) {
             logger.logAndAddToErrors(`Error loading users - ${e.message}`,
                 this.errors[host.name]);
         }
 
         try {
-            this.provider.managers.groupManager.updateHost(this,host,hostDef);
-        }catch(e){
+            this.provider.managers.groupManager.updateHost(this, host, hostDef);
+        } catch (e) {
             logger.logAndAddToErrors(`Error loading groups - ${e.message}`,
                 this.errors[host.name]);
         }
 
         try {
-            this.provider.managers.sshManager.updateHost(this,host,hostDef);
-        }catch(e){
+            this.provider.managers.sshManager.updateHost(this, host, hostDef);
+        } catch (e) {
+            console.log(e);
+            logger.logAndAddToErrors(`Error loading ssh - ${e.message}`,
+                this.errors[host.name]);
+        }
+
+        try {
+            this.provider.managers.sudoManager.updateHost(this, host, hostDef);
+        } catch (e) {
             logger.logAndAddToErrors(`Error loading ssh - ${e.message}`,
                 this.errors[host.name]);
         }

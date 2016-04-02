@@ -19,7 +19,7 @@ class UserManager extends Manager {
         this.validUsers = [];
         this.userCategories = new UserCategories();
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('user');
+        this.engines = ModuleLoader.loadEngines('user',provider);
     }
 
     exportToEngine(engine,host,struct){
@@ -30,10 +30,10 @@ class UserManager extends Manager {
         return 1000;
     }
     
-    initialiseHost(host) {
-        host.data['users'] = [];
-        host._export['users'] = [];
-    }
+    // initialiseHost(host) {
+    //     host.data['users'] = [];
+    //     host._export['users'] = [];
+    // }
 
     //The list of users which are valid for this environment
     addValidUser(user) {
@@ -157,6 +157,14 @@ class UserManager extends Manager {
     }
 
     addHostUser(host, hostUser, fromUserCategory = false) {
+        //update host for hostUsers
+        if (!host.data.users){
+            host.data.users = [];
+        }
+        if (!host._export.users){
+            host._export.users=[];
+        }
+
         if (hostUser instanceof HostUser) {
             if (this.findValidUser(hostUser.user)) {
                 var foundHostUser = this.findHostUser(host, hostUser);

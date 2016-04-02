@@ -1,5 +1,4 @@
 import Database from './utilities/Database';
-import SudoerEntries from './modules/sudo/SudoManager';
 import Engine from './modules/engines/AnsibleEngine';
 import Config from './Config';
 import path from 'path';
@@ -17,9 +16,20 @@ class Provider {
         }
         this.createManagers();
         this.config = new Config(this.path + "/config.ini");
-        this.sudoerEntries = new SudoerEntries(this);
         this.database = new Database(this);
-        this.engine = new Engine(this);
+        //todo lookup default engine from config file.
+        this._engine = new Engine(this);
+    }
+
+    /*
+    Allow export engine to be set programatically
+     */
+    set engine(engine){
+        this._engine = engine;
+    }
+    
+    get engine(){
+        return this._engine;
     }
 
     /*
@@ -70,13 +80,6 @@ class Provider {
             }
         }
     }
-
-    // clearAll() {
-    //     this.clear();
-    //     this.sshConfigs.clear();
-    //     this.userCategories.clear();
-    //     this.sudoerEntries.clear();
-    // }
 
 }
 

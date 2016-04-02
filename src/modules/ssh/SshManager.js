@@ -19,7 +19,7 @@ class SshManager extends Manager {
         this.data.configs = {};
         this.provider = provider;
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('ssh');
+        this.engines = ModuleLoader.loadEngines('ssh',provider);
     }
 
     initialiseHost(host) {
@@ -43,14 +43,13 @@ class SshManager extends Manager {
     }
 
     loadFromFile() {
-
         return new Promise((resolve, reject)=> {
                 this.provider.loadFromFile("includes/ssh-configs.json").then(data=> {
                     this.loadFromJson(data);
                     resolve("success");
                 }).catch(e=> {
                     console.log(e);
-                    logger.logAndAddToErrors(`could not load users.json file - ${e.message}`, this.errors);
+                    logger.logAndAddToErrors(`could not load ssh-configs.json file - ${e.message}`, this.errors);
                     reject(e);
                 });
             });
@@ -76,7 +75,7 @@ class SshManager extends Manager {
         this.data.configs = [];
     }
 
-    updateHost() {
+    updateHost(hosts, host, hostDef) {
         //Configure hostSsh for host if configured
         if (hostDef.ssh) {
             try {

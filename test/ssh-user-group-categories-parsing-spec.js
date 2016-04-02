@@ -4,7 +4,7 @@
 import Provider from '../src/Provider';
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
-import {assert, expect} from 'chai';
+import {expect} from 'chai';
 
 describe("validating ssh custom config", function () {
 
@@ -207,7 +207,7 @@ describe("validating ssh include config", function () {
     provider.managers.sshManager.loadFromJson(sshConfigs);
     provider.managers.hostManager.loadHosts(hosts);
 
-    it("should return an collection of valid hosts including ssh  include configs", function () {
+    it("should return an collection of valid hosts including ssh include configs", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
@@ -248,7 +248,7 @@ describe("validating ssh include config", function () {
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
         let host = provider.managers.hostManager.find("web01.example.co.za");
 
-        expect(host.ssh).to.deep.equal({
+        expect(provider.managers.sshManager.getSsh(host)).to.deep.equal({
             permitRoot: false,
             validUsersOnly: true,
             passwordAuthentication: false

@@ -3,9 +3,8 @@
  */
 import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
-import Group from "../src/modules/group/Group";
 import HostUser from "../src/modules/user/HostUser";
-import RemoteAccess from "../src/coremodel/hostcomponents/RemoteAccess";
+import RemoteAccess from "../src/modules/host/RemoteAccess";
 import Host from "../src/modules/host/Host";
 import {expect} from 'chai';
 

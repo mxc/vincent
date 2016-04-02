@@ -5,6 +5,7 @@ import HostComponent from './../base/HostComponent';
 import SudoEntry from './SudoEntry';
 import logger from './../../Logger';
 
+
 class HostSudoEntry extends HostComponent {
 
     constructor(provider,host, data) {

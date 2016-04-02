@@ -5,8 +5,8 @@
 import logger from '../../Logger';
 import Provider from '../../Provider';
 import Manager from '../base/Manager';
-import HostSudo from './HostSudoEntry'
 import ModuleLoader from '../../utilities/ModuleLoader';
+import HostSudoEntry from './HostSudoEntry';
 
 class SudoManager extends Manager {
 
@@ -19,7 +19,7 @@ class SudoManager extends Manager {
         this.data = {};
         this.data.configs = {};
         this.provider = provider;
-        this.engines = ModuleLoader.loadEngines('sudo');
+        this.engines = ModuleLoader.loadEngines('sudo',this.provider);
     }
 
     initialiseHost(host) {
@@ -44,12 +44,12 @@ class SudoManager extends Manager {
 
     loadFromFile(){
         return new Promise((resolve, reject)=> {
-            this.provider.loadFromFile("includes/ssh-configs.json").then(data=> {
+            this.provider.loadFromFile("includes/sudoer-entries.json").then(data=> {
                 this.loadFromJson(data);
                 resolve("success");
             }).catch(e=> {
                 console.log(e);
-                logger.logAndAddToErrors(`could not load users.json file - ${e.message}`, this.errors);
+                logger.logAndAddToErrors(`could not load sudoer-entries.json file - ${e.message}`, this.errors);
                 reject(e);
             });
         });
@@ -81,8 +81,9 @@ class SudoManager extends Manager {
         if (hostDef.sudoerEntries) {
             hostDef.sudoerEntries.forEach((sudoEntryData)=> {
                 try {
-                    host.addSudoEntry(sudoEntryData);
+                    this.addSudoEntry(host,sudoEntryData);
                 } catch (e) {
+                    console.log(e);
                     hosts.errors[host.name].push(e.message);
                 }
             });
@@ -95,7 +96,7 @@ class SudoManager extends Manager {
                     try {
                         this.addSudoEntry(host,sudoEntry);
                     } catch (e) {
-                        hosts.errors[host.name].push(e.message);
+                        logger.logAndAddToErrors(`${e.message}`,hosts.errors[host.name]);
                     }
                 });
             }
@@ -120,7 +121,7 @@ class SudoManager extends Manager {
                 host._export.includes.sudoerEntries.push(sudoData);
             } else {
                 let hostSudoEntry = new HostSudoEntry(this.provider, host, sudoData);
-                this.data.sudoerEntries.push(hostSudoEntry);
+                host.data.sudoerEntries.push(hostSudoEntry);
                 if (!host._export.sudoerEntries) {
                     host._export.sudoerEntries = [];
                 }

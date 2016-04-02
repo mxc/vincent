@@ -1,11 +1,9 @@
 /**
  * Created by mark on 2016/02/21.
  */
-import Provider from "../src/Provider.js";
+import Provider from "../src/Provider";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
-import AnsibleEngine from "../src/modules/engines/AnsibleEngine";
-var Loader = require('../src/utilities/FileDbLoader').default;
 import {expect} from 'chai';
 
 
@@ -76,17 +74,24 @@ describe("testing of yaml generator it", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(validHosts);
-
-    it("should generate playbook for host", function (done) {
-        gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
+    //make sure directory is empty before running tests.
+    gen.clean();
+    gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
+    
+    it("should generate playbook object for host", function (done) {
         gen.export().then((result)=> {
             expect(result).to.equal("success");
+            let playbookObj = gen.playbooks["www.example.com"];
+            expect(playbookObj.object[0].tasks.length).to.equal(6);
             done();
         });
     });
 
+    it("should generate playbook files for host",function(done){
+        
+    });
+    
     // it("should get ansible facts", function (done) {
     //     gen.getInfo(provider.hosts.find("www.example.com")).then((result)=> {
     //         //console.log(result);

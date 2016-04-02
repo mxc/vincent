@@ -2,8 +2,8 @@
  * Created by mark on 2016/02/13.
  */
 
-import User from './../user/User';
 import HostComponent from './../base/HostComponent';
+import User from './../user/User';
 import logger from './../../Logger';
 
 class HostGroup extends HostComponent {

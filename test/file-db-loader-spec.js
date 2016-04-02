@@ -5,13 +5,11 @@
 
 
 import Provider from '../src/Provider';
-import Loader from "../src/utilities/FileDbLoader";
 import {expect} from 'chai';
 
 describe("File DB loader tests", function () {
 
     let provider = new Provider();
-    let loader = new Loader(provider);
 
     it('should load user categories', (done)=> {
         provider.managers.userManager.loadFromFile().then((result)=> {
@@ -55,12 +53,12 @@ describe("File DB loader tests", function () {
     });
 
     it('should load sudoer entries', (done)=> {
-        loader.importSudoerEntries().then((result)=> {
+        provider.managers.sudoManager.loadFromFile().then((result)=> {
             if (result === 'success') {
-                expect(provider.sudoerEntries.configs["developers"].commandSpec.cmdList[0])
+                expect(provider.managers.sudoManager.configs["developers"].commandSpec.cmdList[0])
                     .to.equal("/bin/vi");
 
-                expect(provider.sudoerEntries.configs["backupOperators"].userList.length)
+                expect(provider.managers.sudoManager.configs["backupOperators"].userList.length)
                     .to.equal(1);
             }
             done();
@@ -74,7 +72,7 @@ describe("File DB loader tests", function () {
 
     // Refactor this code as methods are moved out of loader!
     it('should load users hosts and groups', (done)=> {
-        loader.importUsersGroupsHosts().then((result)=> {
+        provider.managers.hostManager.loadFromFile().then((result)=> {
             done();
         }, (error)=> {
             provider.managers.userManager.loadFromFile().then(result=> {

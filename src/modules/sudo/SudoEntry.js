@@ -6,6 +6,7 @@
 
 import Base from '../base/Base';
 import HostUser from '../user/HostUser';
+import HostGroup from './../group/HostGroup';
 
 class SudoEntry extends Base {
 

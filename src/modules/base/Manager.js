@@ -4,9 +4,10 @@
 
 
 class Manager {
-    initialiseHost(host){
-        throw new Error ("Method must be overridden in child object");
-    }
+    
+    // initialiseHost(host){
+    //     throw new Error ("Method must be overridden in child object");
+    // }
     
     updateHost(host,hosts,hostDef,){
         throw new Error ("Method must be overridden in child object");
@@ -22,6 +23,7 @@ class Manager {
     exportToEngine(engine,host,struct){
         throw new Error ("Method must be overridden in child object");      
     }
+    
     loadEngines(dir){
         throw new Error ("Method must be overridden in child object");
     }

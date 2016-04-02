@@ -1,7 +1,6 @@
 import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
-import Loader from '../src/utilities/FileDbLoader';
 import {expect} from 'chai';
 
 describe("validating host configuration", function () {
@@ -153,7 +152,6 @@ describe("validating host configuration", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
 
-    //var loader = new Loader(provider);
     provider.managers.hostManager.loadHosts(hosts);
 
     it("should detect hosts without a name property", function () {

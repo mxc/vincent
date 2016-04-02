@@ -6,6 +6,7 @@ import {System} from 'es6-module-loader';
 import UserManager from  './../modules/user/UserManager';
 import GroupManager from  './../modules/group/GroupManager';
 import HostManager from './../modules/host/HostManager'
+import SudoManager from './../modules/sudo/SudoManager'
 import UserAnsibleEngine from './../modules/user/engine/AnsibleEngine';
 import GroupAnsibleEngine from './../modules/group/engine/AnsibleEngine';
 import SshAnsibleEngine from './../modules/ssh/engine/AnsibleEngine';
@@ -23,17 +24,17 @@ class ModuleLoader {
     }
 
     /** mocked for now **/
-    static loadEngines(dir){
+    static loadEngines(dir,provider){
         let name = dir;
         let engines = {};
         if (name==='user') {
-            engines['ansible'] = new UserAnsibleEngine();
+            engines['ansible'] = new UserAnsibleEngine(provider);
         }else if (name==='group'){
-            engines['ansible'] = new GroupAnsibleEngine();
+            engines['ansible'] = new GroupAnsibleEngine(provider);
         }else if (name==='ssh'){
-            engines['ansible'] = new SshAnsibleEngine();
+            engines['ansible'] = new SshAnsibleEngine(provider);
         }else if (name==='sudo'){
-            engines['ansible'] = new SudoAnsibleEngine();
+            engines['ansible'] = new SudoAnsibleEngine(provider);
         }
         return engines;
     }
@@ -50,6 +51,7 @@ class ModuleLoader {
             provider.managers.groupManager = new GroupManager(provider);
             provider.managers.hostManager = new HostManager(provider);
             provider.managers.sshManager = new SSHManager(provider);
+            provider.managers.sudoManager = new SudoManager(provider);
             resolve();
         });
         return promise;
