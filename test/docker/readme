@@ -1,0 +1,4 @@
+cd sshpasswd
+sudo docker build -t vincentsshpasswd .
+cd sshkeys
+sudo docker build -t vincentsshkeys .

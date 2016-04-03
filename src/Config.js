@@ -8,8 +8,8 @@ import ini from  'ini';
 class Config {
 
 
-    constructor(path){
-        this.config = ini.parse(fs.readFileSync(path,'utf-8'));
+    constructor(filePath){
+        this.config = ini.parse(fs.readFileSync(filePath,'utf-8'));
     }
 
     get(key){

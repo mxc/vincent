@@ -5,9 +5,11 @@ import Provider from "../src/Provider";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
+import fs from 'fs';
+import Docker from './support/Docker'
+import path from 'path';
 
-
-describe("testing of yaml generator it", function () {
+describe("ansible engine", () => {
     "use strict";
 
     var validUsers = [
@@ -76,31 +78,75 @@ describe("testing of yaml generator it", function () {
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(validHosts);
     //make sure directory is empty before running tests.
-    gen.clean();
-    gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
-    
-    it("should generate playbook object for host", function (done) {
+    it("should have empty directory once clean has been called", (done)=> {
+        gen.clean().then(result=> {
+            let dir = provider.config.get('confdir') + "/playbooks";
+            let files = fs.readdirSync(dir);
+            expect(files.length).to.equals(0);
+            done();
+        }).catch(e=> {
+            console.log(e);
+            throw new Error(e);
+        });
+    });
+
+
+    it("should generate playbook object for host", (done) => {
+        gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
         gen.export().then((result)=> {
             expect(result).to.equal("success");
             let playbookObj = gen.playbooks["www.example.com"];
             expect(playbookObj.object[0].tasks.length).to.equal(6);
             done();
+        }).catch(e=> {
+            console.log(e);
+            throw new Error(e);
         });
     });
 
-    it("should generate playbook files for host",function(done){
-        
+    it("should generate playbook files for host", function (done) {
+        gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
+        gen.clean().then(result=> {
+            gen.export().then((result)=> {
+                fs.readdir(gen.playbookDir, (err, files)=> {
+                    expect(files.length).to.equal(2);
+                    done();
+                })
+            })
+        }).catch(e=> {
+            console.log(e);
+            throw new Error(e);
+        });
     });
-    
-    // it("should get ansible facts", function (done) {
-    //     gen.getInfo(provider.hosts.find("www.example.com")).then((result)=> {
-    //         //console.log(result);
-    //         done();
-    //     }, (error)=> {
-    //         //console.log(error);
-    //         done();
-    //     });
-    // })
+
+    it("should get ansible facts", done=> {
+        let docker = new Docker();
+        docker.startDocker("vincentsshkeys").then(ipaddr=> {
+            return new Promise(resolve=> {
+                gen.inventory = [ipaddr];
+                gen.writeInventory({self: gen});
+                resolve(ipaddr);
+            });
+        }).then(ipaddr=> {
+            let keypath = path.resolve(provider.getRootDir(), "test/docker/sshkeys/vincent.key");
+            return gen.getInfo(ipaddr, false, keypath, "vincent")
+        }).then((result)=> {
+            console.log("got result?");
+            return new Promise(resolve=> {
+                console.log(result.toString());
+                resolve();
+            });
+        }).then(result => {
+            return  new Promise(resolve =>{
+                docker.stopDocker();
+                resolve() })
+        }).then(result=> {
+            done();
+        }).catch(e=> {
+            console.log(e);
+        })
+    });
+
 });
 
 

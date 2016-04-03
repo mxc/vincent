@@ -10,6 +10,7 @@ import logger from '../../Logger';
 import child_process from 'child_process';
 import Manager from '../base/Manager';
 import HostManager from '../host/HostManager';
+import path from 'path';
 
 require("babel-polyfill");
 
@@ -20,7 +21,7 @@ class AnsibleEngine extends Engine {
         this.inventory = [];
         this.playbooks = {};//a  directory lookup cache for generated playbooks
         this.provider = provider;
-        this.playbookDir = provider.config.get('confdir') + "/playbooks";
+        this.playbookDir = path.resolve(provider.getRootDir(), provider.getConfigDir(), "playbooks");
         this.errors = [];
     }
 
@@ -35,7 +36,7 @@ class AnsibleEngine extends Engine {
     }
 
     clean() {
-        return new Promise((resolve)=> {
+        return new Promise((resolve, reject)=> {
             fs.stat(this.playbookDir, (err)=> {
                 if (!err) {
                     fs.readdir(this.playbookDir, (err, files)=> {
@@ -46,7 +47,7 @@ class AnsibleEngine extends Engine {
                         }
                     });
                 } else {
-                    reject("no files to delte");
+                    reject("no files to delete");
                 }
             });
         }).then(files=> {
@@ -73,7 +74,9 @@ class AnsibleEngine extends Engine {
                     }
                 })
                 .then(this.writeInventory)
-                .then(resolve, reject)
+                .then(result=> {
+                    resolve("success");
+                }, reject)
                 .catch((e)=> {
                     console.log(e)
                 });
@@ -87,7 +90,8 @@ class AnsibleEngine extends Engine {
                 if (err) {
                     fs.mkdir(this.playbookDir, (err) => {
                         if (err) {
-                            logger.logAndThrow("Error attempting to create playbook directory");
+                            logger.logAndAddToErrors(`Error attempting to create playbook directory - {$err}`, this.errors);
+                            throw err;
                         } else {
                             resolve({
                                 msg: "Created playbooks directory.",
@@ -115,13 +119,12 @@ class AnsibleEngine extends Engine {
      its playbook generated.
      */
     writePlaybooks(resultObj) {
-        try {
-            if (resultObj.host) {
-                return resultObj.self.writePlaybook({
-                    playbook: resultObj.host.name,
-                    self: resultObj.self
-                });
-            }
+        if (resultObj.host) {
+            return resultObj.self.writePlaybook({
+                playbook: resultObj.host.name,
+                self: resultObj.self
+            });
+        } else {
             //else
             let promises = [];
             for (let playbookTitle in resultObj.self.playbooks) {
@@ -133,8 +136,6 @@ class AnsibleEngine extends Engine {
             return Promise.all(promises).then(()=> {
                 return resultObj;
             });
-        } catch (e) {
-            console.log(e.message);
         }
     }
 
@@ -156,7 +157,8 @@ class AnsibleEngine extends Engine {
                         }
                     });
             } catch (e) {
-                console.log(e.message);
+                logger.logAndAddToErrors(e.message, this.errors);
+                throw e;
             }
         });
     }
@@ -166,9 +168,10 @@ class AnsibleEngine extends Engine {
      */
     writeInventory(resultObj) {
         return new Promise((resolve, reject)=> {
+            let inventory = resultObj.self.inventory.join("/n/r");
+            var filename = resultObj.self.playbookDir + `/inventory`;
             try {
-                let inventory = resultObj.self.inventory.join("/n/r");
-                fs.writeFile(resultObj.self.playbookDir + `/inventory`, inventory, (err)=> {
+                fs.writeFile(filename, inventory, (err)=> {
                     if (err) {
                         logger.logAndAddToErrors("Error creating inventory file for ansible",
                             resultObj.self.errors);
@@ -177,11 +180,12 @@ class AnsibleEngine extends Engine {
                     if (resultObj.self.errors.length > 0) {
                         reject(resultObj.self.errors);
                     } else {
-                        resolve("success");
+                        resolve(filename);
                     }
                 });
             } catch (e) {
-                console.log(e.message);
+                logger.logAndAddToErrors(e.message, this.errors);
+                throw e;
             }
         });
     }
@@ -191,6 +195,9 @@ class AnsibleEngine extends Engine {
      values as defined by ansible modules to be used to generate the yml file on export with writePlaybook().
      */
     loadEngineDefinition(host) {
+        if (!host || !host instanceof Host) {
+            logger.logAndThrow("The host parameter must be defined and of type Host");
+        }
         this.inventory.push(host.name);
         //needs to be an array to generate correct yml for ansible
         var playbook = [];
@@ -213,7 +220,7 @@ class AnsibleEngine extends Engine {
     /*
      Method to retrieve host details using ansible target properties
      */
-    getInfo(host) {
+    getInfo(host, checkhostkey, privkey, username, passwd) {
         if (host instanceof Host && host.name) {
             var hostname = host.name;
         } else if (typeof host == 'string') {
@@ -221,18 +228,41 @@ class AnsibleEngine extends Engine {
         } else {
             logger.logAndThrow("The host parameter must be of type Host or a host name string.");
         }
+        let cmd = '';
+        if (privkey && !username) {
+            cmd = `ansible -m setup -i inventory --private-key=${privkey} ${hostname}`
+        } else if (privkey && username) {
+            cmd = `ansible -vvvv -m setup -i inventory --private-key=${privkey} -u ${username} ${hostname}`
+        } else if (username && passwd) {
+            cmd = `ansible -m setup -i inventory --ask-become-pass --ask-pass -u ${username} ${hostname}`
+        } else {
+            cmd = `ansible -m setup -i inventory ${hostname}`
+        }
 
-        let proc = child_process.exec(`ansible -m setup -i inventory ${hostname}`,
-            {cwd: this.playbookDir});
-        let promise = new Promise(function (resolve, reject) {
-            proc.stdout.on('data', (data)=> {
-                resolve(data);
-            });
-            proc.stderr.on('data', (data)=> {
-                reject(data);
-            });
+        let opts = {cwd: this.playbookDir};
+ 
+        // if (!checkhostkey) {
+        //     opts.env = {
+        //         ANSIBLE_HOST_KEY_CHECKING: "False"
+        //     };
+        // }
+        
+        return new Promise((resolve, reject)=> {
+            child_process.exec(cmd, opts,
+                (error, stdout, stderr)=> {
+
+                    if (error) {
+                        console.log(error);
+                        reject(error);
+                    }else if (stdout) {
+                        console.log(stdout);
+                        resolve(stdout);
+                    } else if (stderr) {
+                        console.log(stderr);
+                        reject(stderr);
+                    }
+                });
         });
-        return promise;
     }
 
     /*

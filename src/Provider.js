@@ -5,17 +5,18 @@ import path from 'path';
 import ModuleLoader from './utilities/ModuleLoader';
 import logger from './Logger';
 import fs from 'fs';
+import Manager from './modules/base/Manager';
 
 class Provider {
 
-    constructor(path) {
+    constructor(appdir) {
         this.managers = {};
-        this.path = path;
-        if (!this.path) {
-            this.path = process.cwd();
+        this.appdir = appdir;
+        if (!this.appdir) {
+            this.appdir = process.cwd();
         }
         this.createManagers();
-        this.config = new Config(this.path + "/config.ini");
+        this.config = new Config(path.resolve(this.appdir + "/config.ini"));
         this.database = new Database(this);
         //todo lookup default engine from config file.
         this._engine = new Engine(this);
@@ -36,7 +37,7 @@ class Provider {
      Create all managers
      */
     createManagers() {
-        let mpath = path.resolve(this.path, 'lib/modules');
+        let mpath = path.resolve(this.appdir, 'lib/modules');
         return ModuleLoader.parseDirectory(mpath, 'Manager', this);
     }
 
@@ -52,7 +53,7 @@ class Provider {
     }
 
     loadFromFile(filename) {
-        let dbDir = this.getConfigDir();
+        let dbDir = this.getDBConfigDir();
         return new Promise((resolve, reject)=> {
             fs.readFile(`${dbDir}/${filename}`, 'utf-8', (err, data)=> {
                 if (err) {
@@ -69,8 +70,19 @@ class Provider {
         });
     }
 
+    getDBConfigDir() {
+        return path.resolve(this.getRootDir(), this.config.get('confdir'),'db');
+    }
+
     getConfigDir() {
-        return this.config.get('confdir') + '/db';
+        return path.resolve(this.getRootDir(), this.config.get('confdir'));
+    }
+
+    
+    getRootDir(){
+        let dir = __dirname.split(path.sep);
+        dir.pop();
+        return dir.join(path.sep);
     }
 
     clear() {

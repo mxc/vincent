@@ -22,9 +22,6 @@ class SshManager extends Manager {
         this.engines = ModuleLoader.loadEngines('ssh',provider);
     }
 
-    initialiseHost(host) {
-
-    }
 
     exportToEngine(engine,host,struct){
         this.engines[engine].exportToEngine(host,struct);
