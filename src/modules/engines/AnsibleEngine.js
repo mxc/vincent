@@ -221,6 +221,7 @@ class AnsibleEngine extends Engine {
      Method to retrieve host details using ansible target properties
      */
     getInfo(host, checkhostkey, privkey, username, passwd) {
+        console.log(host);
         if (host instanceof Host && host.name) {
             var hostname = host.name;
         } else if (typeof host == 'string') {
@@ -229,39 +230,64 @@ class AnsibleEngine extends Engine {
             logger.logAndThrow("The host parameter must be of type Host or a host name string.");
         }
         let cmd = '';
+        let args=[];
         if (privkey && !username) {
-            cmd = `ansible -m setup -i inventory --private-key=${privkey} ${hostname}`
+            cmd = 'ansible';
+            args.push("-m");
+            args.push("setup");
+            args.push("-i");
+            args.push("inventory");
+            args.push(`--private-key=${privkey}`);
+            args.push(hostname);
         } else if (privkey && username) {
-            cmd = `ansible -vvvv -m setup -i inventory --private-key=${privkey} -u ${username} ${hostname}`
+            cmd='ansible';
+            args.push("-m");
+            args.push("setup");
+            args.push("-i");
+            args.push("inventory");
+            args.push(`--private-key=${privkey}`);
+            args.push(`-u`);
+            args.push(username);
+            args.push(hostname);
         } else if (username && passwd) {
-            cmd = `ansible -m setup -i inventory --ask-become-pass --ask-pass -u ${username} ${hostname}`
+            cmd = 'ansible';
+            args.push("-m");
+            args.push("setup");
+            args.push("-i");
+            args.push("inventory");
+            args.push(`--ask-become-pass`);
+            args.push(`--ask-pass`);
+            args.push(`-u ${username}`);
+            args.push(hostname);
         } else {
-            cmd = `ansible -m setup -i inventory ${hostname}`
+            cmd = 'ansible';
+            args.push("-m");
+            args.push("setup");
+            args.push("-i");
+            args.push("inventory");
+            args.push(hostname);
         }
 
-        let opts = {cwd: this.playbookDir};
- 
-        // if (!checkhostkey) {
-        //     opts.env = {
-        //         ANSIBLE_HOST_KEY_CHECKING: "False"
-        //     };
-        // }
-        
-        return new Promise((resolve, reject)=> {
-            child_process.exec(cmd, opts,
-                (error, stdout, stderr)=> {
+        let opts = {
+            cwd: this.playbookDir,
+            shell: true
+        };
 
-                    if (error) {
-                        console.log(error);
-                        reject(error);
-                    }else if (stdout) {
-                        console.log(stdout);
-                        resolve(stdout);
-                    } else if (stderr) {
-                        console.log(stderr);
-                        reject(stderr);
-                    }
-                });
+        if (!checkhostkey) {
+            opts.env = {
+                ANSIBLE_HOST_KEY_CHECKING: "False",
+                ANSIBLE_SSH_CONTROL_PATH:  "%%h-%%p-%%r"
+            };
+        }
+
+        return new Promise((resolve, reject)=> {
+            let proc = child_process.spawn(cmd,args,opts);
+            proc.stdout.on('data', (stdout)=> {
+                resolve(stdout.toString());
+            });
+            proc.stderr.on('data', (stderr)=> {
+                reject(stderr.toString());
+            });
         });
     }
 

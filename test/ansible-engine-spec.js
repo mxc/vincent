@@ -119,8 +119,9 @@ describe("ansible engine", () => {
         });
     });
 
-    it("should get ansible facts", done=> {
+    it("should get ansible facts", function(done) {
         let docker = new Docker();
+        this.timeout(15000);
         docker.startDocker("vincentsshkeys").then(ipaddr=> {
             return new Promise(resolve=> {
                 gen.inventory = [ipaddr];
@@ -131,9 +132,9 @@ describe("ansible engine", () => {
             let keypath = path.resolve(provider.getRootDir(), "test/docker/sshkeys/vincent.key");
             return gen.getInfo(ipaddr, false, keypath, "vincent")
         }).then((result)=> {
-            console.log("got result?");
             return new Promise(resolve=> {
-                console.log(result.toString());
+                //console.log(result.toString());
+                
                 resolve();
             });
         }).then(result => {
@@ -143,7 +144,7 @@ describe("ansible engine", () => {
         }).then(result=> {
             done();
         }).catch(e=> {
-            console.log(e);
+            console.log(e.toString());
         })
     });
 
