@@ -16,12 +16,9 @@ class Docker {
 
     stopDocker(){
        return new Promise(resolve=>{
-           console.log("stopping container");
            child_process.exec(`sudo docker stop vincenttest`,
                (error, stdout, stderr)=> {
-                   console.log("deleting container");
                    child_process.exec(`sudo docker rm vincenttest`, (error, stdout, stderr)=> {
-                       console.log(stdout);
                        resolve();
                    });
                });

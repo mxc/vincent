@@ -11,6 +11,7 @@ import child_process from 'child_process';
 import Manager from '../base/Manager';
 import HostManager from '../host/HostManager';
 import path from 'path';
+import escapeStringRegexp from 'escape-string-regexp';
 
 require("babel-polyfill");
 
@@ -52,40 +53,63 @@ class AnsibleEngine extends Engine {
             });
         }).then(files=> {
             files.forEach(file=> {
-                let fullpath = path.resolve(this.playbookDir, file);
-                fs.unlink(fullpath);
+                let fullpath = path.resolve(this.playbookDir, escapeStringRegexp(file));
+                this.delete(fullpath);
             })
         }, result=> {
             logger.info(result);
+        }).catch(e=> {
+            console.log("errror" + e.message);
         });
+    }
+
+    delete(fullpath) {
+        console.log("deleting "+fullPath);
+        if (fs.existsSync(fullpath)) {
+            let stat = fs.statSync(fullpath);
+            if (stat.isDirectory()) {
+                fs.readdirSync(fullpath).forEach((file) => {
+                    var curPath = path.resolve(fullpath, file);
+                    if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                        this.delete(curPath);
+                    } else {
+                        fs.unlinkSync(curPath);
+                    }
+                });
+                fs.rmdirSync(path);
+            } else {
+                fs.unlinkSync(fullpath);
+            }
+        }
+        ;
     }
 
     export(host) {
         return new Promise((resolve, reject)=> {
             this.mkPlayBookDir()
-                .then((resultObject)=> {
+                .then((result)=> {
                     if (host instanceof Host) {
-                        resultObject.host = host;
-                        return this.writePlaybooks(resultObject);
+                        return this.writePlaybooks(host);
                     } else if (!host) {
-                        return this.writePlaybooks(resultObject);
+                        return this.writePlaybooks();
                     } else {
                         throw new Error("Parameter must be of type Host or undefined");
                     }
                 })
-                .then(this.writeInventory)
+                .then((results)=> {
+                    this.writeInventory(results);
+                })
                 .then(result=> {
                     resolve("success");
                 }, reject)
                 .catch((e)=> {
-                    console.log(e)
+                    logger.logAndThrow(e.message);
                 });
         });
     }
 
     mkPlayBookDir() {
-        let self = this;
-        return new Promise((resolve)=> {
+        let func = (resolve)=> {
             fs.stat(this.playbookDir, (err)=> {
                 if (err) {
                     fs.mkdir(this.playbookDir, (err) => {
@@ -93,20 +117,15 @@ class AnsibleEngine extends Engine {
                             logger.logAndAddToErrors(`Error attempting to create playbook directory - {$err}`, this.errors);
                             throw err;
                         } else {
-                            resolve({
-                                msg: "Created playbooks directory.",
-                                self: self
-                            });
+                            resolve("Created playbooks directory.");
                         }
                     });
                 } else {
-                    resolve({
-                        msg: "Playbooks directory found.",
-                        self: self
-                    });
+                    resolve("Playbooks directory found.");
                 }
             });
-        });
+        };
+        return new Promise(func);
     }
 
     /*
@@ -118,23 +137,18 @@ class AnsibleEngine extends Engine {
      If hosts is undefined then all hosts with playbooks have their playbooks generated else just the required host has
      its playbook generated.
      */
-    writePlaybooks(resultObj) {
-        if (resultObj.host) {
-            return resultObj.self.writePlaybook({
-                playbook: resultObj.host.name,
-                self: resultObj.self
-            });
+    writePlaybooks(host) {
+        console.log("XXXX" + host);
+        if (host) {
+            return this.writePlaybook(host.name);
         } else {
             //else
             let promises = [];
-            for (let playbookTitle in resultObj.self.playbooks) {
-                promises.push(resultObj.self.writePlaybook({
-                    playbook: playbookTitle,
-                    self: resultObj.self
-                }));
+            for (let playbookTitle in this.playbooks) {
+                promises.push(this.writePlaybook(playbookTitle));
             }
             return Promise.all(promises).then(()=> {
-                return resultObj;
+                return host;
             });
         }
     }
@@ -142,18 +156,19 @@ class AnsibleEngine extends Engine {
     /*
      Write out the yml playbook file using javascript ansible object
      */
-    writePlaybook(resultObj) {
+    writePlaybook(playbookTitle) {
+        console.log("title=" + playbookTitle);
         return new Promise((resolve, reject)=> {
             try {
-                fs.writeFile(resultObj.self.playbookDir + `/${resultObj.playbook}.yml`,
-                    resultObj.self.playbooks[resultObj.playbook].yml,
+                fs.writeFile(this.playbookDir + `/${playbookTitle}.yml`,
+                    this.playbooks[playbookTitle].yml,
                     (err)=> {
                         if (err) {
-                            logger.logAndAddToErrors(`Error attempting to create playbook for ${resultObj.playbook}`,
-                                resultObj.self.errors);
+                            logger.logAndAddToErrors(`Error attempting to create playbook for ${playbookTitle}`,
+                                this.errors);
                             reject(err);
                         } else {
-                            resolve({self: resultObj.self});
+                            resolve(this);
                         }
                     });
             } catch (e) {
@@ -166,19 +181,19 @@ class AnsibleEngine extends Engine {
     /*
      creates the inventory filed needed by ansible to run playbooks.
      */
-    writeInventory(resultObj) {
+    writeInventory() {
         return new Promise((resolve, reject)=> {
-            let inventory = resultObj.self.inventory.join("/n/r");
-            var filename = resultObj.self.playbookDir + `/inventory`;
+            let inventory = this.inventory.join("/n/r");
+            var filename = this.playbookDir + `/inventory`;
             try {
                 fs.writeFile(filename, inventory, (err)=> {
                     if (err) {
                         logger.logAndAddToErrors("Error creating inventory file for ansible",
-                            resultObj.self.errors);
+                            this.errors);
                         reject(err);
                     }
-                    if (resultObj.self.errors.length > 0) {
-                        reject(resultObj.self.errors);
+                    if (this.errors.length > 0) {
+                        reject(this.errors);
                     } else {
                         resolve(filename);
                     }
@@ -220,7 +235,7 @@ class AnsibleEngine extends Engine {
     /*
      Method to retrieve host details using ansible target properties
      */
-    getInfo(host, checkhostkey, privkey, username, passwd) {
+    getInfo(host, checkhostkey, privkey, username, passwd, sudoPasswd) {
         console.log(host);
         if (host instanceof Host && host.name) {
             var hostname = host.name;
@@ -230,7 +245,7 @@ class AnsibleEngine extends Engine {
             logger.logAndThrow("The host parameter must be of type Host or a host name string.");
         }
         let cmd = '';
-        let args=[];
+        let args = [];
         if (privkey && !username) {
             cmd = 'ansible';
             args.push("-m");
@@ -240,7 +255,7 @@ class AnsibleEngine extends Engine {
             args.push(`--private-key=${privkey}`);
             args.push(hostname);
         } else if (privkey && username) {
-            cmd='ansible';
+            cmd = 'ansible';
             args.push("-m");
             args.push("setup");
             args.push("-i");
@@ -273,17 +288,21 @@ class AnsibleEngine extends Engine {
             shell: true
         };
 
+        //set the ssh control path - bug with $HOME variable in ansible
+        opts.env = {
+            ANSIBLE_SSH_CONTROL_PATH: "%%h-%%p-%%r"
+        };
+        //disable hostkey checking if required
         if (!checkhostkey) {
-            opts.env = {
-                ANSIBLE_HOST_KEY_CHECKING: "False",
-                ANSIBLE_SSH_CONTROL_PATH:  "%%h-%%p-%%r"
-            };
+            opts.env.ANSIBLE_HOST_KEY_CHECKING = "False";
         }
 
         return new Promise((resolve, reject)=> {
-            let proc = child_process.spawn(cmd,args,opts);
-            proc.stdout.on('data', (stdout)=> {
-                resolve(stdout.toString());
+            let proc = child_process.spawn(cmd, args, opts);
+            proc.stdout.on('data', (data)=> {
+                if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
+                    resolve(data.toString());
+                }
             });
             proc.stderr.on('data', (stderr)=> {
                 reject(stderr.toString());
@@ -304,30 +323,25 @@ class AnsibleEngine extends Engine {
             logger.logAndThrow("The host parameter must be of type Host or a host name string.");
         }
 
-        let opts = [`${hostname}.yml`];
-        opts.push("-i");
-        opts.push("inventory");
+        let args = [`${hostname}.yml`];
+        args.push("-i");
+        args.push("inventory");
 
         if (userPasswd) {
-            opts.push("--ask-pass");
+            args.push("--ask-pass");
         }
 
         if (sudoPasswd) {
-            opts.push("--ask-become-pass");
+            args.push("--ask-become-pass");
         }
 
-        opts.push('--extra-vars');
-        opts.push(`"ansible_become_pass=dagama"`);
+        args.push('--extra-vars');
 
-        let proc = child_process.spawn("ansible-playbook", opts,
+        let proc = child_process.spawn("ansible-playbook", args,
             {cwd: this.playbookDir, detached: true});
 
         proc.stdout.on('data', (data)=> {
-            if (data.toString().indexOf("SSH password:") != -1) {
-                proc.stdin.write(`${userPasswd}\n`);
-            } else if (data.toString().indexOf("SUDO password") != -1) {
-                proc.stdin.write(`${sudoPasswd}\n`);
-            } else {
+            if (!this.checkPasswordPrompt(proc, data, userPasswd, sudoPasswd)) {
                 if (data.indexOf("PLAY RECAP") != -1) {
                     callback(data.toString());
                 }
@@ -345,6 +359,18 @@ class AnsibleEngine extends Engine {
             }
         });
 
+    }
+
+    checkPasswordPrompt(proc, data, userPasswd, sudoPasswd) {
+        if (data.toString().indexOf("SSH password:") != -1) {
+            proc.stdin.write(`${userPasswd}\n`);
+            return true;
+        } else if (data.toString().indexOf("SUDO password") != -1) {
+            proc.stdin.write(`${sudoPasswd}\n`);
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

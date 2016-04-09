@@ -97,6 +97,7 @@ describe("ansible engine", () => {
             expect(result).to.equal("success");
             let playbookObj = gen.playbooks["www.example.com"];
             expect(playbookObj.object[0].tasks.length).to.equal(6);
+            gen.clean();
             done();
         }).catch(e=> {
             console.log(e);
@@ -119,10 +120,12 @@ describe("ansible engine", () => {
         });
     });
 
-    it("should get ansible facts", function(done) {
+    it("should get ansible facts using ssh key authentication", function (done) {
         let docker = new Docker();
+        let running = false;
         this.timeout(15000);
         docker.startDocker("vincentsshkeys").then(ipaddr=> {
+            running = true;
             return new Promise(resolve=> {
                 gen.inventory = [ipaddr];
                 gen.writeInventory({self: gen});
@@ -133,21 +136,52 @@ describe("ansible engine", () => {
             return gen.getInfo(ipaddr, false, keypath, "vincent")
         }).then((result)=> {
             return new Promise(resolve=> {
-                //console.log(result.toString());
-                
+                expect(result.includes('ansible_facts')).to.be.true;
                 resolve();
             });
         }).then(result => {
-            return  new Promise(resolve =>{
-                docker.stopDocker();
-                resolve() })
+            return docker.stopDocker();
         }).then(result=> {
+            gen.clean();
             done();
         }).catch(e=> {
-            console.log(e.toString());
+            if (running) {
+                docker.stopDocker().then(console.log(e));
+            } else {
+                console.log(e);
+            }
         })
-    });
 
+        it("should get ansible facts using password and sudo password", function (done) {
+            let docker = new Docker();
+            let running = false;
+            this.timeout(15000);
+            docker.startDocker("vincentsshpasswd").then(ipaddr=> {
+                running = true;
+                return new Promise(resolve=> {
+                    gen.inventory = [ipaddr];
+                    gen.writeInventory(gen);
+                    resolve(ipaddr);
+                });
+            }).then(ipaddr=> {
+                return gen.export(ipaddr).then(
+                    gen.runPlaybook(ipaddr, (result)=> {
+                        expect(result.includes('ansible_facts')).to.be.true;
+                    }, "vincent", "pass"));
+            }).then(result => {
+                return docker.stopDocker();
+            }).then(result=> {
+                gen.clean();
+                done();
+            }).catch(e=> {
+                if (running) {
+                    docker.stopDocker().then(console.log(e));
+                } else {
+                    console.log(e);
+                }
+            })
+        });
+    });
 });
 
 

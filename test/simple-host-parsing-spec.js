@@ -2,6 +2,7 @@ import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
+import Docker from './support/Docker';
 
 describe("validating host configuration", function () {
 
@@ -261,5 +262,39 @@ describe("validating host configuration", function () {
             }
         ];
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+    });
+    
+    it("should generate a valid playbook", function (done) {
+        let docker = new Docker();
+        let running = false;
+        var gen = provider.engine;
+        this.timeout(15000);
+        docker.startDocker("vincentsshpasswd").then(ipaddr=> {
+            running = true;
+            return new Promise(resolve=> {
+                gen.inventory = [ipaddr];
+                //update host name to refer to ip address
+                provider.managers.hostManager.validHosts[0].name = ipaddr;
+                gen.writeInventory({self: gen});
+                resolve(ipaddr);
+            });
+        }).then(ipaddr=> {
+            return gen.export();
+        }).then((result)=> {
+            return new Promise(resolve=> {
+                expect(result.includes('ansible_facts')).to.be.true;
+                resolve();
+            });
+        }).then(result => {
+            return docker.stopDocker();
+        }).then(result=> {
+            done();
+        }).catch(e=> {
+            if (running) {
+                docker.stopDocker().then(console.log(e));
+            } else {
+                console.log(e);
+            }
+        })
     });
 });
