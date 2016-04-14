@@ -1,3 +1,4 @@
+#sudo docker build -t vincentsshpasswd .
 FROM ubuntu
 RUN sudo apt-get update && apt-get upgrade -y
 RUN sudo apt-get install ansible -y
@@ -13,4 +14,4 @@ ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 
 EXPOSE 22
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/usr/sbin/sshd", "-d", "-E", "/var/log/ssh.log", "-D"]

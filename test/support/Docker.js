@@ -7,7 +7,8 @@ class Docker {
         //image should be vincentsshpasswd or vincentsshkeys
         return new Promise(resolve=>{
             child_process.exec(`sudo docker run -d --name vincenttest ${image}`, (error, stdout, stderr)=> {
-                    child_process.exec(`sudo docker inspect vincenttest | grep IPAddress | cut -d '"' -f 4`, (error, stdout, stderr)=> {
+                    //delay needed on some machines for dokcer to resonde to ansible
+                    child_process.exec(`sleep 1 && sudo docker inspect vincenttest | grep IPAddress | cut -d '"' -f 4`, (error, stdout, stderr)=> {
                         resolve(stdout.substring(0,stdout.length-1));
                     });
                 });

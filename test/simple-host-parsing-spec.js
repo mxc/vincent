@@ -1,8 +1,11 @@
 import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
+import HostUser from "../src/modules/user/HostUser";
+import Host from "../src/modules/host/Host";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
 import Docker from './support/Docker';
+import child_process from 'child_process';
 
 describe("validating host configuration", function () {
 
@@ -38,13 +41,13 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{ name:"user1", state: "present"}]
+                    authorized_keys: [{name: "user1", state: "present"}]
                 },
                 {
                     user: {name: "user2"},
                     authorized_keys: [
-                        { name:"user1", state: "present"},
-                        { name:"user2", state: "absent"}
+                        {name: "user1", state: "present"},
+                        {name: "user2", state: "absent"}
                     ]
                 }
             ],
@@ -88,11 +91,11 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "waldo"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 },
                 {
                     user: {name: "user2", state: "present"},
-                    authorized_keys: [{name:"user1"}]
+                    authorized_keys: [{name: "user1"}]
                 },
                 {
                     user: {name: "user3"}
@@ -122,11 +125,11 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{name:"user1"}, {name:"user3"}, {name:"waldo"}, {name:"user4"}]
+                    authorized_keys: [{name: "user1"}, {name: "user3"}, {name: "waldo"}, {name: "user4"}]
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: [{name:"user1"}, {name:"user4"}]
+                    authorized_keys: [{name: "user1"}, {name: "user4"}]
                 }
             ],
             groups: [
@@ -193,8 +196,8 @@ describe("validating host configuration", function () {
                 name: "www.example.com",
                 users: [
                     {
-                        user: {name: "user1", state: "present" },
-                        authorized_keys: [{ name:"user1", state: "present"}]
+                        user: {name: "user1", state: "present"},
+                        authorized_keys: [{name: "user1", state: "present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
@@ -246,8 +249,8 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name:"user1",state:"present"},
-                            {name:"user3", state:"absent",state:"present"}]
+                        authorized_keys: [{name: "user1", state: "present"},
+                            {name: "user3", state: "absent", state: "present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"},
@@ -263,31 +266,32 @@ describe("validating host configuration", function () {
         ];
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
-    
+
     it("should generate a valid playbook", function (done) {
         let docker = new Docker();
         let running = false;
         var gen = provider.engine;
-        this.timeout(15000);
+        this.timeout(12000);
+        let host = {};
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;
-            return new Promise(resolve=> {
-                gen.inventory = [ipaddr];
-                //update host name to refer to ip address
-                provider.managers.hostManager.validHosts[0].name = ipaddr;
-                gen.writeInventory({self: gen});
-                resolve(ipaddr);
-            });
+            host = new Host(provider, ipaddr);
+            provider.managers.hostManager.add(host);
+            let data = {user: provider.managers.userManager.validUsers[0]};
+            let hostUser = new HostUser(provider, data);
+            provider.managers.userManager.addHostUser(host, hostUser);
+            gen.loadEngineDefinition(host);
+            return ipaddr;
         }).then(ipaddr=> {
-            return gen.export();
+            return gen.export(ipaddr);
         }).then((result)=> {
-            return new Promise(resolve=> {
-                expect(result.includes('ansible_facts')).to.be.true;
-                resolve();
-            });
+            return gen.runPlaybook(host, false,null, 'vincent', 'pass');
+        }).then(result=> {
+            expect(result.includes('ok=2    changed=1')).to.be.true;
         }).then(result => {
             return docker.stopDocker();
         }).then(result=> {
+            gen.clean();
             done();
         }).catch(e=> {
             if (running) {
@@ -295,6 +299,6 @@ describe("validating host configuration", function () {
             } else {
                 console.log(e);
             }
-        })
+        });
     });
 });
