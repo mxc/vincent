@@ -6,6 +6,7 @@ import Provider from '../../Provider';
 import Manager from '../base/Manager';
 import HostSsh from '../ssh/HostSsh'
 import ModuleLoader from '../../utilities/ModuleLoader';
+import UserManager from '../user/UserManager';
 
 class SshManager extends Manager {
 
@@ -27,7 +28,7 @@ class SshManager extends Manager {
         this.engines[engine].exportToEngine(host,struct);
     }
 
-    add(sshConfig) {
+    addSshConfig(sshConfig) {
         //todo
     }
 
@@ -64,7 +65,7 @@ class SshManager extends Manager {
             });
     }
 
-    find(name) {
+    findSSHConfig(name) {
         return this.data.configs[name];
     }
 
@@ -95,7 +96,7 @@ class SshManager extends Manager {
             host.data.hostSsh.host = host;
             host._export.ssh = host.data.hostSsh.data.export();
         } else {
-            let configDef = this.find(config);
+            let configDef = this.findSSHConfig(config);
             if (!configDef) {
                 throw new Error(`Ssh config '${config}' not found.`);
             }
@@ -112,6 +113,9 @@ class SshManager extends Manager {
         }
     }
 
+    static getDependencies(){
+        return [UserManager];
+    }
 
 }
 

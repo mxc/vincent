@@ -6,6 +6,9 @@ import Provider from '../../Provider';
 import logger from '../../Logger';
 import Manager from '../base/Manager';
 import fs from 'fs';
+import CheckAccess from '../base/Security';
+import ConsoleHostManager from './ui/console/HostManager';
+import ConsoleHost from './ui/console/Host';
 
 class HostManager extends Manager {
 
@@ -25,7 +28,7 @@ class HostManager extends Manager {
         //na
     }
     
-    add(host) {
+    addHost(host) {
         if (host instanceof Host) {
             if (this.validHosts.find((cHost)=> {
                     if (cHost.name === host.name) {
@@ -42,7 +45,7 @@ class HostManager extends Manager {
         }
     }
 
-    find(hostname) {
+    findValidHost(hostname) {
         return this.validHosts.find((host)=> {
             if (host.name === hostname) {
                 return host;
@@ -52,13 +55,14 @@ class HostManager extends Manager {
 
     loadFromFile() {
         this.errors.length = 0;
-        let dbDir = this.provider.config.get('confdir') + '/db';
+        let dbDir = this.provider.getDBDir();
         //hosts configuration
         let promises = [];
-        fs.readdir(dbDir + '/hosts', (err, hostConfigs)=> {
+        let loc = "hosts";
+        fs.readdir(`${dbDir}${loc}`, (err, hostConfigs)=> {
             hostConfigs.forEach((config)=> {
                 promises.push(new Promise(resolve=> {
-                    this.provider.loadFromFile(`host/${config}`).then(data=> {
+                    this.provider.loadFromFile(`${loc}/${config}`).then(data=> {
                         this.loadFromJson(data);
                         resolve("success");
                     });
@@ -162,7 +166,7 @@ class HostManager extends Manager {
         }
 
         host.source = hostDef;
-        this.add(host);
+        this.addHost(host);
         Array.prototype.push.apply(this.errors[host.name], host.errors)
         return host;
     }
@@ -188,6 +192,15 @@ class HostManager extends Manager {
         }
     }
 
+    loadConsoleUI(context){
+        context.hostManager = new ConsoleHostManager();
+        context.Host = ConsoleHost;
+        console.log(context.Host);
+    }
+
+    static getDependencies(){
+        return [];
+    }
 }
 
 export default HostManager;

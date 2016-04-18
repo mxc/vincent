@@ -22,7 +22,7 @@ class AnsibleEngine extends Engine {
         this.inventory = new Set();
         this.playbooks = {};//a  directory lookup cache for generated playbooks
         this.provider = provider;
-        this.playbookDir = path.resolve(provider.getRootDir(), provider.getConfigDir(), "playbooks");
+        this.playbookDir = path.resolve(provider.getEngineDir(), "playbooks");
         this.errors = [];
     }
 
@@ -85,7 +85,7 @@ class AnsibleEngine extends Engine {
                     if (host instanceof Host) {
                         return this.writePlaybooks(host);
                     } else if (typeof host == 'string') {
-                        let tmpHost = this.provider.managers.hostManager.find(host);
+                        let tmpHost = this.provider.managers.hostManager.findValidHost(host);
                         if (tmpHost) {
                             return this.writePlaybook(tmpHost);
                         } else {

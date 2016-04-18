@@ -246,7 +246,7 @@ describe("validating ssh include config", function () {
             }
         ];
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
-        let host = provider.managers.hostManager.find("web01.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("web01.example.co.za");
 
         expect(provider.managers.sshManager.getSsh(host)).to.deep.equal({
             permitRoot: false,
@@ -376,7 +376,7 @@ describe("validating user categories include", function () {
 
     it('should addValidGroup the users in user category to the host\'s users' +
         ' and not addValidGroup duplicates', function () {
-        expect(provider.managers.userManager.getHostUsers(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(4);
+        expect(provider.managers.userManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
     })
 });
 
@@ -524,7 +524,7 @@ describe("validating group categories include", function () {
     });
 
     it('should add the groups in group category to the host\'s groups', function () {
-        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(4);
+        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
     })
 
     it('should not add invalid groups in the group category', function () {
@@ -693,12 +693,12 @@ describe("validating group categories include with duplicated groups", function 
     });
 
     it('should not duplicate groups in groupCategories and groups controllers', () => {
-        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.find("web01.example.co.za")).length).to.equal(3);
+        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(3);
     });
 
     it('should expand group members to include user from user categories ' +
         'that are members of a group category members array', () => {
-        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.find("web01.example.co.za"), "group2")
+        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.findValidHost("web01.example.co.za"), "group2")
             .members.length)
             .to.equal(1);
     });

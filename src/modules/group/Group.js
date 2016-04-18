@@ -17,6 +17,7 @@ class Group extends Base {
                 name: data,
                 state: "present"
             };
+            return;
         }
 
         if (!data.name) {

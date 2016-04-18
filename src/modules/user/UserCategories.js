@@ -21,7 +21,7 @@ class UserCategories {
         return this.data.configs;
     }
 
-    add(userCategory) {
+    addUserCategory(userCategory) {
         //todo
     }
 
@@ -43,7 +43,7 @@ class UserCategories {
         }
     }
 
-    find(name) {
+    findUserCategory(name) {
         return this.data.configs[name];
     }
 

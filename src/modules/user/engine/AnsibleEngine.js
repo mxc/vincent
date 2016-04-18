@@ -13,9 +13,9 @@ class AnsibleEngine extends EngineComponent {
     }
     
     exportToEngine(host,tasks){
-        let hostUsers = this.provider.managers.userManager.getHostUsers(host);
-        if (hostUsers) {
-            hostUsers.forEach((user)=> {
+        let userAccounts = this.provider.managers.userManager.getHostGroups(host);
+        if (userAccounts) {
+            userAccounts.forEach((user)=> {
                 let ansibleUser = {
                     name: "User account state check",
                     user: `name=${user.name} state=${user.state}`,

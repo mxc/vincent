@@ -44,10 +44,10 @@ class HostGroup extends HostComponent {
                             }
                         } else {
                             //is this a user category? If so addValidGroup all members from the category
-                            let members = this.provider.managers.userManager.userCategories.find(username);
+                            let members = this.provider.managers.userManager.userCategories.findUserCategory(username);
                             if (members) {
-                                members.forEach((hostUserData)=> {
-                                    let user = this.provider.managers.userManager.findValidUserByName(hostUserData.user.name);
+                                members.forEach((userAccountData)=> {
+                                    let user = this.provider.managers.userManager.findValidUserByName(userAccountData.user.name);
                                     try {
                                         this.addMember(user);
                                     } catch (e) {

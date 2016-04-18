@@ -1,6 +1,6 @@
 import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
-import HostUser from "../src/modules/user/HostUser";
+import UserAccount from "../src/modules/user/UserAccount";
 import Host from "../src/modules/host/Host";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
@@ -276,10 +276,10 @@ describe("validating host configuration", function () {
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;
             host = new Host(provider, ipaddr);
-            provider.managers.hostManager.add(host);
+            provider.managers.hostManager.addHost(host);
             let data = {user: provider.managers.userManager.validUsers[0]};
-            let hostUser = new HostUser(provider, data);
-            provider.managers.userManager.addHostUser(host, hostUser);
+            let userAccount = new UserAccount(provider, data);
+            provider.managers.userManager.addUserAccountToHost(host, userAccount);
             gen.loadEngineDefinition(host);
             return ipaddr;
         }).then(ipaddr=> {

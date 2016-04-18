@@ -9,7 +9,7 @@ import {expect} from 'chai';
 
 describe("Database utility tests", ()=> {
     "use strict";
-    let provider = new Provider();
+    let provider = new Provider(`${process.cwd()}/conf-example`);
 
     it("should successfully create database tables", (done)=> {
         let db = new Database(provider);

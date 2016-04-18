@@ -7,6 +7,8 @@ import Provider from '../../Provider';
 import Manager from '../base/Manager';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import HostSudoEntry from './HostSudoEntry';
+import UserManager from '../user/UserManager';
+import GroupManager from '../group/GroupManager';
 
 class SudoManager extends Manager {
 
@@ -30,7 +32,7 @@ class SudoManager extends Manager {
         this.engines[engine].exportToEngine(host,struct);
     }
 
-    add(SudoEntry){
+    addSudoEntry(SudoEntry){
         //todo
     }
 
@@ -69,7 +71,7 @@ class SudoManager extends Manager {
         }
     }
 
-    find(name) {
+    findSudoEntry(name) {
         return this.data.configs[name];
     }
 
@@ -115,7 +117,7 @@ class SudoManager extends Manager {
                 } else if (!host._export.includes.sudoerEntries) {
                     host._export.includes.sudoerEntries = [];
                 }
-                let sudoDataLookup = this.find(sudoData);
+                let sudoDataLookup = this.findSudoEntry(sudoData);
                 let hostSudoEntry = new HostSudoEntry(this.provider, host, sudoDataLookup);
                 host.data.sudoerEntries.push(hostSudoEntry);
                 host._export.includes.sudoerEntries.push(sudoData);
@@ -136,6 +138,11 @@ class SudoManager extends Manager {
     getSudoerEntries(host) {
         return host.data.sudoerEntries;
     }
+
+    static getDependencies(){
+        return [UserManager,GroupManager];
+    }
+
 }
 
 

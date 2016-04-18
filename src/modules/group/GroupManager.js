@@ -6,7 +6,12 @@ import logger from './../../Logger';
 import Provider from './../../Provider';
 import Manager from './../base/Manager';
 import HostGroup from './HostGroup';
+import UserManager from './../user/UserManager';
 import ModuleLoader from '../../utilities/ModuleLoader';
+import ConsoleGroupManager from './ui/console/GroupManager';
+import ConsoleGroup from './ui/console/Group';
+import ConsoleHostGroup from './ui/console/HostGroup';
+
 
 class GroupManager extends Manager {
 
@@ -19,17 +24,17 @@ class GroupManager extends Manager {
         this.validGroups = [];
         this.groupCategories = new GroupCategories();
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('group',provider);
+        this.engines = ModuleLoader.loadEngines('group', provider);
     }
 
-    exportToEngine(engine,host,struct){
-        this.engines[engine].exportToEngine(host,struct);
+    exportToEngine(engine, host, struct) {
+        this.engines[engine].exportToEngine(host, struct);
     }
 
-    getWeigth(){
+    getWeigth() {
         return 2000;
     }
-    
+
     // initialiseHost(host) {
     //     host.data['groups'] = [];
     //     host._export['groups'] = [];
@@ -62,6 +67,8 @@ class GroupManager extends Manager {
             return this.validGroups.find((mgroup) => {
                 return mgroup.equals(group);
             });
+        }if(typeof Group==="string"){
+            return this.findValidGroupByName(group);
         } else {
             logger.logAndThrow(`The parameter group is not an instance of Group`);
         }
@@ -129,7 +136,7 @@ class GroupManager extends Manager {
                 try {
                     let hostGroup = new HostGroup(host.provider, groupDef);
 
-                    this.addHostGroup(host, hostGroup);
+                    this.addHostGroupToHost(host, hostGroup);
                     Array.prototype.push.apply(hosts.errors[host.name], hostGroup.errors);
                 } catch (e) {
                     logger.logAndAddToErrors(`Error adding host group - ${e.message}`,
@@ -157,24 +164,24 @@ class GroupManager extends Manager {
         }
     }
 
-    loadFromFile(){
+    loadFromFile() {
         let promises = [];
-
-        promises.push(new Promise((resolve,reject)=>{
-            this.provider.loadFromFile("groups.json").then(data=>{
+        promises.push(new Promise((resolve, reject)=> {
+            let loc = "groups.json";
+            this.provider.loadFromFile(loc).then(data=> {
                 this.loadFromJson(data);
                 resolve("success");
-                }).catch(e=>{
-                    logger.logAndAddToErrors(`Error loading groups config - ${e.message}.`, this.errors);
-                    reject(e);
-                });
-            }));
+            }).catch(e=> {
+                logger.logAndAddToErrors(`Error loading groups config - ${e.message}.`, this.errors);
+                reject(e);
+            });
+        }));
 
         promises.push(new Promise((resolve, reject)=> {
-                this.provider.loadFromFile("includes/group-categories.json").then(data=>{
+                this.provider.loadFromFile("includes/group-categories.json").then(data=> {
                     this.loadGroupCategoriesFromJson(data);
                     resolve("success");
-                }).catch(e=>{
+                }).catch(e=> {
                     logger.logAndAddToErrors(`Failed to load group Categories from file system - ${e}`, this.errors);
                     reject(e);
                 });
@@ -189,7 +196,7 @@ class GroupManager extends Manager {
 
     addGroupCategory(host, groupCategory) {
         //lookup host category group definition
-        let groups = this.groupCategories.find(groupCategory);
+        let groups = this.groupCategories.findGroupCategory(groupCategory);
         //if it's valid
         if (groups) {
             //add to exports includes definition
@@ -204,7 +211,7 @@ class GroupManager extends Manager {
             groups.forEach((groupDef)=> {
                 try {
                     let newGroup = new HostGroup(this.provider, groupDef);
-                    this.addHostGroup(host, newGroup, true);
+                    this.addHostGroupToHost(host, newGroup, true);
                 } catch (e) {
                     logger.warn(`Warning adding user category: ${e.message}`);
                     errors.push(`Error adding ${groupDef.group.name} from group category ${groupCategory} - ${e.message}`);
@@ -222,15 +229,15 @@ class GroupManager extends Manager {
         return host.data.groups;
     }
 
-    addHostGroup(host, hostGroup, fromGroupCategory = false) {
+    addHostGroupToHost(host, hostGroup, fromGroupCategory = false) {
 
-        //update host for hostUsers
-        if (!host.data.groups){
+        //update host for userAccounts
+        if (!host.data.groups) {
             host.data.groups = [];
         }
 
-        if (!host._export.groups){
-            host._export.groups=[];
+        if (!host._export.groups) {
+            host._export.groups = [];
         }
 
         if (hostGroup instanceof HostGroup) {
@@ -282,6 +289,70 @@ class GroupManager extends Manager {
                 return hostGroup;
             }
         });
+    }
+
+    static getDependencies() {
+        return [UserManager];
+    }
+
+    loadConsoleUI(context) {
+        let self = this;
+        context.Host.prototype.addHostGroup = function (data) {
+            try {
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
+                if (!host) {
+                    console.log(`Could not find ${this.name} in host managers host list`);
+                    return;
+                }
+                if (typeof data === "string") {
+                    console.log("data="+data);
+                    var _group = self.provider.managers.groupManager.findValidGroupByName(data);
+                } else if (typeof data === "object" && data.name) {
+                    var _group = self.provider.managers.groupManager.findValidGroupByName(data.name);
+                }
+                if (_group) {
+                    let groupdata = {
+                        group: _group
+                    };
+                    if (data.members) {
+                        groupdata.members = data.members;
+                    }
+                    let hostGroup = new HostGroup(self.provider, groupdata);
+                    self.addHostGroupToHost(host, hostGroup);
+                } else {
+                    console.log("group not found in valid group list");
+                    return;
+                }
+                console.log(`Group account added for ${group.name? group.name: group} to host ${this.name}`);
+            } catch (e) {
+                console.log(e);
+            }
+        };
+        context.Host.prototype.listHostGroups = function () {
+            let host = self.provider.managers.hostManager.findValidHost(this.name);
+            let hostGroups = self.getHostGroups(host);
+            if (hostGroups) {
+                return hostGroups.map((hostGroup)=> {
+                    return new ConsoleHostGroup(hostGroup);
+                });
+            }else{
+                return `No groups defined for host ${this.name}`;
+            }
+        };
+
+        context.groupManager = new ConsoleGroupManager();
+        context.Group = ConsoleGroup;
+    }
+
+    updateGroupGid(group, gid){
+        let _group =  this.findValidGroup(group);
+        if(_group){
+            if(this.findValidGroupByGid(gid)){
+                throw new Error("A group with the gid already exists");
+            }else{
+                _group.data.gid=gid;
+            }
+        }
     }
 }
 

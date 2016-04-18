@@ -79,7 +79,7 @@ describe("HostManager configuration without remote access definition", ()=> {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-    let host = provider.managers.hostManager.find("www.example.com");
+    let host = provider.managers.hostManager.findValidHost("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("same");
@@ -176,7 +176,7 @@ describe("HostManager configuration with remote access definition", ()=> {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-    let host = provider.managers.hostManager.find("www.example.com");
+    let host = provider.managers.hostManager.findValidHost("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("mark");

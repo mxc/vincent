@@ -15,7 +15,7 @@ class GroupCategories {
         return this.data.configs;
     }
 
-    add(groupCategory){
+    addGroupCategory(groupCategory){
         //todo
     }
 
@@ -37,7 +37,7 @@ class GroupCategories {
         }
     }
 
-    find(name) {
+    findGroupCategory(name) {
         return this.data.configs[name];
     }
 

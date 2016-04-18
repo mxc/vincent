@@ -9,7 +9,7 @@ import {expect} from 'chai';
 
 describe("File DB loader tests", function () {
 
-    let provider = new Provider();
+    let provider = new Provider(`${process.cwd()}/conf-example`);
 
     it('should load user categories', (done)=> {
         provider.managers.userManager.loadFromFile().then((result)=> {

@@ -7,7 +7,7 @@
 import Provider from '../src/Provider';
 import User from "../src/modules/user/User";
 import Host from "../src/modules/host/Host";
-import HostUser from "../src/modules/user/HostUser";
+import UserAccount from "../src/modules/user/UserAccount";
 import Group from "../src/modules/group/Group";
 import AnsibleGenerator from "../src/modules/engines/AnsibleEngine";
 import {expect} from 'chai';
@@ -90,10 +90,10 @@ describe("The system", function () {
         let demoU = new User({name: "demo", uid: 1001});
         provider.managers.userManager.addValidUser(demoU);
         let host = new Host(provider, '192.168.122.137');
-        let hostuser1 = new HostUser(provider, {user: demoU});
-        hostuser1.addAuthorizedUser(markU, "present");
-        provider.managers.userManager.addHostUser(host, hostuser1);
-        provider.managers.hostManager.add(host);
+        let userAccount1 = new UserAccount(provider, {user: demoU});
+        userAccount1.addAuthorizedUser(markU, "present");
+        provider.managers.userManager.addUserAccountToHost(host, userAccount1);
+        provider.managers.hostManager.addHost(host);
     });
 
 

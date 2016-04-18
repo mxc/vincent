@@ -9,7 +9,7 @@ class Manager {
     //     throw new Error ("Method must be overridden in child object");
     // }
     
-    updateHost(host,hosts,hostDef,){
+    updateHost(host,hosts,hostDef){
         throw new Error ("Method must be overridden in child object");
     }
     
@@ -29,6 +29,18 @@ class Manager {
     }
     
     clear(){
+        throw new Error ("Method must be overridden in child object");
+    }
+
+    loadConsoleUI(context){
+        throw new Error ("Method must be overridden in child object");
+    }
+
+    loadWebUI(){
+        throw new Error ("Method must be overridden in child object");
+    }
+
+    static getDependencies(){
         throw new Error ("Method must be overridden in child object");
     }
 }

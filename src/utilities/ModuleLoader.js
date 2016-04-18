@@ -12,6 +12,7 @@ import GroupAnsibleEngine from './../modules/group/engine/AnsibleEngine';
 import SshAnsibleEngine from './../modules/ssh/engine/AnsibleEngine';
 import SudoAnsibleEngine from './../modules/sudo/engine/AnsibleEngine';
 import SSHManager from './../modules/ssh/SshManager';
+import logger from './../Logger';
 
 class ModuleLoader {
 
@@ -24,37 +25,53 @@ class ModuleLoader {
     }
 
     /** mocked for now **/
-    static loadEngines(dir,provider){
+    static loadEngines(dir, provider) {
         let name = dir;
         let engines = {};
-        if (name==='user') {
+        if (name === 'user') {
             engines['ansible'] = new UserAnsibleEngine(provider);
-        }else if (name==='group'){
+        } else if (name === 'group') {
             engines['ansible'] = new GroupAnsibleEngine(provider);
-        }else if (name==='ssh'){
+        } else if (name === 'ssh') {
             engines['ansible'] = new SshAnsibleEngine(provider);
-        }else if (name==='sudo'){
+        } else if (name === 'sudo') {
             engines['ansible'] = new SudoAnsibleEngine(provider);
         }
         return engines;
     }
 
     /*
-    Currently node does not support es2015 module loading. All the polyfills tried fail to work with transpiling
+     Currently node does not support es2015 module loading. All the polyfills tried fail to work with transpiling
      */
 
     static parseDirectory(dir, match, provider) {
-        let promise = new Promise(resolve =>{
-            //let userManager = new UserManager(provider);
-            //userManager.getWeight();
-            provider.managers.userManager = new UserManager(provider);
-            provider.managers.groupManager = new GroupManager(provider);
-            provider.managers.hostManager = new HostManager(provider);
-            provider.managers.sshManager = new SSHManager(provider);
-            provider.managers.sudoManager = new SudoManager(provider);
+
+        return new Promise(resolve => {
+            ModuleLoader.modules.push(UserManager);
+            ModuleLoader.modules.push(GroupManager);
+            ModuleLoader.modules.push(HostManager);
+            ModuleLoader.modules.push(SSHManager);
+            ModuleLoader.modules.push(SudoManager);
+
+            let loaded={};
+            ModuleLoader.modules.forEach((manager)=> {
+                if (typeof manager != 'function'){
+                    logger.logAndThrow(`${manager.name} getDependencies method should return an array of constructors`);
+                }
+                this.callFunctionInManagerDependencyOrder(manager, provider, loaded, (manager)=> {
+                    let name = manager.name.charAt(0).toLowerCase() + manager.name.slice(1);
+                    provider.managers[name] = new manager(provider);
+                });
+            });
+
+            //provider.managers.userManager = new UserManager(provider);
+            //provider.managers.groupManager = new GroupManager(provider);
+            //provider.managers.hostManager = new HostManager(provider);
+            //provider.managers.sshManager = new SSHManager(provider);
+            //provider.managers.sudoManager = new SudoManager(provider);
             resolve();
         });
-        return promise;
+
         // ModuleLoader.init();
         // let promise = new Promise(resolve => {
         //     let promises = [];
@@ -93,8 +110,54 @@ class ModuleLoader {
         // return promise;
     }
 
+    //static upperCaseFirstLetter(string) {
+    //    return string.charAt(0).toUpperCase() + string.slice(1);
+    //}
+
+    static callFunctionInManagerDependencyOrder(managerClass, provider,loaded, callback) {
+            if(typeof managerClass !="function"){
+                logger.logAndThrow("The managerClass parameter must be a class constructor function");
+            }
+
+            //have we already loaded this manager?
+            if (loaded[managerClass.name]) {
+                return;
+            }
+
+            try {
+                var list = managerClass.getDependencies();
+            }catch(e){
+                logger.logAndThrow(`Error loading managers and dependencies - ${e}`);
+            }
+
+            let missingDependencies = false;
+            list.forEach((clazz)=> {
+                if (!provider.managers[clazz.name]) {
+                    //console.log(`loading dependency ${clazz.name}`)
+                    try {
+                        this.callFunctionInManagerDependencyOrder(clazz, provider, loaded, callback);
+                    } catch (e) {
+                        missingDependencies = true;
+                        throw (e);
+                    }
+                }
+            });
+            if (!missingDependencies) {
+                try {
+                    callback(managerClass);
+                    loaded[managerClass.name] = true;
+                } catch (e) {
+                    missingDependencies = true;
+                    logger.logAndThrow(`Error loading manager dependencies - ${e}`);
+                }
+            }
+            return loaded;
+    }
+
+
 }
 
+ModuleLoader.modules =[];
 ModuleLoader.initialised = false;
 
 export default ModuleLoader;

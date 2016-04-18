@@ -4,7 +4,15 @@ import logger from './../../Logger';
 import Base from './../base/Base';
 
 class User extends Base {
-
+    /*
+     Parameter can be user name or data structure:
+     {
+        name: <username>,
+        stat: <"present"|"absent">,
+        uid: <int>,
+        key: <path to user's public key
+     }
+     */
     constructor(data) {
         super();
         //check if we were provided with a user name or a data object
@@ -73,7 +81,7 @@ class User extends Base {
         return this.data.uid;
     }
 
-    equals(user) {
+     equals(user) {
         if (!user instanceof User) {
             return false;
         } else {

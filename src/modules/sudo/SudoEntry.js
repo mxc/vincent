@@ -5,7 +5,7 @@
  */
 
 import Base from '../base/Base';
-import HostUser from '../user/HostUser';
+import UserAccount from '../user/UserAccount';
 import HostGroup from './../group/HostGroup';
 
 class SudoEntry extends Base {
@@ -49,7 +49,7 @@ class SudoEntry extends Base {
             this.data.userList.push({group: group});
             this._export.userList.push({group: group.group.exportId()});
         } else {
-            throw new Error("The userObj must be of type HostUser or HostGroup")
+            throw new Error("The userObj must be of type UserAccount or HostGroup")
         }
     }
 
@@ -60,11 +60,11 @@ class SudoEntry extends Base {
         if (!this._export.userList) {
             this._export.userList = [];
         }
-        if (userObj instanceof HostUser) {
+        if (userObj instanceof UserAccount) {
             this.data.userList.push({user: userObj});
             this._export.userList.push({user: userObj.user.exportId()});
         } else {
-            throw new Error("The userObj must be of type HostUser or HostGroup")
+            throw new Error("The userObj must be of type UserAccount or HostGroup")
         }
     }
 

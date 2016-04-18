@@ -70,17 +70,17 @@ describe("ansible engine", () => {
 
             ]
         }];
-
-    var provider = new Provider();
+    let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+    let provider = new Provider(path.resolve(home,"vincenttest"));
     var gen = provider.engine;
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(validHosts);
     //make sure directory is empty before running tests.
-    it("should have empty directory once clean has been called", (done)=> {
+    it("it should have empty directory once clean has been called", (done)=> {
         gen.clean().then(result=> {
-            let dir = provider.config.get('confdir') + "/playbooks";
+            let dir = provider.getEngineDir() + "/playbooks";
             let files = fs.readdirSync(dir);
             expect(files.length).to.equals(0);
             done();
@@ -91,8 +91,8 @@ describe("ansible engine", () => {
     });
 
 
-    it("should generate playbook object for host", (done) => {
-        gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
+    it("it should generate playbook object for host", (done) => {
+        gen.loadEngineDefinition(provider.managers.hostManager.findValidHost("www.example.com"));
         gen.export().then((result)=> {
             expect(result).to.equal("success");
             let playbookObj = gen.playbooks["www.example.com"];
@@ -105,8 +105,8 @@ describe("ansible engine", () => {
         });
     });
 
-    it("should generate playbook files for host", function (done) {
-        gen.loadEngineDefinition(provider.managers.hostManager.find("www.example.com"));
+    it("it should generate playbook files for host", function (done) {
+        gen.loadEngineDefinition(provider.managers.hostManager.findValidHost("www.example.com"));
         gen.clean().then(result=> {
             gen.export().then((result)=> {
                 fs.readdir(gen.playbookDir, (err, files)=> {
@@ -120,7 +120,7 @@ describe("ansible engine", () => {
         });
     });
 
-    it("should get ansible facts using ssh key authentication", function (done) {
+    it("it should get ansible facts using ssh key authentication", function (done) {
         let docker = new Docker();
         let running = false;
         this.timeout(10000);
@@ -153,7 +153,7 @@ describe("ansible engine", () => {
         });
     });
 
-    it("should get ansible facts using password and sudo password", function (done) {
+    it("it should get ansible facts using password and sudo password", function (done) {
         let docker = new Docker();
         let running = false;
         this.timeout(10000);

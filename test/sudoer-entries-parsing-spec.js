@@ -165,7 +165,7 @@ describe("validating host configuration with sudoer entry config", function () {
     });
 
     it('should produce the correct line for insertion into sudoer file', function () {
-        let host = provider.managers.hostManager.find("www.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("www.example.co.za");
         expect(provider.managers.sudoManager.getSudoerEntries(host)[0].sudoEntry.entry).to.equal('%group1,user1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
     });
 

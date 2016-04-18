@@ -5,10 +5,17 @@ import User from './User';
 import HostComponent from './../base/HostComponent';
 
 /*
-Host user is a user with a list of authorized keys associate with this user account.
- */
-class HostUser extends HostComponent {
+Account user is a user with a list of authorized keys associate with this user account.
+*/
 
+class UserAccount extends HostComponent {
+    /*
+      Parameter data must be the following data structure:
+        {
+           user: <user>
+           authorized_keys: [] //array of user name
+        }
+   */
     constructor(provider, data) {
         super(provider);
         this.data = {authorized_keys: []};
@@ -21,7 +28,7 @@ class HostUser extends HostComponent {
                 //of absent it will override the state of the global user definition
                 //note: all the values of the global group are copied. Only state may change.
                 if (!data.user || !data.user.name) {
-                    logger.logAndThrow("The parameter data for HostUser must have a property \"user\".");
+                    logger.logAndThrow("The parameter data for UserAccount must have a property \"user\".");
                 } else {
                     var user = this.provider.managers.userManager.findValidUserByName(data.user.name);
                     if (user) {
@@ -53,7 +60,7 @@ class HostUser extends HostComponent {
                     });
                 }
             } else {
-                logger.logAndThrow("The data parameter for HostUser must be an data object or undefined.");
+                logger.logAndThrow("The data parameter for UserAccount must be an data object or undefined.");
             }
             this.data.source = data;
         }
@@ -95,12 +102,12 @@ class HostUser extends HostComponent {
         }
     }
 
-    merge(hostUser) {
-        if (hostUser instanceof HostUser) {
-            if (hostUser.name !== this.name) {
-                logger.logAndThrow(`User ${hostUser.name} does not match ${this.data.name}`);
+    merge(userAccount) {
+        if (userAccount instanceof UserAccount) {
+            if (userAccount.name !== this.name) {
+                logger.logAndThrow(`User ${userAccount.name} does not match ${this.data.name}`);
             }
-            hostUser.authorized_keys.forEach((authorizedUser)=> {
+            userAccount.authorized_keys.forEach((authorizedUser)=> {
                 try {
                     this.addAuthorizedUser(authorizedUser, authorizedUser.state);
                 } catch (e) {
@@ -108,7 +115,7 @@ class HostUser extends HostComponent {
                 }
             });
         } else {
-            logger.logAndThrow("The parameter hostUser must be of type HostUser.");
+            logger.logAndThrow("The parameter hostUser must be of type UserAccount.");
         }
     }
 
@@ -134,4 +141,4 @@ class HostUser extends HostComponent {
 
 }
 
-export default HostUser;
+export default UserAccount;
