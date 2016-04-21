@@ -24,9 +24,6 @@ class SudoManager extends Manager {
         this.engines = ModuleLoader.loadEngines('sudo',this.provider);
     }
 
-    initialiseHost(host) {
-
-    }
 
     exportToEngine(engine,host,struct){
         this.engines[engine].exportToEngine(host,struct);
@@ -45,16 +42,15 @@ class SudoManager extends Manager {
     }
 
     loadFromFile(){
-        return new Promise((resolve, reject)=> {
-            this.provider.loadFromFile("includes/sudoer-entries.json").then(data=> {
-                this.loadFromJson(data);
-                resolve("success");
-            }).catch(e=> {
-                console.log(e);
-                logger.logAndAddToErrors(`could not load sudoer-entries.json file - ${e.message}`, this.errors);
-                reject(e);
-            });
-        });
+        if (this.provider.fileExists("includes/sudoer-entries.json")) {
+            let loc = "includes/sudoer-entries.json";
+            let data = this.provider.loadFromFile(loc);
+            if (data) {
+                return this.loadFromJson(data);
+            }
+        } else {
+            logger.warn("Cound not load includes/sudoer-entries.json. File not found");
+        }
     }
 
     loadFromJson(sudoerEntriesData) {
@@ -141,6 +137,10 @@ class SudoManager extends Manager {
 
     static getDependencies(){
         return [UserManager,GroupManager];
+    }
+
+    loadConsoleUI(context) {
+        //no op
     }
 
 }

@@ -18,7 +18,7 @@ class Host extends Base {
         //check if we were provided with a host name or a data object
         if (typeof data === 'string') {
             var validip = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
-            var validhostname = /\w\.{2}\w/;
+            var validhostname = /(\w\.)*\w/;
             if (!validip.test(data) && !validhostname.test(data)) {
                 logger.logAndThrow(`${data} is an invalid host name`);
             }

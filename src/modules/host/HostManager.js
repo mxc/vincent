@@ -8,7 +8,9 @@ import Manager from '../base/Manager';
 import fs from 'fs';
 import CheckAccess from '../base/Security';
 import ConsoleHostManager from './ui/console/HostManager';
-import ConsoleHost from './ui/console/Host';
+//import ConsoleHost from './ui/console/Host';
+import path from "path";
+import ModuleLoader from '../../utilities/ModuleLoader';
 
 class HostManager extends Manager {
 
@@ -24,10 +26,10 @@ class HostManager extends Manager {
         };
     }
 
-    exportToEngine(engine,host,struct){
+    exportToEngine(engine, host, struct) {
         //na
     }
-    
+
     addHost(host) {
         if (host instanceof Host) {
             if (this.validHosts.find((cHost)=> {
@@ -54,25 +56,32 @@ class HostManager extends Manager {
     }
 
     loadFromFile() {
+        let result=true;
         this.errors.length = 0;
         let dbDir = this.provider.getDBDir();
         //hosts configuration
-        let promises = [];
         let loc = "hosts";
-        fs.readdir(`${dbDir}${loc}`, (err, hostConfigs)=> {
-            hostConfigs.forEach((config)=> {
-                promises.push(new Promise(resolve=> {
-                    this.provider.loadFromFile(`${loc}/${config}`).then(data=> {
-                        this.loadFromJson(data);
-                        resolve("success");
-                    });
-                }));
-            });
+        let hostConfigs = fs.readdirSync(`${dbDir}/${loc}`);
+        hostConfigs.forEach((config)=> {
+            try {
+                let json = this.provider.loadFromFile(`${loc}/${config}`);
+                if (json) {
+                    //is this a file with many hosts or a single host?
+                    if (Array.isArray(json)) {
+                        this.loadHosts(json);
+                    } else {
+                        this.loadFromJson(json);
+                    }
+                }
+            } catch (e) {
+                logger.error(`Error loading file for ${config}. Discarding.`);
+                result=false;
+            }
         });
-        return Promise.all(promises);
+        return result;
     }
 
-    /*
+    /**
      Method to provision a host for the specific engine.
      */
     provisionHostForEngine(targetHost) {
@@ -107,8 +116,11 @@ class HostManager extends Manager {
         return this.validHosts;
     }
 
-    loadFromJson(hostDef) {
+    updateHost() {
+        //Mo op
+    }
 
+    loadFromJson(hostDef) {
         var hostData = {
             name: hostDef.name
         };
@@ -123,6 +135,7 @@ class HostManager extends Manager {
             logger.logAndThrow(e.message);
         }
 
+        //TODO refactor remote access manager
         //configure remoteAccess settings for host.
         if (hostDef.remoteAccess) {
             try {
@@ -135,34 +148,15 @@ class HostManager extends Manager {
                     this.errors[host.name]);
             }
         }
-
         try {
-            this.provider.managers.userManager.updateHost(this, host, hostDef);
+            ModuleLoader.managerOrderedIterator((managerClass)=> {
+                let manager = this.provider.getManagerFromClassName(managerClass);
+                manager.updateHost(this, host, hostDef);
+            }, this.provider);
         } catch (e) {
-            logger.logAndAddToErrors(`Error loading users - ${e.message}`,
+            logger.logAndAddToErrors(`Error processing updateHost for managers -${e.message ? e.message : e}`,
                 this.errors[host.name]);
-        }
-
-        try {
-            this.provider.managers.groupManager.updateHost(this, host, hostDef);
-        } catch (e) {
-            logger.logAndAddToErrors(`Error loading groups - ${e.message}`,
-                this.errors[host.name]);
-        }
-
-        try {
-            this.provider.managers.sshManager.updateHost(this, host, hostDef);
-        } catch (e) {
             console.log(e);
-            logger.logAndAddToErrors(`Error loading ssh - ${e.message}`,
-                this.errors[host.name]);
-        }
-
-        try {
-            this.provider.managers.sudoManager.updateHost(this, host, hostDef);
-        } catch (e) {
-            logger.logAndAddToErrors(`Error loading ssh - ${e.message}`,
-                this.errors[host.name]);
         }
 
         host.source = hostDef;
@@ -192,15 +186,34 @@ class HostManager extends Manager {
         }
     }
 
-    loadConsoleUI(context){
+    loadConsoleUI(context) {
         context.hostManager = new ConsoleHostManager();
-        context.Host = ConsoleHost;
-        console.log(context.Host);
+        //context.Host = ConsoleHost;
+        //console.log(context.Host);
     }
 
-    static getDependencies(){
+    static getDependencies() {
         return [];
     }
+
+    save() {
+        //todo
+    }
+
+    saveHost(host, backup = true) {
+
+        if (!host instanceof Host) {
+            logger.logAndThrow("Host parameter must be of type host");
+        }
+        //check if hosts folder exists and create if not
+        try {
+            fs.statSync(this.provider.getDBDir() + "/hosts");
+        } catch (e) {
+            mkdirp(this.provider.getDBDir() + "/hosts");
+        }
+        return this.provider.saveToFile(`hosts/${host.name}.json`, host, backup);
+    }
+
 }
 
 export default HostManager;

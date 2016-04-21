@@ -34,7 +34,15 @@ class HostManager {
 
     save(){
         session.getProvider().textDatastore.saveAll();
+        console.log("hosts, users and groups successfully saved");
     }
+
+    saveHost(host){
+        let realhost = session.getProvider().managers.hostManager.findValidHost(host.name);
+        session.getProvider().textDatastore.saveHost(realhost);
+        console.log("host successfully saved");
+    }
+
 }
 
 export default HostManager;

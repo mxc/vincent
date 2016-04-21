@@ -7,6 +7,7 @@ import Manager from '../base/Manager';
 import HostSsh from '../ssh/HostSsh'
 import ModuleLoader from '../../utilities/ModuleLoader';
 import UserManager from '../user/UserManager';
+import GroupManager from '../group/GroupManager';
 
 class SshManager extends Manager {
 
@@ -41,16 +42,15 @@ class SshManager extends Manager {
     }
 
     loadFromFile() {
-        return new Promise((resolve, reject)=> {
-                this.provider.loadFromFile("includes/ssh-configs.json").then(data=> {
-                    this.loadFromJson(data);
-                    resolve("success");
-                }).catch(e=> {
-                    console.log(e);
-                    logger.logAndAddToErrors(`could not load ssh-configs.json file - ${e.message}`, this.errors);
-                    reject(e);
-                });
-            });
+        if (this.provider.fileExists("includes/ssh-configs.json")) {
+            let loc = "includes/ssh-configs.json";
+            let data = this.provider.loadFromFile(loc);
+            if (data) {
+                return this.loadFromJson(data);
+            }
+        } else {
+            logger.warn("Could not load includes/ssh-configs.json. File not found");
+        }
     }
 
     loadFromJson(sshconfigsData) {
@@ -114,9 +114,12 @@ class SshManager extends Manager {
     }
 
     static getDependencies(){
-        return [UserManager];
+        return [UserManager,GroupManager];
     }
 
+    loadConsoleUI(context) {
+        //no op
+    }
 }
 
 export default SshManager;

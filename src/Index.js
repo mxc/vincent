@@ -5,11 +5,12 @@
 import Console from './ui/Console/Console';
 import Session from './ui/Session';
 import Provider from './Provider';
+import logger from './Logger';
 
 class Main {
 
     constructor() {
-        this.configDir;
+        //this.configDir;
         if (!this.processArguments()) {
             process.exit();
         }
@@ -24,6 +25,7 @@ class Main {
     }
 
     startConsole() {
+        logger.info("Starting Vincent console");
         this.console = new Console();
     }
 
@@ -74,7 +76,7 @@ class Main {
     }
 }
 
-//var session = new Session(new Provider());
+var session = new Session(new Provider());
 var app = new Main();
 var session = new Session(app.provider);
 export {session};

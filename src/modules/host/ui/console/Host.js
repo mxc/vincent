@@ -16,9 +16,11 @@ class Host {
         //added to valid host and this is a reconstruction.
         if (host instanceof HostElement) {
             this[_host] = new HostElement(session.getProvider(), host);
-        } else {
+        } else if(typeof host ==='string') {
             this[_host] = new HostElement(session.getProvider(), host);
             session.getProvider().managers.hostManager.addHost(this[_host]);
+        }else{
+            throw new Error("Host constructor requires a host name or ip address as a string parameter");
         }
     }
 

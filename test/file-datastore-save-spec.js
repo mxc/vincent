@@ -4,7 +4,6 @@
 
 import Provider from '../src/Provider';
 import {expect} from 'chai';
-import TextDataStore from '../src/utilities/TextDatastore';
 import User from "../src/modules/user/User";
 import UserAccount from "../src/modules/user/UserAccount";
 import Host from "../src/modules/host/Host";
@@ -13,7 +12,6 @@ import fs from "fs";
 import path from "path";
 
 describe("File DB save tests", function () {
-
 
     var validUsers = [
         new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
@@ -156,16 +154,68 @@ describe("File DB save tests", function () {
             ]
         }
     ];
+
+
+    var userCategories = [
+        {
+            "name": "cat1",
+            "config": [
+                {
+                    user: {
+                        name: "user1",
+                        state: "absent"
+                    },
+                    authorized_keys: [
+                        {name: "user2"},
+                        {name: "user1"}]
+                },
+                {
+                    user: {
+                        name: "user2"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "cat2",
+            "config": [
+                {user: {name: "user3", state: "present"}},
+                {user: {name: "user1"}, authorized_keys: [{name: "user2"}, {name: "user1"}]}
+            ]
+        }
+    ];
+
+    var groupCategories = [
+        {
+            name: "groupcat1",
+            config: [
+                {group: {name: "group4"}, members: ["user1"]},
+                {group: {name: "group5"}, members: ["user2", "user1"]}
+            ]
+        },
+        {
+            name: "groupcat2",
+            config: [
+                {group: {name: "group6"}, members: ["user"]},
+                {group: {name: "group7"}, members: ["user2", "user3"]}
+            ]
+        }
+    ];
+
+
     //inject mocks
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-    let provider = new Provider(path.resolve(home,"vincenttest"));
+    let provider = new Provider(path.resolve(home, "vincenttest"));
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
+    provider.managers.groupCategories.data.configs = groupCategories;
+    provider.managers.userCategories.data.configs = userCategories;
     provider.managers.hostManager.loadHosts(hosts);
-    let tds = new TextDataStore(provider);
+
+
     it('should save valid user and archive previous file', ()=> {
-        let backupPath = tds.saveUsers();
-        if(backupPath){
+        let backupPath = provider.managers.userManager.save();
+        if (backupPath) {
             let result = fs.statSync(backupPath);
             expect(result.isFile()).to.be.true;
         }
@@ -174,19 +224,14 @@ describe("File DB save tests", function () {
         expect(result.isFile()).to.be.true;
     });
 
-    it('should load valid user file', (done)=> {
-        provider.managers.userManager.loadFromFile().then(result=> {
-            expect(result).to.equal("success");
-            done();
-        }).catch(e=>{
-            console.log(e);
-            done();
-        });
+    it('should load valid user file', ()=> {
+        provider.managers.userManager.loadFromFile();
+        expect(provider.managers.userManager.validUsers.length).to.equal(4);
     });
 
 
     it('should save valid groups and backup previous file', ()=> {
-        let backupPath = tds.saveGroups();
+        let backupPath = provider.managers.groupManager.save();
         if (backupPath) {
             let result = fs.statSync(backupPath);
             //verify backup
@@ -199,8 +244,8 @@ describe("File DB save tests", function () {
 
     it('should save valid hosts', (done)=> {
         let host = provider.managers.hostManager.findValidHost("www.abc.co.za");
-        let backupPath = tds.saveHost(host);
-        if(backupPath){
+        let backupPath = provider.managers.hostManager.saveHost(host);
+        if (backupPath) {
 
         }
         console.log(provider.getDBDir());
@@ -209,5 +254,31 @@ describe("File DB save tests", function () {
         expect(result.isFile()).to.be.true;
         done();
     });
+
+    it('should save groupCategoires and backup previous file', ()=> {
+        let backupPath = provider.managers.groupCategories.save();
+        if (backupPath) {
+            let result = fs.statSync(backupPath);
+            //verify backup
+            expect(result.isFile()).to.be.true;
+        }
+        var result = fs.statSync(`${provider.getDBDir()}/includes/group-categories.json`);
+        //verify new file
+        expect(result.isFile()).to.be.true;
+    });
+
+
+    it('should save userCategoires and backup previous file', ()=> {
+        let backupPath = provider.managers.userCategories.save();
+        if (backupPath) {
+            let result = fs.statSync(backupPath);
+            //verify backup
+            expect(result.isFile()).to.be.true;
+        }
+        var result = fs.statSync(`${provider.getDBDir()}/includes/user-categories.json`);
+        //verify new file
+        expect(result.isFile()).to.be.true;
+    });
+
 
 });

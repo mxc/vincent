@@ -13,7 +13,7 @@ class AnsibleEngine extends EngineComponent {
     }
     
     exportToEngine(host,tasks){
-        let userAccounts = this.provider.managers.userManager.getHostGroups(host);
+        let userAccounts = this.provider.managers.userManager.getUserAccounts(host);
         if (userAccounts) {
             userAccounts.forEach((user)=> {
                 let ansibleUser = {

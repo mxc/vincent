@@ -34,7 +34,7 @@ class AnsibleEngine extends EngineComponent {
             });
             if (host.ssh.validUsersOnly) {
                 //remove on refactor
-                let userAccounts = this.provider.managers.userManager.getHostGroups(host);
+                let userAccounts = this.provider.managers.userManager.getUserAccounts(host);
                 let users = '';
                 userAccounts.forEach((user, index)=> {
                     users += user.name;

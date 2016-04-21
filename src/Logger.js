@@ -8,6 +8,10 @@ class Logger {
         this.logger = createLogger({name: "coach", streams: [{path: "vincent.log"}]});
     }
 
+    fatal(msg) {
+        this.logger.fatal(msg);
+    }
+
     info(msg) {
         this.logger.info(msg);
     }

@@ -298,7 +298,11 @@ describe("validating user categories include", function () {
                         {name: "user2"},
                         {name: "user1"}]
                 },
-                {user: {name: "user2"}}
+                {
+                    user: {
+                        name: "user2"
+                    }
+                }
             ]
         },
         {
@@ -339,8 +343,7 @@ describe("validating user categories include", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.managers.userManager.userCategories.loadFromJson(userCategories);
-    //var loader = new Loader(provider);
+    provider.managers.userCategories.loadFromJson(userCategories);
     provider.managers.hostManager.loadHosts(hosts);
     it("should return a collection of valid hosts including users from " +
         "user categories configs", function () {
@@ -374,9 +377,10 @@ describe("validating user categories include", function () {
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 
-    it('should addValidGroup the users in user category to the host\'s users' +
-        ' and not addValidGroup duplicates', function () {
-        expect(provider.managers.userManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
+    it('should add the users in user category to the host\'s users' +
+        ' and not add duplicates', function () {
+        expect(provider.managers.userManager.getUserAccounts(
+            provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
     })
 });
 
@@ -475,7 +479,7 @@ describe("validating group categories include", function () {
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.managers.groupManager.groupCategories.loadFromJson(groupCategories);
+    provider.managers.groupCategories.loadFromJson(groupCategories);
     provider.managers.hostManager.loadHosts(hosts);
 
     it("should return a collection of valid hosts including group categories", function () {
@@ -525,7 +529,7 @@ describe("validating group categories include", function () {
 
     it('should add the groups in group category to the host\'s groups', function () {
         expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
-    })
+    });
 
     it('should not add invalid groups in the group category', function () {
         expect(provider.managers.hostManager.errors["web01.example.co.za"].indexOf('Error adding group5 from group category ' +
@@ -653,8 +657,8 @@ describe("validating group categories include with duplicated groups", function 
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.managers.userManager.userCategories.loadFromJson(userCategories);
-    provider.managers.groupManager.groupCategories.loadFromJson(groupCategories);
+    provider.managers.userCategories.loadFromJson(userCategories);
+    provider.managers.groupCategories.loadFromJson(groupCategories);
     provider.managers.hostManager.loadHosts(hosts);
 
 

@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/16.
  */
 
-import {session} from '../../../../ui/Session'
+import {session} from '../../../../Index'
 import User from "./User"
 
 class UserManager {

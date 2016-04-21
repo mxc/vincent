@@ -13,6 +13,7 @@ import logger from './../../Logger';
 import Manager from '../base/Manager';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import CheckAccess from '../base/Security';
+import path from "path";
 
 
 class UserManager extends Manager {
@@ -24,7 +25,6 @@ class UserManager extends Manager {
         super();
         this.provider = provider;
         this.validUsers = [];
-        this.userCategories = new UserCategories();
         this.errors = [];
         this.engines = ModuleLoader.loadEngines('user', provider);
     }
@@ -33,7 +33,11 @@ class UserManager extends Manager {
         this.engines[engine].exportToEngine(host, struct);
     }
 
-    //The list of users which are valid for this environment
+
+    /**
+     * The list of users which are valid for this database
+     * @param user
+     */
     addValidUser(user) {
         if (user instanceof User) {
             var mUser = this.findValidUserByName(user.name);
@@ -51,9 +55,16 @@ class UserManager extends Manager {
         }
     }
 
-    //find a user in an array of User objects.
-    //if the 2nd parameter is not provided it defaults to the
-    //array of validUsers contained in UserManager.
+    /**
+     *
+     *find a user in an array of User objects.
+     *if the 2nd parameter is not provided it defaults to the
+     *array of validUsers contained in UserManager.
+     *
+     * @param user
+     * @param validUsers
+     * @returns {*}
+     */
     findValidUser(user, validUsers) {
         if (!validUsers) {
             validUsers = this.validUsers;
@@ -70,6 +81,11 @@ class UserManager extends Manager {
         }
     }
 
+    /**
+     * Find a User object by name(key)
+     * @param user
+     * @returns {T}
+     */
     findValidUserByName(user) {
         if (typeof user === 'string') {
             return this.validUsers.find((muser)=> {
@@ -82,6 +98,11 @@ class UserManager extends Manager {
         }
     }
 
+    /**
+     * Find a user by their uid
+     * @param uid
+     * @returns {T}
+     */
     findValidUserByUid(uid) {
         if (!uid) {
             logger.warn("uid is undefined.");
@@ -116,44 +137,23 @@ class UserManager extends Manager {
     }
 
     loadFromFile() {
-        let promises = [];
-        promises.push(new Promise((resolve, reject)=> {
-                let loc = "users.json";
-                this.provider.loadFromFile(loc).then(data=> {
-                    this.loadFromJson(data);
-                    resolve("success");
-                }).catch(e=> {
-                    console.log(e);
-                    logger.logAndAddToErrors(`could not load users.json file - ${e.message}`, this.errors);
-                    reject(e);
-                });
-            })
-        );
-
-        promises.push(new Promise((resolve, reject)=> {
-                this.provider.loadFromFile("includes/user-categories.json").then(data=> {
-                    this.loadUserCategoriesFromJson(data);
-                    resolve("success");
-                }).catch(e=> {
-                    console.log(e);
-                    logger.logAndAddToErrors(`Failed to load User Categories from file system - ${e}`, this.errors);
-                    reject(e);
-                });
-            })
-        );
-
-        return Promise.all(promises);
+        if (this.provider.fileExists("users.json")) {
+            let loc = "users.json";
+            let data = this.provider.loadFromFile(loc);
+            if (data) {
+                return this.loadFromJson(data);
+            }
+        } else {
+            logger.warn("users.json file not found");
+        }
     }
 
-    loadUserCategoriesFromJson(userCategoryData) {
-        this.userCategories.loadFromJson(userCategoryData);
-    }
 
     clear() {
         this.validUsers = [];
     }
 
-    getHostGroups(host) {
+    getUserAccounts(host) {
         return host.data.users;
     }
 
@@ -249,56 +249,12 @@ class UserManager extends Manager {
                 });
         }
 
-        //Add user categories into the user array
-        if (hostDef.includes) {
-            let userCategories = hostDef.includes.userCategories;
-            if (userCategories) {
-                // if (!host._export.includes) {
-                //     host._export.includes = {};
-                // }
-                host.checkIncludes();
-                userCategories.forEach((userCategory) => {
-                    try {
-                        this.addUserCategory(host, userCategory);
-                    } catch (e) {
-                        hosts.errors[host.name].push(e.message);
-                    }
-                });
-            }
-        }
     }
 
-    addUserCategory(host, userCategory) {
-        //find the user category definition
-        let users = this.provider.managers.userManager.userCategories.findUserCategory(userCategory);
-        if (users) {
-            //if exists add to the export
-            let userCategoriesObj = host._export.includes.userCategories;
-            if (!userCategoriesObj) {
-                userCategoriesObj = [];
-                host._export.includes.userCategories = userCategoriesObj;
-            }
-            userCategoriesObj.push(userCategory);
-            let errors = [];
-            //for each user in category add to the host
-            users.forEach((userDef)=> {
-                try {
-                    let newUserAccount = new UserAccount(this.provider, userDef);
-                    this.addUserAccountToHost(host, newUserAccount, true);
-                } catch (e) {
-                    logger.warn(`Warning adding user category: ${e.message}`);
-                    errors.push(`Error adding ${userDef.user.name} from user category ${userCategory} - ${e.message}`);
-                }
-            });
-            if (errors.length > 0) {
-                throw new Error(errors.join("\n\r"));
-            }
-
-        } else {
-            logger.logAndThrow("UserCategory ${userCategory} does not exist.");
-        }
-    }
-
+    /**
+     * Function to allow modules to manipulate the repl context to add functionality
+     * @param context
+     */
     loadConsoleUI(context) {
         let self = this;
         context.Host.prototype.addUserAccount = function (user) {
@@ -331,7 +287,7 @@ class UserManager extends Manager {
         };
         context.Host.prototype.listUserAccounts = function () {
             let host = self.provider.managers.hostManager.findValidHost(this.name);
-            let userAccounts = self.getHostGroups(host);
+            let userAccounts = self.getUserAccounts(host);
             if (userAccounts) {
                 return userAccounts.map((userAcc)=> {
                     return new ConsoleUserAccount(userAcc);
@@ -346,8 +302,13 @@ class UserManager extends Manager {
     }
 
     static getDependencies() {
-        return [HostManager];
+        return [];
     }
+
+    save(backup = true) {
+        return this.provider.saveToFile("users.json", this, backup);
+    }
+
 }
 
 export default UserManager;
