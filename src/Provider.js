@@ -86,7 +86,7 @@ class Provider {
         ModuleLoader.managerOrderedIterator((managerClass)=> {
             let manager = this.getManagerFromClassName(managerClass);
             if (!manager || !manager.loadFromFile()) {
-                logger.error(`There was an error calling loadFromFile on ${managerClasss.name}`);
+                logger.error(`There was an error calling loadFromFile on ${managerClass.name}`);
                 status = false;
             }
         }, this);
@@ -212,7 +212,7 @@ class Provider {
         if (backup) {
             try {
                 var stat = fs.statSync(currentPath);
-                let archivePath = "";
+                //let archivePath = "";
                 if (stat && stat.isFile()) {
                     archivePath = this.makeArchiveDir() + filename;
                     fs.renameSync(currentPath, archivePath);

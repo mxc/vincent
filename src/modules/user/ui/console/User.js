@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/16.
  */
 
-import {session} from '../../../../Index';
+import {session} from '../../../../Main';
 import UserElement from '../../User';
 import logger from '../../../../Logger';
 

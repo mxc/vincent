@@ -13,8 +13,6 @@ import HostManager from '../host/HostManager';
 import path from 'path';
 
 
-require("babel-polyfill");
-
 class AnsibleEngine extends Engine {
 
     constructor(provider) {
@@ -26,15 +24,7 @@ class AnsibleEngine extends Engine {
         this.errors = [];
     }
 
-    generate(hosts) {
-        if (Array.isArray(hosts)) {
-            hosts.forEach((host)=> {
-                if (host instanceof Host) {
-                    this.loadEngineDefinition(host);
-                }
-            });
-        }
-    }
+
 
     clean() {
         return new Promise((resolve, reject)=> {
@@ -83,15 +73,20 @@ class AnsibleEngine extends Engine {
             this.mkPlayBookDir()
                 .then((result)=> {
                     if (host instanceof Host) {
+                        this.loadEngineDefinition(host);
                         return this.writePlaybooks(host);
                     } else if (typeof host == 'string') {
                         let tmpHost = this.provider.managers.hostManager.findValidHost(host);
                         if (tmpHost) {
+                            this.loadEngineDefinition(tmpHost);
                             return this.writePlaybook(tmpHost);
                         } else {
                             logger.logAndThrow(`${host} not found in valid hosts`);
                         }
                     } else if (!host) {
+                        this.provider.managers.hostManager.validHosts.forEach((chost)=> {
+                            this.loadEngineDefinition(chost);
+                        });
                         return this.writePlaybooks();
                     } else {
                         logger.logAndThrow("Parameter must be of type Host or undefined");
@@ -129,31 +124,15 @@ class AnsibleEngine extends Engine {
         return new Promise(func);
     }
 
-    /*
-     writePlaybooks takes a single object parameter with the following properties
-     {
-     host:<Host Object ,
-     self: <AnsibleEngine Object>
-     }
-     If hosts is undefined then all hosts with playbooks have their playbooks generated else just the required host has
-     its playbook generated.
-     */
-    writePlaybooks(host) {
-        if (host && !host instanceof Host) {
-            logger.logAndThrow("Host parameter must be of type Host");
-        } else if (host) {
-            return this.writePlaybook(host.name);
-        } else {
-            //else
-            let promises = [];
-            for (let hostname in this.playbooks) {
-                promises.push(this.writePlaybook(hostname));
-            }
-            return Promise.all(promises).then(()=> {
-                return host;
-            });
+
+    writePlaybooks() {
+        let promises = [];
+        for (let hostname in this.playbooks) {
+            promises.push(this.writePlaybook(hostname));
         }
+        return Promise.all(promises);
     }
+
 
     /*
      Write out the yml playbook file using javascript ansible object
@@ -200,7 +179,7 @@ class AnsibleEngine extends Engine {
                     let item = items.next();
                     if (!item.done) {
                         inventory += item.value;
-                        inventory += "\n\r";
+                        inventory += "\n";
                     } else {
                         cont = false;
                     }
@@ -335,10 +314,18 @@ class AnsibleEngine extends Engine {
         return args;
     }
 
-    /*
-     Run an ansible playbook!
+    /**
+     *
+     * Run an ansible playbook!
+     * @param host
+     * @param checkhostkey
+     * @param privkeyPath
+     * @param username
+     * @param passwd
+     * @param sudoPasswd
+     * @returns {Promise}
      */
-    runPlaybook(host, checkhostkey, privkey, username, passwd, sudoPasswd) {
+    runPlaybook(host, checkhostkey, privkeyPath, username, passwd, sudoPasswd) {
         if (host instanceof Host && host.name) {
             var hostname = host.name;
         } else if (typeof host == 'string') {
@@ -348,18 +335,29 @@ class AnsibleEngine extends Engine {
         }
 
         let cmd = 'ansible-playbook';
-        let args = this.getArgs(privkey, username, passwd);
+        let args = this.getArgs(privkeyPath, username, passwd);
         let opts = this.getOpts(checkhostkey);
         args.push(`${hostname}.yml`);
-        //args.push('--extra-vars');
-
         return new Promise((resolve)=> {
             let proc = child_process.spawn(cmd, args, opts);
+            let results = "";
+
+            proc.on('exit', (code)=> {
+                let msg = "";
+                if (code != 0) {
+                    msg = "**************** Playbook Failed ****************\n";
+                    msg = msg.concat(results,"\n**************** Playbook failed ****************\n");
+                } else {
+                    msg = "**************** Playbook Succeeded ****************\n";
+                    msg = msg.concat(results,"\n**************** Playbook Succeeded ****************\n");
+                }
+                resolve(msg);
+            });
 
             proc.stdout.on('data', (data)=> {
                 if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
                     if (data.indexOf("PLAY RECAP") != -1) {
-                        resolve(data.toString());
+                        results = data.toString();
                     }
                 }
             });
@@ -372,6 +370,7 @@ class AnsibleEngine extends Engine {
                 }
             });
         });
+
     }
 
     checkPasswordPrompt(proc, data, userPasswd, sudoPasswd) {

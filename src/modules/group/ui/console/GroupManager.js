@@ -1,7 +1,7 @@
 /**
  * Created by mark on 2016/04/17.
  */
-import {session} from '../../../../Index';
+import {session} from '../../../../Main';
 import Group from "./Group";
 
 class GroupManager{

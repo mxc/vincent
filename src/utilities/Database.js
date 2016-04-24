@@ -65,7 +65,7 @@ class Database {
     }
 
     createTables() {
-        let promise =  new Promise((resolve, reject) => {
+        let promise = new Promise((resolve, reject) => {
             pg.connect(this.connString, (err, client, done)=> {
                 if (err) {
                     reject(err);
@@ -99,7 +99,8 @@ class Database {
                         "dateCreated timestamp with time zone," +
                         "pid int," +
                         "runUser varchar(255)," +
-                        "log text);"
+                        "engine varchar(255)" +
+                        "log text);";
 
                     client.query(sql, (err)=> {
                         if (err) {
@@ -133,6 +134,13 @@ class Database {
 
         });
     }
+
+    saveEngineLog(host, engine, log) {
+        pg.connect(this.connString, (err, client, done)=> {
+            //client.
+        });
+    }
+
 }
 
 export default Database;

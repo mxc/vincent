@@ -115,22 +115,27 @@ class ModuleLoader {
             try {
                 ModuleLoader.callFunctionInManagerDependencyOrder(managerClass, provider, loaded, callback);
                 //call HostManager last as it will be dependent on many modules
-                callback(HostManager);
             } catch (e) {
-                logger.fatal(`Fatal error loading module manager -${e.message? e.message:e}`);
-                console.log(e);
-                process.exit(1);
+                logger.error(`Fatal error loading module manager -${e.message ? e.message : e}`);
+                throw (e);
             }
         });
+        try {
+            callback(HostManager);
+        } catch (e) {
+            logger.error(`Fatal error loading module manager -${e.message ? e.message : e}`);
+            throw (e);
+        }
     }
 
     static callFunctionInManagerDependencyOrder(managerClass, provider, loaded, callback) {
-        //we load HostManager last as it is dependent on every other module.
-        if (managerClass.name ==='HostManager') return;
 
         if (typeof managerClass != "function") {
             logger.logAndThrow("The managerClass parameter must be a class constructor function");
         }
+        //we load HostManager last as it is dependent on every other module.
+        if (managerClass.name === 'HostManager') return;
+
         //have we already loaded this manager?
         if (loaded[managerClass.name]) {
             return;
@@ -139,7 +144,7 @@ class ModuleLoader {
         try {
             var list = managerClass.getDependencies();
         } catch (e) {
-            logger.logAndThrow(`Error loading managers and dependencies - ${e.message? e.message:e}`);
+            logger.logAndThrow(`Error loading managers and dependencies - ${e.message ? e.message : e}`);
         }
 
         let missingDependencies = false;
@@ -161,7 +166,7 @@ class ModuleLoader {
                 loaded[managerClass.name] = true;
             } catch (e) {
                 missingDependencies = true;
-                logger.logAndThrow(`Error loading manager dependencies for ${managerClass.name} - ${e}`);
+                logger.logAndThrow(`Error loading manager ${managerClass.name} - ${e}`);
             }
         }
         return loaded;

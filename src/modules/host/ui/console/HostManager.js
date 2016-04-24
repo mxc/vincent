@@ -3,7 +3,7 @@
  */
 import Host from './Host';
 import Provider from '../../../../Provider';
-import {session} from '../../../../Index';
+import {session} from '../../../../Main';
 
 class HostManager {
 
@@ -43,6 +43,24 @@ class HostManager {
         console.log("host successfully saved");
     }
 
+
+    generatePlaybooks(){
+        try {
+            session.getProvider().engine.export();
+            console.log("Successfully generated playbooks.");
+        }catch(e){
+            console.log(`There was an error generating playbooks - ${e.message? e.message:e}`);
+        }
+    }
+
+    generatePlaybook(host){
+        try {
+            session.getProvider().engine.export(host);
+            console.log(`Successfully generated playbook for ${host.name? host.name :host}.`);
+        }catch(e){
+            console.log(`There was an error generating playbook for ${host.name? host.name :host}`);
+        }
+    }
 }
 
 export default HostManager;

@@ -8,7 +8,6 @@ import Manager from '../base/Manager';
 import fs from 'fs';
 import CheckAccess from '../base/Security';
 import ConsoleHostManager from './ui/console/HostManager';
-//import ConsoleHost from './ui/console/Host';
 import path from "path";
 import ModuleLoader from '../../utilities/ModuleLoader';
 
@@ -121,6 +120,7 @@ class HostManager extends Manager {
     }
 
     loadFromJson(hostDef) {
+
         var hostData = {
             name: hostDef.name
         };
@@ -161,7 +161,7 @@ class HostManager extends Manager {
 
         host.source = hostDef;
         this.addHost(host);
-        Array.prototype.push.apply(this.errors[host.name], host.errors)
+        Array.prototype.push.apply(this.errors[host.name], host.errors);
         return host;
     }
 
@@ -196,12 +196,11 @@ class HostManager extends Manager {
         return [];
     }
 
-    save() {
+    saveAll() {
         //todo
     }
 
     saveHost(host, backup = true) {
-
         if (!host instanceof Host) {
             logger.logAndThrow("Host parameter must be of type host");
         }

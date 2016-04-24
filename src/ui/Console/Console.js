@@ -9,7 +9,7 @@ import User from './../../modules/user/ui/console/User';
 import HostManager from './../../modules/host/ui/console/HostManager';
 import Manager from './../../modules/base/Manager';
 import logger from '../../Logger';
-import {session} from '../../Index';
+import {session} from '../../Main';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import Config from './Config';
 
@@ -17,8 +17,13 @@ class Console {
 
     constructor() {
         this.cli = repl.start({
-            prompt: 'vincent:'
+            prompt: 'vincent:',
+            useColors: true
         });
+
+        //this.cli.on('uncaughtException',(err) =>{
+        //    console.log("Vincent could not process your request.");
+        //});
 
         this.cli.on('exit', ()=> {
             console.log("Vincent console exited");
@@ -41,6 +46,10 @@ class Console {
 
         context.config = new Config();
 
+        context.login = (username,password) =>{
+                session.login(username,password);
+        }
+
         context.quit = function () {
             console.log("Vincent console exited");
             logger.info("Vincent console exited");
@@ -52,11 +61,19 @@ class Console {
         };
 
         context.loadAll = ()=>{
-            if(session.getProvider().loadAll()){
-                console.log("Successfully loaded datastore");
-            }else{
-                console.log("There were errors during datastore load.");
-            }
+          try {
+              if (session.getProvider().loadAll()) {
+                  console.log("Successfully loaded data store");
+              } else {
+                  console.log("There were errors during data store load.");
+              }
+          }catch(e){
+              console.log(`There were errors during data store load. ${e.message? e.message : e}`);
+          }
+        };
+
+        context.saveAll = () =>{
+            console.log("Not yet implemented");
         };
 
         ModuleLoader.managerOrderedIterator((managerClass)=> {
@@ -70,8 +87,6 @@ class Console {
             }
         },session.getProvider());
     }
-
-
 
 }
 

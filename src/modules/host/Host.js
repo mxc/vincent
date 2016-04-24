@@ -8,6 +8,7 @@ import Base from '../../modules/base/Base';
 class Host extends Base {
 
     constructor(provider, data) {
+
         super();
         this.errors = [];
         if (!provider || !(provider instanceof Provider)) {
@@ -27,23 +28,27 @@ class Host extends Base {
                 remoteAccess: new RemoteAccess(),
             };
             this._export = {
-                name: data.name,
+                name: data
             };
             this.source = {};
             return;
         }
+
         if (!data.name) {
             logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
         }
+
         this.data = {
             name: data.name,
             remoteAccess: new RemoteAccess(),
             applications: [],
             services: []
         };
+
         this._export = {
-            name: data.name,
+            name: data.name
         };
+
         //give modules opportunity to addValidGroup their data structures to host data and _export objects
         for (var manager in this.provider.managers) {
             if (this.provider.managers[manager].initialiseHost) {
@@ -104,6 +109,7 @@ class Host extends Base {
     export() {
         return this._export;
     }
+
 }
 
 export default Host;

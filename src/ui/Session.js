@@ -19,31 +19,10 @@ class Session {
         this[_provider]=provider;
     }
 
-    login(username, password) {
-        if(this.isAuthenticated()){
-            logger.logandThrow("user is already authenticated");
-        }
-        //dummy place holder
-        if (username === 'mark' && password === "mark") {
-            this.authenticated = true;
-            this.roles.push("admin");
-        }
+    getProvider() {
+            return this[_provider];
     }
 
-
-    logout(){
-        this.roles.empty();
-        this.authenticated=false;
-        this.username='guest';
-    }
-
-    isAuthenticated() {
-        return this.authenticated;
-    }
-
-    getProvider(){
-        return this[_provider];
-    }
 }
 
 export default Session;

@@ -91,7 +91,7 @@ describe("ansible engine", () => {
     });
 
 
-    it("it should generate playbook object for host", (done) => {
+    it("it should generate a playbook for the host", (done) => {
         gen.loadEngineDefinition(provider.managers.hostManager.findValidHost("www.example.com"));
         gen.export().then((result)=> {
             expect(result).to.equal("success");
