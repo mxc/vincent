@@ -3,7 +3,7 @@
  */
 
 import User from './User';
-import {session} from '../../../../ui/Console/Console';
+import {app} from '../../../../Vincent';
 import UserAccountElement from '../../../user/UserAccount';
 
 const _userAccount = Symbol("userAccount");
@@ -19,7 +19,7 @@ class UserAccount {
             }else{
                 username = data.user.name;
             }
-            let user = session.getProvider().userManager.findValidUserByName(username);
+            let user = app.provider.userManager.findValidUserByName(username);
             if (user && data.authorized_keys) {
                 this[_userAccount] = new UserAccountElement({
                     user: user,
@@ -56,9 +56,9 @@ class UserAccount {
 
     addAuthorizedUser(user) {
         if (typeof user === "string") {
-            var _user = session.getProvider().userManager.findValidUserByName(user);
+            var _user = app.provider.userManager.findValidUserByName(user);
         } else if (user instanceof User) {
-            var _user = session.getProvider().userManager.findValidGroupByName(user.name);
+            var _user = app.provider.userManager.findValidGroupByName(user.name);
         }
         if (_user) {
             this[_userAccount].addAuthorizedUser(_user);

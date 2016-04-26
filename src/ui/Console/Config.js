@@ -2,18 +2,18 @@
  * Created by mark on 2016/04/17.
  */
 
-import {session} from '../../Main';
+import {app} from '../../Vincent';
 
 const _config = Symbol("config");
 
 class Config {
 
     constructor() {
-        this[_config] = session.getProvider().config;
+        this[_config] = app.provider.config;
     }
 
     get configdir(){
-        return `${session.getProvider().configDir} <-- read only. Change with cli option --configdir`;
+        return `${this[_config].configDir} <-- read only. Change with cli option --configdir`;
     }
     get dbdir() {
         return this[_config].get("dbdir");

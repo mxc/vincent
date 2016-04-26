@@ -7,6 +7,7 @@ import ini from  'ini';
 import path from 'path';
 import mkdirp from 'mkdirp';
 import logger from './Logger';
+import {EOL} from 'os';
 
 class Config {
 
@@ -25,8 +26,7 @@ class Config {
         } catch (e) {
             logger.warn("application directory for config.ini does not exists");
             mkdirp(filePath);
-            let str ="; ansible-coach configuration file\n\r[settings]\n\rdbdir=db\n\renginedir=engine\n\r" +
-                "dbhost=localhost\n\rdbuser=\n\rdbpasswd=\n\rdpport=5432\n\rdbname=vincent";
+            let str =`; ansible-coach configuration file${EOL}[settings]${EOL}dbdir=db${EOL}enginedir=engine${EOL}dbhost=localhost${EOL}dbuser=${EOL}dbpasswd=${EOL}dpport=5432${EOL}dbname=vincent${EOL}publicKey=${EOL}privateKey=${EOL}`;
             fs.writeFileSync(this.loc,str, 'utf-8');
             this.config = {
                 settings: {

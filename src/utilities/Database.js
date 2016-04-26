@@ -99,7 +99,7 @@ class Database {
                         "dateCreated timestamp with time zone," +
                         "pid int," +
                         "runUser varchar(255)," +
-                        "engine varchar(255)" +
+                        "engine varchar(255)," +
                         "log text);";
 
                     client.query(sql, (err)=> {

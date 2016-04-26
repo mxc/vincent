@@ -3,23 +3,29 @@
  */
 
 import repl from 'repl';
-import Provider from '../../Provider';
 import Host from './../../modules/host/ui/console/Host';
-import User from './../../modules/user/ui/console/User';
-import HostManager from './../../modules/host/ui/console/HostManager';
-import Manager from './../../modules/base/Manager';
 import logger from '../../Logger';
-import {session} from '../../Main';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import Config from './Config';
+import {app} from "../../Vincent";
+import Ui from '../Ui';
 
-class Console {
+class Console extends Ui {
 
-    constructor() {
-        this.cli = repl.start({
+    constructor(s) {
+        super();//creates session object
+        this.session.socket =s;
+        let options  = {
             prompt: 'vincent:',
-            useColors: true
-        });
+            useColors: true,
+            terminal: true,
+            useGlobal:false
+        };
+        if (this.session.socket){
+            options.input=s;
+            options.output=s;
+        }
+        this.cli = repl.start(options);
 
         //this.cli.on('uncaughtException',(err) =>{
         //    console.log("Vincent could not process your request.");
@@ -46,15 +52,21 @@ class Console {
 
         context.config = new Config();
 
-        context.login = (username,password) =>{
-                session.login(username,password);
-        }
 
-        context.quit = function () {
-            console.log("Vincent console exited");
-            logger.info("Vincent console exited");
-            process.exit();
-        };
+        if (app.args.cli) {
+            context.quit = function () {
+                console.log("Vincent console exited");
+                logger.info("Vincent console exited");
+                console.log("\n\r");
+                process.exit();
+            };
+        }
+        
+        if (app.args.daemon){
+            context.logout=()=>{
+                this.session.socket.destroy();
+            }
+        }
 
         context.exit = function () {
             process.exit();
@@ -62,7 +74,7 @@ class Console {
 
         context.loadAll = ()=>{
           try {
-              if (session.getProvider().loadAll()) {
+              if (app.provider.loadAll()) {
                   console.log("Successfully loaded data store");
               } else {
                   console.log("There were errors during data store load.");
@@ -79,13 +91,13 @@ class Console {
         ModuleLoader.managerOrderedIterator((managerClass)=> {
             try {
                 let name = managerClass.name.charAt(0).toLocaleLowerCase() + managerClass.name.slice(1);
-                session.getProvider().managers[name].loadConsoleUI(context);
+                app.provider.managers[name].loadConsoleUI(context);
             } catch (e) {
                 logger.warn(e);
                 logger.warn("module does not offer console ui");
                 console.log(e);
             }
-        },session.getProvider());
+        },app.provider);
     }
 
 }

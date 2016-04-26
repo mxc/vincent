@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/17.
  */
 
-import {session} from '../../../../Main';
+import {app} from '../../../../Vincent';
 import HostGroupElement from '../../HostGroup';
 import GroupElement from '../../Group';
 import Group from  './Group';
@@ -21,7 +21,7 @@ class HostGroup {
             } else {
                 groupname = data.group.name;
             }
-            let group = session.getProvider().groupManager.findValidGroupByName(groupname);
+            let group = app.provider.groupManager.findValidGroupByName(groupname);
             if (group && data.members) {
                 this[_hostGroup] = new HostGroupElement({
                     group: group,
@@ -58,9 +58,9 @@ class HostGroup {
 
     addMember(member) {
         if (typeof member === "string") {
-            var _user = session.getProvider().groupManager.findValidUserByName(member);
+            var _user = app.provider.groupManager.findValidUserByName(member);
         } else if (member instanceof Group) {
-            var _user = session.getProvider().groupManager.findValidUserByName(member.name);
+            var _user = app.provider.groupManager.findValidUserByName(member.name);
         }
         if (_user) {
             this[_hostGroup].addMember(_user);

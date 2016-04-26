@@ -1,13 +1,13 @@
 /**
  * Created by mark on 2016/04/17.
  */
-import {session} from '../../../../Main';
+import {app} from '../../../../Vincent';
 import Group from "./Group";
 
 class GroupManager{
 
     list() {
-        return session.getProvider().managers.groupManager.validGroups.map((group=> {
+        return app.provider.managers.groupManager.validGroups.map((group=> {
             return group.name;
         }));
     }
@@ -22,7 +22,7 @@ class GroupManager{
     }
 
     save(){
-        session.getProvider().textDatastore.saveGroups();
+        app.provider.textDatastore.saveGroups();
     }
 }
 

@@ -2,13 +2,13 @@
  * Created by mark on 2016/04/16.
  */
 
-import {session} from '../../../../Main'
+import {app} from '../../../../Vincent'
 import User from "./User"
 
 class UserManager {
 
     list() {
-        return session.getProvider().managers.userManager.validUsers.map((user=> {
+        return app.provider.managers.userManager.validUsers.map((user=> {
             return user.name;
         }));
     }
@@ -23,7 +23,7 @@ class UserManager {
     }
 
     save(){
-        session.getProvider().textDatastore.saveUsers();
+        app.provider.textDatastore.saveUsers();
     }
 }
 

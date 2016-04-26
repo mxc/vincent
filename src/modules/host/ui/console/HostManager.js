@@ -3,7 +3,7 @@
  */
 import Host from './Host';
 import Provider from '../../../../Provider';
-import {session} from '../../../../Main';
+import {app} from '../../../../Vincent';
 
 class HostManager {
 
@@ -17,13 +17,13 @@ class HostManager {
     }
 
     list() {
-        return session.getProvider().managers.hostManager.validHosts.map((host=> {
+        return app.provider.managers.hostManager.validHosts.map((host=> {
             return host.name;
         }));
     }
 
     getHost(hostname) {
-        let host = session.getProvider().managers.hostManager.findValidHost(hostname);
+        let host = app.provider.managers.hostManager.findValidHost(hostname);
         if (host) {
             return new Host(host);
         } else {
@@ -33,20 +33,20 @@ class HostManager {
     }
 
     save(){
-        session.getProvider().textDatastore.saveAll();
+        app.provider.textDatastore.saveAll();
         console.log("hosts, users and groups successfully saved");
     }
 
     saveHost(host){
-        let realhost = session.getProvider().managers.hostManager.findValidHost(host.name);
-        session.getProvider().textDatastore.saveHost(realhost);
+        let realhost = app.provider.managers.hostManager.findValidHost(host.name);
+        app.provider.textDatastore.saveHost(realhost);
         console.log("host successfully saved");
     }
 
 
     generatePlaybooks(){
         try {
-            session.getProvider().engine.export();
+            app.provider.engine.export();
             console.log("Successfully generated playbooks.");
         }catch(e){
             console.log(`There was an error generating playbooks - ${e.message? e.message:e}`);
@@ -55,7 +55,7 @@ class HostManager {
 
     generatePlaybook(host){
         try {
-            session.getProvider().engine.export(host);
+            app.provider.engine.export(host);
             console.log(`Successfully generated playbook for ${host.name? host.name :host}.`);
         }catch(e){
             console.log(`There was an error generating playbook for ${host.name? host.name :host}`);

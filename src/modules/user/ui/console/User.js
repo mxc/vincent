@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/16.
  */
 
-import {session} from '../../../../Main';
+import {app} from '../../../../Vincent';
 import UserElement from '../../User';
 import logger from '../../../../Logger';
 
@@ -18,7 +18,7 @@ class User {
     constructor(user) {
         if (typeof user === 'string' || (user.name && !user instanceof UserElement)) {
             this[_user] = new UserElement(user);
-            session.getProvider().managers.userManager.addValidUser(this[_user]);
+            app.provider.managers.userManager.addValidUser(this[_user]);
         } else if (user instanceof UserElement) {
             this[_user] = user;
         } else {
@@ -39,7 +39,7 @@ class User {
     }
 
     set uid(uid) {
-        session.getProvider().userManager.updateUserUid(this[_user],uid);
+        app.provider.userManager.updateUserUid(this[_user],uid);
     }
 
     get state() {

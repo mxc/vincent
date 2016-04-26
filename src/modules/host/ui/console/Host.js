@@ -4,7 +4,7 @@
 import Provider from '../../../../Provider';
 import HostElement from '../../Host';
 import User from './../../../user/ui/console/User';
-import {session} from '../../../../Main';
+import {app} from '../../../../Vincent';
 
 
 const _host = Symbol("host");
@@ -17,8 +17,8 @@ class Host {
         if (host instanceof HostElement) {
             this[_host] = host;
         } else if(typeof host ==='string') {
-            this[_host] = new HostElement(session.getProvider(), host);
-            session.getProvider().managers.hostManager.addHost(this[_host]);
+            this[_host] = new HostElement(app.provider, host);
+            app.provider.managers.hostManager.addHost(this[_host]);
         }else{
             throw new Error("Host constructor requires a host name or ip address as a string parameter");
         }
@@ -43,12 +43,12 @@ class Host {
     }
 
     save(){
-        session.getProvider().managers.hostManager.saveHost(this[_host]);
+        app.provider.managers.hostManager.saveHost(this[_host]);
     }
 
     generatePlaybook(){
         try {
-            session.getProvider().engine.export(this[_host]);
+            app.provider.engine.export(this[_host]);
             console.log(`Successfully generated playbook for ${this[_host].name}.`);
         }catch(e){
             console.log(`There was an error generating playbook for ${this[_host].name} - ${e.message? e.message:e}`);
@@ -58,7 +58,7 @@ class Host {
     runPlaybook(username, checkhostkey, privkeyPath, passwd, sudoPasswd){
         try {
             console.log(`${this[_host].name} playbook has been submitted. Results will be available shortly.`);
-            session.getProvider().engine.runPlaybook(this[_host],checkhostkey, privkeyPath,
+            app.provider.engine.runPlaybook(this[_host],checkhostkey, privkeyPath,
                 username, passwd, sudoPasswd).then((results)=> {
                 console.log(`Results for ${this[_host].name}. - ${results}`);
             }).catch((e)=>{

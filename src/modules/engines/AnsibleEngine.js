@@ -11,6 +11,7 @@ import child_process from 'child_process';
 import Manager from '../base/Manager';
 import HostManager from '../host/HostManager';
 import path from 'path';
+import {EOL} from 'os';
 
 
 class AnsibleEngine extends Engine {
@@ -179,7 +180,7 @@ class AnsibleEngine extends Engine {
                     let item = items.next();
                     if (!item.done) {
                         inventory += item.value;
-                        inventory += "\n";
+                        inventory += EOL;
                     } else {
                         cont = false;
                     }

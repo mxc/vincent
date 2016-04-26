@@ -199,8 +199,7 @@ class Provider {
         let dbDir = this.getDBDir();
         let data = fs.readFileSync(`${dbDir}/${filename}`, 'utf-8');
         try {
-            let json = JSON.parse(data);
-            return json;
+            return JSON.parse(data);
         } catch (e) {
             logger.logAndThrow(`Error loading the users config - ${e.message}.`);
         }
