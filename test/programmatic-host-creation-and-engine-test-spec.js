@@ -89,7 +89,7 @@ describe("The system", function () {
         provider.managers.userManager.addValidUser(markU);
         let demoU = new User({name: "demo", uid: 1001});
         provider.managers.userManager.addValidUser(demoU);
-        let host = new Host(provider, '192.168.122.137');
+        let host = new Host(provider, '192.168.122.137','einstein','sysadmin',770);
         let userAccount1 = new UserAccount(provider, {user: demoU});
         userAccount1.addAuthorizedUser(markU, "present");
         provider.managers.userManager.addUserAccountToHost(host, userAccount1);

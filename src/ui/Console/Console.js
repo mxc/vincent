@@ -12,9 +12,10 @@ import Ui from '../Ui';
 
 class Console extends Ui {
 
-    constructor(s) {
+    constructor(s,user) {
         super();//creates session object
         this.session.socket =s;
+        this.session.user = user;
         let options  = {
             prompt: 'vincent:',
             useColors: true,
@@ -27,10 +28,6 @@ class Console extends Ui {
         }
         this.cli = repl.start(options);
 
-        //this.cli.on('uncaughtException',(err) =>{
-        //    console.log("Vincent could not process your request.");
-        //});
-
         this.cli.on('exit', ()=> {
             console.log("Vincent console exited");
             logger.info("Vincent console exited");
@@ -38,6 +35,7 @@ class Console extends Ui {
         });
 
         this.cli.on('reset', (context)=> {
+            this.checkAccess(Roles.all);
             console.log("resetting context");
             logger.info("resetting context");
             this.initContext(context);
@@ -52,26 +50,30 @@ class Console extends Ui {
 
         context.config = new Config();
 
-
+        //allow quit and exit for standalone cli mode only.
+        //Killling the process in server mode would terminate the server
         if (app.args.cli) {
             context.quit = function () {
                 console.log("Vincent console exited");
                 logger.info("Vincent console exited");
-                console.log("\n\r");
+                process.exit();
+            };
+
+            context.exit = function () {
+                console.log("Vincent console exited");
+                logger.info("Vincent console exited");
                 process.exit();
             };
         }
         
+        //logout funciton available in server mode only
         if (app.args.daemon){
             context.logout=()=>{
                 this.session.socket.destroy();
             }
         }
 
-        context.exit = function () {
-            process.exit();
-        };
-
+        //Load all hosts into memory
         context.loadAll = ()=>{
           try {
               if (app.provider.loadAll()) {
@@ -84,6 +86,7 @@ class Console extends Ui {
           }
         };
 
+        //save all configurations
         context.saveAll = () =>{
             console.log("Not yet implemented");
         };

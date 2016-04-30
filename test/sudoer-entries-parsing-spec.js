@@ -39,6 +39,9 @@ describe("validating host configuration with sudoer entry config", function () {
     var hosts = [
         {
             name: "www.example.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -107,6 +110,9 @@ describe("validating host configuration with sudoer entry config", function () {
         var validHosts = [
             {
                 name: "www.example.co.za",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "user1", state: "present"},
@@ -182,7 +188,6 @@ describe("validating host configuration with sudo entry and invalid users", func
 
     var validGroups = [
         new Group({
-
             name: 'group1',
             gid: undefined,
             state: 'present'
@@ -202,6 +207,9 @@ describe("validating host configuration with sudo entry and invalid users", func
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -270,6 +278,9 @@ describe("validating host configuration with sudo entry and invalid users", func
         var validHosts = [
             {
                 name: "www.example.com",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "user1", state: "present"},
@@ -333,7 +344,6 @@ describe("validating host configuration with sudo entry include", function () {
 
     var validGroups = [
         new Group({
-
             name: 'group1',
             gid: undefined,
             state: 'present'
@@ -392,6 +402,9 @@ describe("validating host configuration with sudo entry include", function () {
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -440,6 +453,9 @@ describe("validating host configuration with sudo entry include", function () {
         var validHosts = [
             {
                 name: "www.example.com",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "user1", state: "present"},

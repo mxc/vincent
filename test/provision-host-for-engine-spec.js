@@ -25,7 +25,7 @@ describe('When a new host is initialised for the ansible engine it', ()=> {
                     }
                 }
             ]);
-            let host = new Host(provider, "192.168.122.137");
+            let host = new Host(provider, "192.168.122.137",'einstein','sysadmin',770);
             let ansibleUser = new User("ansibleAdmin");
             let mark = new User({name: "mark", key: "/home/mark/.ssh/newton/id_rsa.pub"});
             provider.managers.userManager.addValidUser(ansibleUser);

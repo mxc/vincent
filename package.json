@@ -10,11 +10,13 @@
   "contributors": [],
   "license": "LGPL-2.1",
   "dependencies": {
+    "authenticate-pam": "^1.0.0",
     "bunyan": "^1.6.0",
     "dateformat": "^1.0.12",
     "fs": "0.0.2",
     "ini": "^1.3.4",
     "js-yaml": "^3.5.3",
+    "ldapauth-fork": "^2.5.2",
     "mkdirp": "^0.5.1",
     "pg": "^4.5.1"
   },

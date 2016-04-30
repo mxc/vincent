@@ -1,0 +1,8 @@
+ToDo Items in no particular order
+
+
+* Make role names and role capabilities dynamic
+* Implement in app downloading of new and updated modules
+* Log results of config run to database
+* Implement test for ldap and unix auth with docker containers
+*

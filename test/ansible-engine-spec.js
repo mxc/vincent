@@ -41,6 +41,9 @@ describe("ansible engine", () => {
     var validHosts = [
         {
             name: "www.example.com",
+            owner: 'einstein',
+            group: 'sysadmin',
+            permissions: 770,
             users: [
                 {
                     user: {name: "userA", state: "present"},

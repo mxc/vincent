@@ -18,7 +18,6 @@ describe("validating host configuration", function () {
 
     var validGroups = [
         new Group({
-
             name: 'group1',
             gid: undefined,
             state: 'present'
@@ -38,6 +37,9 @@ describe("validating host configuration", function () {
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -74,12 +76,15 @@ describe("validating host configuration", function () {
 
             ]
         }, {
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"}
                 }
             ],
-            group: [
+            groups: [
                 {
                     group: {name: "group1"},
                     members: "user1"
@@ -87,7 +92,59 @@ describe("validating host configuration", function () {
             ]
         },
         {
+            name: "missing.owner.com",
+            group: "sysadmin",
+            permissions: 770,
+            users: [
+                {
+                    user: {name: "user1"}
+                }
+            ],
+            groups: [
+                {
+                    group: {name: "group1"},
+                    members: "user1"
+                }
+            ]
+        },
+        {
+            name: "missing.group.com",
+            owner: "einstein",
+            permissions: 770,
+            users: [
+                {
+                    user: {name: "user1"}
+                }
+            ],
+            groups: [
+                {
+                    group: {name: "group1"},
+                    members: "user1"
+                }
+            ]
+        },
+        {
+            name: "missing.permissions.com",
+            owner: "einstein",
+            group: "sysadmin",
+            users: [
+                {
+                    user: {name: "user1"}
+                }
+            ],
+            groups: [
+                {
+                    group: {name: "group1"},
+                    members: "user1"
+                }
+            ]
+        },
+
+        {
             name: "www.test.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "waldo"},
@@ -122,6 +179,9 @@ describe("validating host configuration", function () {
         },
         {
             name: "www.abc.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -159,9 +219,24 @@ describe("validating host configuration", function () {
     provider.managers.hostManager.loadHosts(hosts);
 
     it("should detect hosts without a name property", function () {
-        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - The parameter data must be a hostname " +
+        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host  - The parameter data must be a hostname " +
             "or an object with a mandatory property \"name\".")).not.to.equal(-1);
     });
+
+    it("should detect hosts without an owner property", function () {
+        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.owner.com - Owner must be a username or object of type User.")).not.to.equal(-1);
+    });
+
+
+    it("should detect hosts without a group property", function () {
+        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.group.com - Group must be a string.")).not.to.equal(-1);
+    });
+
+
+    it("should detect hosts without a permissions property", function () {
+        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.permissions.com - Permissions cannot be undefined.")).not.to.equal(-1);
+    });
+
 
     it("should detect undefined users", function () {
         expect(provider.managers.hostManager.errors["www.test.com"].indexOf("Error adding host user - The user waldo does not exist " +
@@ -194,6 +269,9 @@ describe("validating host configuration", function () {
         var validHosts = [
             {
                 name: "www.example.com",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "user1", state: "present"},
@@ -224,6 +302,9 @@ describe("validating host configuration", function () {
             },
             {
                 name: "www.test.com",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "user2", state: "absent"},
@@ -246,6 +327,9 @@ describe("validating host configuration", function () {
             },
             {
                 name: "www.abc.co.za",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "user1", state: "present"},
@@ -275,7 +359,7 @@ describe("validating host configuration", function () {
         let host = {};
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;
-            host = new Host(provider, ipaddr);
+            host = new Host(provider, ipaddr,'einstein','sysadmin',770);
             provider.managers.hostManager.addHost(host);
             let data = {user: provider.managers.userManager.validUsers[0]};
             let userAccount = new UserAccount(provider, data);

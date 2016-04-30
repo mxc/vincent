@@ -8,6 +8,7 @@ import User from "./User"
 class UserManager {
 
     list() {
+        
         return app.provider.managers.userManager.validUsers.map((user=> {
             return user.name;
         }));

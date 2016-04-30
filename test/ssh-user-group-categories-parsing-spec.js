@@ -17,7 +17,6 @@ describe("validating ssh custom config", function () {
 
     var validGroups = [
         new Group({
-
             name: 'group1',
             gid: undefined,
             state: 'present'
@@ -37,6 +36,9 @@ describe("validating ssh custom config", function () {
     var hosts = [
         {
             name: "web01.example.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -75,6 +77,9 @@ describe("validating ssh custom config", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {
@@ -146,7 +151,7 @@ describe("validating ssh include config", function () {
 
     var sshConfigs = [
         {
-            "name": "strict",
+           name: "strict",
             config: {
                 permitRoot: "no",
                 validUsersOnly: "true",
@@ -174,6 +179,9 @@ describe("validating ssh include config", function () {
     var hosts = [
         {
             name: "web01.example.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -211,6 +219,9 @@ describe("validating ssh include config", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {
@@ -317,6 +328,9 @@ describe("validating user categories include", function () {
     var hosts = [
         {
             name: "web01.example.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "userA"},
@@ -350,6 +364,9 @@ describe("validating user categories include", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {
@@ -444,6 +461,9 @@ describe("validating group categories include", function () {
     var hosts = [
         {
             name: "web01.example.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "userA"},
@@ -486,6 +506,9 @@ describe("validating group categories include", function () {
         var validHosts = [
                 {
                     name: "web01.example.co.za",
+                    owner: "einstein",
+                    group: "sysadmin",
+                    permissions: 770,
                     users: [
                         {
                             user: {name: "userA", state: "present"},
@@ -625,6 +648,9 @@ describe("validating group categories include with duplicated groups", function 
     var hosts = [
         {
             name: "web01.example.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "userA"},
@@ -666,6 +692,9 @@ describe("validating group categories include with duplicated groups", function 
         var validHosts = [
             {
                 name: "web01.example.co.za",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 770,
                 users: [
                     {
                         user: {name: "userA", state: "present"},

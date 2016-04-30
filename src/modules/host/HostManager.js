@@ -6,10 +6,10 @@ import Provider from '../../Provider';
 import logger from '../../Logger';
 import Manager from '../base/Manager';
 import fs from 'fs';
-import CheckAccess from '../base/Security';
 import ConsoleHostManager from './ui/console/HostManager';
 import path from "path";
 import ModuleLoader from '../../utilities/ModuleLoader';
+import AppUser from '../../ui/AppUser';
 
 class HostManager extends Manager {
 
@@ -46,7 +46,11 @@ class HostManager extends Manager {
         }
     }
 
-    findValidHost(hostname) {
+    findValidHost(hostname,user) {
+  //      if(!user instanceof AppUser){
+  //          logger.logAndThrow("Parameter user must be of type AppUser");
+  //      }
+        /* && this.provider.checkPermissions(user,host,"r"))*/
         return this.validHosts.find((host)=> {
             if (host.name === hostname) {
                 return host;
@@ -120,11 +124,15 @@ class HostManager extends Manager {
     }
 
     loadFromJson(hostDef) {
-
+        
         var hostData = {
-            name: hostDef.name
+            name: hostDef.name,
+            owner: hostDef.owner,
+            group: hostDef.group,
+            permissions: hostDef.permissions
         };
 
+       
         let host = {};
 
         //create host instance
@@ -132,7 +140,7 @@ class HostManager extends Manager {
             host = new Host(this.provider, hostData);
             this.errors[host.name] = [];
         } catch (e) {
-            logger.logAndThrow(e.message);
+            logger.logAndThrow(`Could not create host ${hostDef.name? hostDef.name:""} - ${e.message}`);
         }
 
         //TODO refactor remote access manager

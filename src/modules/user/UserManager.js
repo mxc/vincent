@@ -12,7 +12,6 @@ import Provider from './../../Provider';
 import logger from './../../Logger';
 import Manager from '../base/Manager';
 import ModuleLoader from '../../utilities/ModuleLoader';
-import CheckAccess from '../base/Security';
 import path from "path";
 
 

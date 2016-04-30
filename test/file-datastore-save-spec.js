@@ -42,6 +42,9 @@ describe("File DB save tests", function () {
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -92,6 +95,9 @@ describe("File DB save tests", function () {
         },
         {
             name: "www.test.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "waldo"},
@@ -126,6 +132,9 @@ describe("File DB save tests", function () {
         },
         {
             name: "www.abc.co.za",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},

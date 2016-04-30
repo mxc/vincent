@@ -22,9 +22,9 @@ class HostManager {
         }));
     }
 
-    getHost(hostname) {
+    getHost(user,hostname) {
         let host = app.provider.managers.hostManager.findValidHost(hostname);
-        if (host) {
+        if (host && this.provider.checkPermissions(user,host)) {
             return new Host(host);
         } else {
             console.log("Host not found in host list");

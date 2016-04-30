@@ -1,6 +1,9 @@
 [
   {
     "name": "www.example.com",
+    "owner":"einstein",
+    "group": "sysadmin",
+    "permissions":770,
     "remoteAccess": {
       "remoteUser": "same",
       "authentication": "password",
@@ -70,6 +73,9 @@
   },
   {
     "name": "www.test.com",
+    "owner":"einstein",
+    "group": "sysadmin",
+    "permissions":770,
     "remoteAccess": {
       "remoteUser": "ansible"
     },
@@ -110,6 +116,9 @@
   },
   {
     "name": "www.abc.co.za",
+    "owner":"einstein",
+    "group": "sysadmin",
+    "permissions":770,
     "remoteAccess": {
       "remoteUser": "ansible"
     },

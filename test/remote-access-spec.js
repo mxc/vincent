@@ -17,7 +17,6 @@ describe("HostManager configuration without remote access definition", ()=> {
 
     var validGroups = [
         new Group({
-
             name: 'group1',
             gid: undefined,
             state: 'present'
@@ -37,6 +36,9 @@ describe("HostManager configuration without remote access definition", ()=> {
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             users: [
                 {
                     user: {name: "user1"},
@@ -110,7 +112,6 @@ describe("HostManager configuration with remote access definition", ()=> {
 
     var validGroups = [
         new Group({
-
             name: 'group1',
             gid: undefined,
             state: 'present'
@@ -130,6 +131,9 @@ describe("HostManager configuration with remote access definition", ()=> {
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             remoteAccess: {
                 remoteUser: "mark",
                 authentication: "publicKey"
@@ -230,6 +234,9 @@ describe("HostManager configuration with invalid remote access definition", ()=>
     var hosts = [
         {
             name: "www.example.com",
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: 770,
             remoteAccess: {
                 remoteUser: "peter",
                 authentication: "passwd",

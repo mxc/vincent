@@ -141,6 +141,10 @@ class Database {
         });
     }
 
+    verifyAppUser(username,password){
+        //todo
+    }
+
 }
 
 export default Database;

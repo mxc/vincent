@@ -8,8 +8,6 @@ class Session {
 
     constructor() {
         this.authenticated = false;
-        this.roles = [];
-        this.username = 'guest';
     }
 
     set socket(s){
