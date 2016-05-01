@@ -8,6 +8,9 @@ import {expect} from 'chai';
 import fs from 'fs';
 import Docker from './support/Docker'
 import path from 'path';
+import AppUser from '../src/ui/AppUser';
+import Host from '../src/modules/host/Host';
+
 
 describe("ansible engine", () => {
     "use strict";
@@ -73,6 +76,7 @@ describe("ansible engine", () => {
 
             ]
         }];
+    let appUser = new AppUser("einstien",["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
     let provider = new Provider(path.resolve(home,"vincenttest"));
     var gen = provider.engine;
@@ -94,9 +98,10 @@ describe("ansible engine", () => {
     });
 
 
-    it("it should generate a playbook for the host", (done) => {
-        gen.loadEngineDefinition(provider.managers.hostManager.findValidHost("www.example.com"));
-        gen.export().then((result)=> {
+    it("should generate a playbook for the host", (done) => {
+        let host = provider.managers.hostManager.findValidHost("www.example.com", appUser);
+        gen.loadEngineDefinition(host,appUser);
+        gen.export(host,appUser).then((result)=> {
             expect(result).to.equal("success");
             let playbookObj = gen.playbooks["www.example.com"];
             expect(playbookObj.object[0].tasks.length).to.equal(6);
@@ -108,10 +113,11 @@ describe("ansible engine", () => {
         });
     });
 
-    it("it should generate playbook files for host", function (done) {
-        gen.loadEngineDefinition(provider.managers.hostManager.findValidHost("www.example.com"));
+    it("should generate playbook files for host", function (done) {
+        let host = provider.managers.hostManager.findValidHost("www.example.com",appUser);
+        gen.loadEngineDefinition(host,appUser);
         gen.clean().then(result=> {
-            gen.export().then((result)=> {
+            gen.export(host,appUser).then((result)=> {
                 fs.readdir(gen.playbookDir, (err, files)=> {
                     expect(files.length).to.equal(2);
                     done();
@@ -123,7 +129,7 @@ describe("ansible engine", () => {
         });
     });
 
-    it("it should get ansible facts using ssh key authentication", function (done) {
+    it("should get ansible facts using ssh key authentication", function (done) {
         let docker = new Docker();
         let running = false;
         this.timeout(10000);
@@ -135,8 +141,9 @@ describe("ansible engine", () => {
                 resolve(ipaddr);
             });
         }).then(ipaddr=> {
+            provider.managers.hostManager.addHost(new Host(provider,ipaddr,"einstein","sysadmin",770));
             let keypath = path.resolve(provider.getRootDir(), "test/docker/sshkeys/vincent.key");
-            return gen.getInfo(ipaddr, false, keypath, "vincent")
+            return gen.getInfo(ipaddr, appUser,false, keypath, "vincent")
         }).then((result)=> {
             return new Promise(resolve=> {
                 expect(result.includes('ansible_facts')).to.be.true;
@@ -146,6 +153,7 @@ describe("ansible engine", () => {
             return docker.stopDocker();
         }).then(result=> {
             gen.clean();
+            provider.managers.hostManager.validHosts=[];
             done();
         }).catch(e=> {
             if (running) {
@@ -156,7 +164,7 @@ describe("ansible engine", () => {
         });
     });
 
-    it("it should get ansible facts using password and sudo password", function (done) {
+    it("should get ansible facts using password and sudo password", function (done) {
         let docker = new Docker();
         let running = false;
         this.timeout(10000);
@@ -168,7 +176,8 @@ describe("ansible engine", () => {
                 resolve(ipaddr);
             });
         }).then(ipaddr=> {
-            return gen.getInfo(ipaddr, false, undefined, "vincent", "pass", "pass");
+                provider.managers.hostManager.addHost(new Host(provider,ipaddr,"einstein","sysadmin",770));
+            return gen.getInfo(ipaddr, appUser, false, undefined, "vincent", "pass", "pass");
         }).then((result)=> {
             return new Promise(resolve=> {
                 expect(result.includes('ansible_facts')).to.be.true;
@@ -178,6 +187,7 @@ describe("ansible engine", () => {
             return docker.stopDocker();
         }).then(result=> {
             gen.clean();
+            provider.managers.hostManager.validHosts=[];
             done();
         }).catch(e=> {
             if (running) {

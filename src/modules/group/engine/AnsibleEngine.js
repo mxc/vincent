@@ -17,7 +17,7 @@ class AnsibleEngine extends EngineComponent {
                 let ansibleGroup = {
                     name: "Group state check",
                     group: `name=${group.name} state=${group.state}`,
-                    sudo: 'yes'
+                    become: 'yes'
                 };
                 if (group.gid) {
                     ansibleGroup.group += ` gid={$group.gid}`;

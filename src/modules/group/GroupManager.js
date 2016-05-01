@@ -12,7 +12,6 @@ import ConsoleGroup from './ui/console/Group';
 import ConsoleHostGroup from './ui/console/HostGroup';
 import path from "path";
 
-
 class GroupManager extends Manager {
 
     constructor(provider) {
@@ -223,11 +222,11 @@ class GroupManager extends Manager {
         return [UserManager];
     }
 
-    loadConsoleUI(context) {
+    loadConsoleUI(context,appUser) {
         let self = this;
         context.Host.prototype.addHostGroup = function (data) {
             try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name);
+                let host = self.provider.managers.hostManager.findValidHost(this.name,appUser);
                 if (!host) {
                     console.log(`Could not find ${this.name} in host managers host list`);
                     return;
@@ -257,7 +256,7 @@ class GroupManager extends Manager {
             }
         };
         context.Host.prototype.listHostGroups = function () {
-            let host = self.provider.managers.hostManager.findValidHost(this.name);
+            let host = self.provider.managers.hostManager.findValidHost(this.name,appUser);
             let hostGroups = self.getHostGroups(host);
             if (hostGroups) {
                 return hostGroups.map((hostGroup)=> {

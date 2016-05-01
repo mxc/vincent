@@ -138,7 +138,6 @@ describe("Permissions handling functions", ()=> {
 
 
         host = new Host(provider, '192.168.122.137','einstein','sysadmin',233);
-        console.log(provider._integerToOctalString(host.permissions));
         expect(provider.checkPermissions(user,host,"r")).to.be.false;
         expect(provider.checkPermissions(user,host,"w")).to.be.true;
         expect(provider.checkPermissions(user,host,"x")).to.be.true;

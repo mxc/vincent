@@ -117,7 +117,7 @@ class SshManager extends Manager {
         return [UserManager,GroupManager];
     }
 
-    loadConsoleUI(context) {
+    loadConsoleUI(context,appUser) {
         //no op
     }
 }

@@ -119,9 +119,9 @@ class Main {
     }
 
 
-    startConsole(s, user) {
+    startConsole(socket, user) {
         logger.info("Starting Vincent console");
-        return new Console(s, user);
+        return new Console(socket, user);
     }
 
     startWeb() {

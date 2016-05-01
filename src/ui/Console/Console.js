@@ -12,10 +12,10 @@ import Ui from '../Ui';
 
 class Console extends Ui {
 
-    constructor(s,user) {
+    constructor(s,appUser) {
         super();//creates session object
         this.session.socket =s;
-        this.session.user = user;
+        this.session.appUser = appUser;
         let options  = {
             prompt: 'vincent:',
             useColors: true,
@@ -35,7 +35,7 @@ class Console extends Ui {
         });
 
         this.cli.on('reset', (context)=> {
-            this.checkAccess(Roles.all);
+           // this.checkAccess(Roles.all);
             console.log("resetting context");
             logger.info("resetting context");
             this.initContext(context);
@@ -46,7 +46,7 @@ class Console extends Ui {
 
     initContext(context) {
 
-        context.Host = Host;
+        //context.Host = Host;
 
         context.config = new Config();
 
@@ -94,7 +94,7 @@ class Console extends Ui {
         ModuleLoader.managerOrderedIterator((managerClass)=> {
             try {
                 let name = managerClass.name.charAt(0).toLocaleLowerCase() + managerClass.name.slice(1);
-                app.provider.managers[name].loadConsoleUI(context);
+                app.provider.managers[name].loadConsoleUI(context,this.session.appUser);
             } catch (e) {
                 logger.warn(e);
                 logger.warn("module does not offer console ui");

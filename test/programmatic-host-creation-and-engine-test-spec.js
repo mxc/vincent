@@ -12,6 +12,7 @@ import Group from "../src/modules/group/Group";
 import AnsibleGenerator from "../src/modules/engines/AnsibleEngine";
 import {expect} from 'chai';
 import fs from 'fs';
+import AppUser from '../src/ui/AppUser';
 
 
 describe("The system", function () {
@@ -81,7 +82,8 @@ describe("The system", function () {
 
     let provider = new Provider();
     let ansiblegen = new AnsibleGenerator(provider);
-
+    let appUser = new AppUser("einstein",["sysadmin"]);
+    
     beforeEach(()=> {
         ansiblegen.clean();
         provider.clear();
@@ -98,7 +100,7 @@ describe("The system", function () {
 
 
     it('should successfully allow a user to build a host definition programmaticaly', function () {
-        ansiblegen.loadEngineDefinition(provider.managers.hostManager.validHosts[0]);
+        ansiblegen.loadEngineDefinition(provider.managers.hostManager.validHosts[0],appUser);
         ansiblegen.export().then(result=> {
             let filename = path.resolve(gen.playbookDir, "inventory");
             let promise = new Promise((resolve)=> {
@@ -114,11 +116,6 @@ describe("The system", function () {
                 });
             });
         });
-
-        // ansiblegen.getInfo(host).then((data)=> {
-        //     //console.log(data);
-        //     done();
-        // });
     });
 
 });

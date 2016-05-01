@@ -7,6 +7,8 @@ import GroupElement from '../../Group';
 import logger from '../../../../Logger';
 
 const _group = Symbol['group'];
+const _appUser = Symbol["appUser"];
+
 
 class Group {
 
@@ -16,7 +18,8 @@ class Group {
     The data structure can contain {name:<groupname>,gid:<int>}
     when converting from GroupElement to UI Group data type
      */
-    constructor(group){
+    constructor(group,appUser){
+        this[_appUser] = appUser;
         if(typeof group ==='string' || (group.name && !group instanceof GroupElement)) {
             this[_group] = new GroupElement(group);
             app.provider.managers.groupManager.addValidGroup(this[_group]);

@@ -4,13 +4,20 @@
 import Host from './Host';
 import Provider from '../../../../Provider';
 import {app} from '../../../../Vincent';
+const _appUser = Symbol("appUser");
 
 class HostManager {
 
+    
+    constructor(appUser){
+        this[_appUser] = appUser;
+    }
+
     addHost(hostname) {
         if (typeof hostname === 'string') {
-            new Host(hostname);
+            let host = new Host(hostname,this[_appUser]);
             console.log(`created host ${hostname}`);
+            return host;
         }else{
             console.log("Parameter must be a hostname string");
         }
@@ -22,10 +29,10 @@ class HostManager {
         }));
     }
 
-    getHost(user,hostname) {
-        let host = app.provider.managers.hostManager.findValidHost(hostname);
-        if (host && this.provider.checkPermissions(user,host)) {
-            return new Host(host);
+    getHost(hostname) {
+        let host = app.provider.managers.hostManager.findValidHost(hostname,this[_appUser]);
+        if (host && this.provider.checkPermissions(this[_appUser],host,"r")) {
+            return new Host(host,this[_appUser]);
         } else {
             console.log("Host not found in host list");
             return;
@@ -33,13 +40,13 @@ class HostManager {
     }
 
     save(){
-        app.provider.textDatastore.saveAll();
+        app.provider.managers.hostManager.saveAll();
         console.log("hosts, users and groups successfully saved");
     }
 
     saveHost(host){
-        let realhost = app.provider.managers.hostManager.findValidHost(host.name);
-        app.provider.textDatastore.saveHost(realhost);
+        let realhost = app.provider.managers.hostManager.findValidHost(host.name,this[_appUser]);
+        app.provider.managers.hostManager.saveHost(realhost);
         console.log("host successfully saved");
     }
 

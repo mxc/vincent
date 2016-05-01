@@ -5,7 +5,14 @@
 import {app} from '../../../../Vincent'
 import User from "./User"
 
+const _appUser = Symbol("appUser");
+
+
 class UserManager {
+    
+    constructor(appUser){
+        this[_appUser] = appUser;
+    }
 
     list() {
         

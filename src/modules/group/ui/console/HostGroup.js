@@ -8,10 +8,12 @@ import GroupElement from '../../Group';
 import Group from  './Group';
 
 const _hostGroup = Symbol("hostGroup");
+const _appUser = Symbol("appUser");
 
 class HostGroup {
 
-    constructor(data) {
+    constructor(data,appUser) {
+        this[_appUser] = appUser;
         if (typeof data === "string" || typeof data.group === "string" || data.group instanceof Group) {
             let groupname = '';
             if (typeof data === "string") {

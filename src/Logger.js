@@ -37,6 +37,18 @@ class Logger {
         this.error(msg);
         errors.push(msg);
     }
+
+    logAndThrowSecruityPermission(appUser,host,action){
+        let msg = this.securityWarning(appUser,host,action);
+        throw new Error(msg);
+    }
+
+    securityWarning(appUser,host, action){
+        let msg =`User ${appUser.name} does not have the required permissions for host ${host.name} for the action ${action}.`;
+        this.warn(msg);
+        return msg;
+    }
+
 }
 
 var logger = new Logger();

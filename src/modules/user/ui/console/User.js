@@ -7,6 +7,7 @@ import UserElement from '../../User';
 import logger from '../../../../Logger';
 
 const _user = Symbol['user'];
+const _appUser = Symbol("appUser");
 
 class User {
 
@@ -15,7 +16,7 @@ class User {
      when converting internal data type to UI User type. The data structure is of the following format:
      { name: <username>,uid:<int>, state:<present|absent> }
      */
-    constructor(user) {
+    constructor(user,appUser) {
         if (typeof user === 'string' || (user.name && !user instanceof UserElement)) {
             this[_user] = new UserElement(user);
             app.provider.managers.userManager.addValidUser(this[_user]);
@@ -24,6 +25,7 @@ class User {
         } else {
             throw new Error("The parameter must be a user name or data object with at least a name key");
         }
+        this[_appUser] = appUser;
     }
 
     get name() {

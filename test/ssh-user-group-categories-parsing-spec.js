@@ -5,6 +5,7 @@ import Provider from '../src/Provider';
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
+import AppUser from '../src/ui/AppUser';
 
 describe("validating ssh custom config", function () {
 
@@ -69,11 +70,12 @@ describe("validating ssh custom config", function () {
 
     var provider = new Provider();
     //inject mocks
+    let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
 
-    it("should return an collection of valid hosts including ssh configs", function () {
+    it("should return a collection of valid hosts including ssh configs", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
@@ -116,7 +118,7 @@ describe("validating ssh custom config", function () {
                 }
             }
         ];
-        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
 
     });
 });
@@ -210,12 +212,13 @@ describe("validating ssh include config", function () {
 
     var provider = new Provider();
     //inject mocks
+    let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.sshManager.loadFromJson(sshConfigs);
     provider.managers.hostManager.loadHosts(hosts);
 
-    it("should return an collection of valid hosts including ssh include configs", function () {
+    it("should return a collection of valid hosts including ssh include configs", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
@@ -256,8 +259,8 @@ describe("validating ssh include config", function () {
                 }
             }
         ];
-        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
-        let host = provider.managers.hostManager.findValidHost("web01.example.co.za");
+        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
+        let host = provider.managers.hostManager.findValidHost("web01.example.co.za",appUser);
 
         expect(provider.managers.sshManager.getSsh(host)).to.deep.equal({
             permitRoot: false,
@@ -355,6 +358,7 @@ describe("validating user categories include", function () {
 
     var provider = new Provider();
     //inject mocks
+    let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.userCategories.loadFromJson(userCategories);
@@ -391,13 +395,13 @@ describe("validating user categories include", function () {
                 }
             }
         ];
-        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
     });
 
     it('should add the users in user category to the host\'s users' +
         ' and not add duplicates', function () {
         expect(provider.managers.userManager.getUserAccounts(
-            provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
+            provider.managers.hostManager.findValidHost("web01.example.co.za",appUser)).length).to.equal(4);
     })
 });
 
@@ -497,6 +501,7 @@ describe("validating group categories include", function () {
     var provider = new Provider();
     //var loader = new Loader(provider);
     //inject mocks
+    let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.groupCategories.loadFromJson(groupCategories);
@@ -547,11 +552,11 @@ describe("validating group categories include", function () {
                 }
             ]
             ;
-        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
     });
 
     it('should add the groups in group category to the host\'s groups', function () {
-        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(4);
+        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za",appUser)).length).to.equal(4);
     });
 
     it('should not add invalid groups in the group category', function () {
@@ -681,6 +686,7 @@ describe("validating group categories include with duplicated groups", function 
     var provider = new Provider();
     //var loader = new Loader(provider);
     //inject mocks
+    let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.userCategories.loadFromJson(userCategories);
@@ -688,7 +694,7 @@ describe("validating group categories include with duplicated groups", function 
     provider.managers.hostManager.loadHosts(hosts);
 
 
-    it("should return an collection of valid hosts including de-duplicated group categories", function () {
+    it("should return a collection of valid hosts including de-duplicated group categories", function () {
         var validHosts = [
             {
                 name: "web01.example.co.za",
@@ -722,16 +728,16 @@ describe("validating group categories include with duplicated groups", function 
                 }
             }
         ];
-        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
     });
 
     it('should not duplicate groups in groupCategories and groups controllers', () => {
-        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za")).length).to.equal(3);
+        expect(provider.managers.groupManager.getHostGroups(provider.managers.hostManager.findValidHost("web01.example.co.za",appUser)).length).to.equal(3);
     });
 
     it('should expand group members to include user from user categories ' +
         'that are members of a group category members array', () => {
-        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.findValidHost("web01.example.co.za"), "group2")
+        expect(provider.managers.groupManager.findHostGroupByName(provider.managers.hostManager.findValidHost("web01.example.co.za",appUser), "group2")
             .members.length)
             .to.equal(1);
     });

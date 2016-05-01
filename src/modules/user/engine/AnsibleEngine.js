@@ -19,7 +19,7 @@ class AnsibleEngine extends EngineComponent {
                 let ansibleUser = {
                     name: "User account state check",
                     user: `name=${user.name} state=${user.state}`,
-                    sudo: 'yes'
+                    become: 'yes'
                 };
                 if (user.uid) {
                     ansibleUser.user += ` uid={$user.uid}`;
@@ -35,7 +35,7 @@ class AnsibleEngine extends EngineComponent {
                                 manage_dir: 'yes',
                                 state: `${authorizedUser.state}`
                             },
-                            sudo: 'yes'
+                            become: 'yes'
                         };
                         tasks.push(ansibleAuthorizedKey);
                     });

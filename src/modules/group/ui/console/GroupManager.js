@@ -4,7 +4,14 @@
 import {app} from '../../../../Vincent';
 import Group from "./Group";
 
+const _appUser = Symbol["appUser"];
+
 class GroupManager{
+    
+    
+    constructor(appUser){
+        this[_appUser] = appUser;
+    }
 
     list() {
         return app.provider.managers.groupManager.validGroups.map((group=> {

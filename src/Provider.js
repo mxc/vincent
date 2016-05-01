@@ -7,6 +7,7 @@ import logger from './Logger';
 import fs from 'fs';
 import Manager from './modules/base/Manager';
 import mkdirp from 'mkdirp';
+import AppUser from './ui/AppUser';
 
 
 class Provider {
@@ -297,6 +298,11 @@ class Provider {
 
     //perm may be r,w,x or 4,2,1
     checkPermissions(appUser, host, perm) {
+
+        if (!appUser || !appUser instanceof AppUser){
+            logger.logAndThrow("Parameter appUser must be of type AppUser and cannot be null or undefined");
+        }
+        
         if (appUser.isAdmin) {
             return true;
         }
@@ -430,6 +436,7 @@ class Provider {
         return result;
     }
 
+   
 }
 
 export default Provider;

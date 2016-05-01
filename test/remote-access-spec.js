@@ -5,6 +5,7 @@ import Provider from "../src/Provider.js";
 import User from "../src/modules/user/User";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
+import AppUser from '../src/ui/AppUser';
 
 describe("HostManager configuration without remote access definition", ()=> {
     "use strict";
@@ -78,10 +79,11 @@ describe("HostManager configuration without remote access definition", ()=> {
 
     var provider = new Provider();
     //inject mocks
+    let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-    let host = provider.managers.hostManager.findValidHost("www.example.com");
+    let host = provider.managers.hostManager.findValidHost("www.example.com",appUser);
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("same");
@@ -177,10 +179,11 @@ describe("HostManager configuration with remote access definition", ()=> {
 
     var provider = new Provider();
     //inject mocks
+    let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-    let host = provider.managers.hostManager.findValidHost("www.example.com");
+    let host = provider.managers.hostManager.findValidHost("www.example.com",appUser);
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("mark");

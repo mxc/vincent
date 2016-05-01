@@ -6,6 +6,7 @@ import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
 import Docker from './support/Docker';
 import child_process from 'child_process';
+import AppUser from '../src/ui/AppUser';
 
 describe("validating host configuration", function () {
 
@@ -213,6 +214,7 @@ describe("validating host configuration", function () {
 
     var provider = new Provider();
     //inject mocks
+    let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
 
@@ -348,7 +350,7 @@ describe("validating host configuration", function () {
                 ]
             }
         ];
-        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
     });
 
     it("should generate a valid playbook", function (done) {
@@ -364,12 +366,12 @@ describe("validating host configuration", function () {
             let data = {user: provider.managers.userManager.validUsers[0]};
             let userAccount = new UserAccount(provider, data);
             provider.managers.userManager.addUserAccountToHost(host, userAccount);
-            gen.loadEngineDefinition(host);
+            gen.loadEngineDefinition(host,appUser);
             return ipaddr;
         }).then(ipaddr=> {
-            return gen.export(ipaddr);
+            return gen.export(ipaddr,appUser);
         }).then((result)=> {
-            return gen.runPlaybook(host, false,null, 'vincent', 'pass');
+            return gen.runPlaybook(host, appUser, false,null, 'vincent', 'pass');
         }).then(result=> {
             expect(result.includes('ok=2    changed=1')).to.be.true;
         }).then(result => {
@@ -383,6 +385,7 @@ describe("validating host configuration", function () {
             } else {
                 console.log(e);
             }
+            done(e);
         });
     });
 });

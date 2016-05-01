@@ -10,6 +10,7 @@ import Host from "../src/modules/host/Host";
 import Group from "../src/modules/group/Group";
 import fs from "fs";
 import path from "path";
+import AppUser from '../src/ui/AppUser';
 
 describe("File DB save tests", function () {
 
@@ -213,6 +214,7 @@ describe("File DB save tests", function () {
 
 
     //inject mocks
+    let appUser = new AppUser("einstien",["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
     let provider = new Provider(path.resolve(home, "vincenttest"));
     provider.managers.groupManager.validGroups = validGroups;
@@ -252,7 +254,7 @@ describe("File DB save tests", function () {
     });
 
     it('should save valid hosts', (done)=> {
-        let host = provider.managers.hostManager.findValidHost("www.abc.co.za");
+        let host = provider.managers.hostManager.findValidHost("www.abc.co.za",appUser);
         let backupPath = provider.managers.hostManager.saveHost(host);
         if (backupPath) {
 

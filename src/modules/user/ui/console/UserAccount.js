@@ -7,9 +7,11 @@ import {app} from '../../../../Vincent';
 import UserAccountElement from '../../../user/UserAccount';
 
 const _userAccount = Symbol("userAccount");
+const _appUser = Symbol("appUser");
 
 class UserAccount {
-    constructor(data) {
+    constructor(data,appUser) {
+        this[_appUser] = appUser;
         if (typeof data === "string" || typeof data.user === "string" || data.user instanceof User) {
             let username='';
             if (typeof data === "string") {

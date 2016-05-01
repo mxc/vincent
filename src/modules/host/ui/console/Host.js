@@ -8,10 +8,11 @@ import {app} from '../../../../Vincent';
 
 
 const _host = Symbol("host");
+const _appUser = Symbol("appUser");
 
 class Host {
 
-    constructor(host) {
+    constructor(host,appUser) {
         //if parameter is of type HostElement (real Host) then we assume it is already
         //added to valid host and this is a reconstruction.
         if (host instanceof HostElement) {
@@ -22,6 +23,7 @@ class Host {
         }else{
             throw new Error("Host constructor requires a host name or ip address as a string parameter");
         }
+        this[_appUser] = appUser;
     }
 
     get name() {
@@ -58,7 +60,7 @@ class Host {
     runPlaybook(username, checkhostkey, privkeyPath, passwd, sudoPasswd){
         try {
             console.log(`${this[_host].name} playbook has been submitted. Results will be available shortly.`);
-            app.provider.engine.runPlaybook(this[_host],checkhostkey, privkeyPath,
+            app.provider.engine.runPlaybook(this[_appUser],this[_host],checkhostkey, privkeyPath,
                 username, passwd, sudoPasswd).then((results)=> {
                 console.log(`Results for ${this[_host].name}. - ${results}`);
             }).catch((e)=>{

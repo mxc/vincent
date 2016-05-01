@@ -46,20 +46,31 @@ class HostManager extends Manager {
         }
     }
 
-    findValidHost(hostname,user) {
-  //      if(!user instanceof AppUser){
-  //          logger.logAndThrow("Parameter user must be of type AppUser");
-  //      }
-        /* && this.provider.checkPermissions(user,host,"r"))*/
+
+    findValidHost(vhost, appUser) {
+
+        //accommodate Host object or hostname string
+        if (typeof vhost === 'string') {
+            var hostname = vhost;
+        } else if (vhost.name) {
+            hostname = vhost.name;
+        } else {
+            logger.logAndThrow("The host parameter must be of type Host or a host name and must be in validHosts");
+        }
+
         return this.validHosts.find((host)=> {
             if (host.name === hostname) {
-                return host;
+                if (this.provider.checkPermissions(appUser, host, "r")) {
+                    return host;
+                } else {
+                    logger.logAndThrowSecruityPermission(appUser, host, "find valid host");
+                }
             }
         });
     }
 
     loadFromFile() {
-        let result=true;
+        let result = true;
         this.errors.length = 0;
         let dbDir = this.provider.getDBDir();
         //hosts configuration
@@ -78,7 +89,7 @@ class HostManager extends Manager {
                 }
             } catch (e) {
                 logger.error(`Error loading file for ${config}. Discarding.`);
-                result=false;
+                result = false;
             }
         });
         return result;
@@ -87,20 +98,19 @@ class HostManager extends Manager {
     /**
      Method to provision a host for the specific engine.
      */
-    provisionHostForEngine(targetHost) {
+    provisionHostForEngine(targetHost, appUser) {
         if (typeof targetHost == 'object') {
             if (!targetHost.name) {
-                throw new Error("Initialising a new host requires the initHost object to " +
+                throw new Error("provisioning a host for configu engine  requires the targetHost parameter object to " +
                     "have a name property.");
             }
-            if (!targetHost instanceof Host) {
-                targetHost = this.provider.managers.hostManager.load(targetHost);
-            }
-            let playbook = this.provider.engine.loadEngineDefinition(targetHost);
-            this.provider.engine.export(playbook);
-            //this.provider.database.initHost(host.name).then();
+            //if (!targetHost instanceof Host) {
+            //check if it is a valud host and user has access rights to host.
+            targetHost = this.findValidHost(targetHost, appUser);
+            //}
+           return this.provider.engine.export(targetHost, appUser);
         } else {
-            throw new Error("The parameter to init host must be of type Host or " +
+            throw new Error("The parameter  host to provisionHostForEngine must be of type Host or " +
                 "an HostComponent object");
         }
     }
@@ -124,7 +134,7 @@ class HostManager extends Manager {
     }
 
     loadFromJson(hostDef) {
-        
+
         var hostData = {
             name: hostDef.name,
             owner: hostDef.owner,
@@ -132,7 +142,7 @@ class HostManager extends Manager {
             permissions: hostDef.permissions
         };
 
-       
+
         let host = {};
 
         //create host instance
@@ -140,7 +150,7 @@ class HostManager extends Manager {
             host = new Host(this.provider, hostData);
             this.errors[host.name] = [];
         } catch (e) {
-            logger.logAndThrow(`Could not create host ${hostDef.name? hostDef.name:""} - ${e.message}`);
+            logger.logAndThrow(`Could not create host ${hostDef.name ? hostDef.name : ""} - ${e.message}`);
         }
 
         //TODO refactor remote access manager
@@ -173,10 +183,14 @@ class HostManager extends Manager {
         return host;
     }
 
-    export() {
+    export(appUser) {
         var obj = [];
         this.validHosts.forEach((host)=> {
-            obj.push(host.export());
+            if(this.provider.checkPermissions(appUser,host,"w")) {
+                obj.push(host.export());
+            }else{
+                logger.securityWarning(appUser,host,"host manager export");
+            }
         });
         return obj;
     }
@@ -194,8 +208,8 @@ class HostManager extends Manager {
         }
     }
 
-    loadConsoleUI(context) {
-        context.hostManager = new ConsoleHostManager();
+    loadConsoleUI(context, appUser) {
+        context.hostManager = new ConsoleHostManager(appUser);
         //context.Host = ConsoleHost;
         //console.log(context.Host);
     }

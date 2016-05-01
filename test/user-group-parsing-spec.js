@@ -3,6 +3,7 @@
 import Provider from './../src/Provider';
 import {expect} from 'chai';
 
+
 var groups = [
     {name: 'group1'},
     {name: 'group2'},
