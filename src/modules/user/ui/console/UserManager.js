@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/16.
  */
 
-import {app} from '../../../../Vincent'
+import Vincent from '../../../../Vincent'
 import User from "./User"
 
 const _appUser = Symbol("appUser");
@@ -16,7 +16,7 @@ class UserManager {
 
     list() {
         
-        return app.provider.managers.userManager.validUsers.map((user=> {
+        return Vincent.app.provider.managers.userManager.validUsers.map((user=> {
             return user.name;
         }));
     }
@@ -31,7 +31,7 @@ class UserManager {
     }
 
     save(){
-        app.provider.textDatastore.saveUsers();
+        Vincent.app.provider.textDatastore.saveUsers();
     }
 }
 

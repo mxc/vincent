@@ -22,6 +22,7 @@ class Base {
     get source(){
         return this._source;
     }
+    
 }
 
 export default Base;

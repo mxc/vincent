@@ -10,8 +10,11 @@ import {expect} from 'chai';
 
 describe("File DB loader tests", function () {
 
-    let provider = new Provider(`${process.cwd()}/conf-example`);
 
+
+    let provider = new Provider(`${process.cwd()}/conf-example`);
+    //provider.init(`${process.cwd()}/conf-example`);
+    
     it('should load user categories', ()=> {
         provider.managers.userCategories.loadFromFile();
         expect(provider.managers.userCategories.configs["staff-user-category"].length).to.equal(2);

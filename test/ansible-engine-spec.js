@@ -79,6 +79,7 @@ describe("ansible engine", () => {
     let appUser = new AppUser("einstien",["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
     let provider = new Provider(path.resolve(home,"vincenttest"));
+    //provider.init(path.resolve(home,"vincenttest"));
     var gen = provider.engine;
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
@@ -99,7 +100,7 @@ describe("ansible engine", () => {
 
 
     it("should generate a playbook for the host", (done) => {
-        let host = provider.managers.hostManager.findValidHost("www.example.com", appUser);
+        let host = provider.managers.hostManager.findValidHost("www.example.com");
         gen.loadEngineDefinition(host,appUser);
         gen.export(host,appUser).then((result)=> {
             expect(result).to.equal("success");
@@ -114,7 +115,7 @@ describe("ansible engine", () => {
     });
 
     it("should generate playbook files for host", function (done) {
-        let host = provider.managers.hostManager.findValidHost("www.example.com",appUser);
+        let host = provider.managers.hostManager.findValidHost("www.example.com");
         gen.loadEngineDefinition(host,appUser);
         gen.clean().then(result=> {
             gen.export(host,appUser).then((result)=> {
@@ -143,7 +144,7 @@ describe("ansible engine", () => {
         }).then(ipaddr=> {
             provider.managers.hostManager.addHost(new Host(provider,ipaddr,"einstein","sysadmin",770));
             let keypath = path.resolve(provider.getRootDir(), "test/docker/sshkeys/vincent.key");
-            return gen.getInfo(ipaddr, appUser,false, keypath, "vincent")
+            return gen.getInfo(ipaddr, false, keypath, "vincent")
         }).then((result)=> {
             return new Promise(resolve=> {
                 expect(result.includes('ansible_facts')).to.be.true;
@@ -177,7 +178,7 @@ describe("ansible engine", () => {
             });
         }).then(ipaddr=> {
                 provider.managers.hostManager.addHost(new Host(provider,ipaddr,"einstein","sysadmin",770));
-            return gen.getInfo(ipaddr, appUser, false, undefined, "vincent", "pass", "pass");
+            return gen.getInfo(ipaddr, false, undefined, "vincent", "pass", "pass");
         }).then((result)=> {
             return new Promise(resolve=> {
                 expect(result.includes('ansible_facts')).to.be.true;

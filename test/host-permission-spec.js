@@ -9,13 +9,14 @@ import Host from '../src/modules/host/Host';
 describe("HostManager security should", ()=> {
     "use strict";
     let provider = new Provider(`${process.cwd()}/conf-example`);
+    //provider.init(`${process.cwd()}/conf-example`);
 
     it("prevent unauthorised users from accessing hosts", function () {
         let appUser = new AppUser("newton",["devops","dev"]);
         let host = new Host(provider,"dogzrule.co.za","einstein","sysadmin",770);
         provider.managers.hostManager.addHost(host);
         let func = ()=>{
-            provider.managers.hostManager.findValidHost(host,appUser);
+            provider.managers.hostManager.findValidHost(host);
         };
         expect(func).to.throw("User newton does not have the required permissions for host dogzrule.co.za for the action find valid host.");
         provider.managers.hostManager.validHosts=[];
@@ -25,7 +26,7 @@ describe("HostManager security should", ()=> {
         let appUser = new AppUser("newton",["devops","dev"]);
         let host = new Host(provider,"dogzrule.co.za","einstein","devops",740);
         provider.managers.hostManager.addHost(host);
-        let fHost =  provider.managers.hostManager.findValidHost(host,appUser);
+        let fHost =  provider.managers.hostManager.findValidHost(host);
         expect(fHost).to.exist;
         provider.managers.hostManager.validHosts=[];
     });
@@ -33,7 +34,7 @@ describe("HostManager security should", ()=> {
     it("reject invalid parameters for findValidHost",()=>{
         let appUser = new AppUser("newton",["devops","dev"]);
         let func =()=>  {
-            provider.managers.hostManager.findValidHost({},appUser);
+            provider.managers.hostManager.findValidHost({});
         };
         expect(func).to.throw("The host parameter must be of type Host or a host name and must be in validHosts");
         provider.managers.hostManager.validHosts=[];
@@ -44,7 +45,7 @@ describe("HostManager security should", ()=> {
         let appUser = new AppUser("newton",["devops","dev","vadmin"]);
         let host = new Host(provider,"dogzrule.co.za","einstein","sysadmin",740);
         provider.managers.hostManager.addHost(host);
-        let fHost =  provider.managers.hostManager.findValidHost(host,appUser);
+        let fHost =  provider.managers.hostManager.findValidHost(host);
         expect(fHost).to.exist;
         provider.managers.hostManager.validHosts=[];
     });
@@ -53,7 +54,7 @@ describe("HostManager security should", ()=> {
         let appUser = new AppUser("newton",["devops","dev"]);
         let host = new Host(provider,"dogzrule.co.za","einstein","sysadmin",774);
         provider.managers.hostManager.addHost(host);
-        provider.managers.hostManager.provisionHostForEngine(host,appUser).then((result)=>{
+        provider.managers.hostManager.provisionHostForEngine(host).then((result)=>{
             provider.managers.hostManager.validHosts=[];
             done(new Error("error - expected an execption"));
         },(err)=>{
@@ -75,7 +76,7 @@ describe("HostManager security should", ()=> {
             return true;
         } //mock out engine.
         let func = ()=>{
-            provider.managers.hostManager.provisionHostForEngine(host,appUser);
+            provider.managers.hostManager.provisionHostForEngine(host);
         };
         provider.managers.hostManager.addHost(host);
         expect(func).to.not.throw(Error);

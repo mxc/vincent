@@ -212,7 +212,8 @@ describe("validating host configuration", function () {
         }
     ];
 
-    var provider = new Provider();
+    let provider = new Provider();
+    //provider.init();    //inject mocks
     //inject mocks
     let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
@@ -350,7 +351,7 @@ describe("validating host configuration", function () {
                 ]
             }
         ];
-        expect(provider.managers.hostManager.export(appUser)).to.deep.equal(validHosts);
+        expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 
     it("should generate a valid playbook", function (done) {
@@ -371,7 +372,7 @@ describe("validating host configuration", function () {
         }).then(ipaddr=> {
             return gen.export(ipaddr,appUser);
         }).then((result)=> {
-            return gen.runPlaybook(host, appUser, false,null, 'vincent', 'pass');
+            return gen.runPlaybook(host,false,null, 'vincent', 'pass');
         }).then(result=> {
             expect(result.includes('ok=2    changed=1')).to.be.true;
         }).then(result => {

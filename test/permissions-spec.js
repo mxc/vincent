@@ -9,6 +9,7 @@ import Host from '../src/modules/host/Host';
 describe("Permissions handling functions", ()=> {
     "use strict";
     let provider = new Provider(`${process.cwd()}/conf-example`);
+    //provider.init(`${process.cwd()}/conf-example`);
 
     it("should correctly validate correct string permissions rwxrw----", function () {
             let perms = provider._validateAndConvertPermissions("rwxrw----");

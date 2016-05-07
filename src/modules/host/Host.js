@@ -5,6 +5,7 @@ import Provider from '../../Provider';
 import logger from '../../Logger';
 import Base from '../../modules/base/Base';
 import User from '../user/User';
+import AppUser from '../../ui/AppUser';
 
 class Host extends Base {
 
@@ -63,7 +64,7 @@ class Host extends Base {
     }
 
     get owner() {
-        return this.data.owner;
+            return this.data.owner;
     }
 
     get group() {
@@ -88,6 +89,7 @@ class Host extends Base {
     }
 
     set group(group) {
+
         if(typeof group ==="string") {
             this.data.group = group;
             this._export.group = group;

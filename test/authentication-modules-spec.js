@@ -11,7 +11,9 @@ import {expect} from 'chai';
 
 describe("The unix authenication module ", ()=> {
     "use strict";
+
     let provider = new Provider(`${process.cwd()}/conf-example`);
+    //provider.init(`${process.cwd()}/conf-example`);
 
     it("should successfully authenticate user", function (done) {
         //  let docker = new Docker();

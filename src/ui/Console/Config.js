@@ -2,14 +2,14 @@
  * Created by mark on 2016/04/17.
  */
 
-import {app} from '../../Vincent';
+import Vincent from '../../Vincent';
 
 const _config = Symbol("config");
 
 class Config {
 
     constructor() {
-        this[_config] = app.provider.config;
+        this[_config] = Vincent.app.provider.config;
     }
 
     get configdir(){

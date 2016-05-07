@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/17.
  */
 
-import {app} from '../../../../Vincent';
+import Vincent from '../../../../Vincent';
 import GroupElement from '../../Group';
 import logger from '../../../../Logger';
 
@@ -22,7 +22,7 @@ class Group {
         this[_appUser] = appUser;
         if(typeof group ==='string' || (group.name && !group instanceof GroupElement)) {
             this[_group] = new GroupElement(group);
-            app.provider.managers.groupManager.addValidGroup(this[_group]);
+            Vincent.app.provider.managers.groupManager.addValidGroup(this[_group]);
         }else if (group instanceof GroupElement){
             this[_group] = group;
         }
@@ -38,7 +38,7 @@ class Group {
 
     set gid(value){
         if (typeof value==='number'){
-            app.provider.managers.groupManager.updateGroupGid(this[_group],value);
+            VIncent.app.provider.managers.groupManager.updateGroupGid(this[_group],value);
         }else{
             console.log("Gid must be a number");
         }

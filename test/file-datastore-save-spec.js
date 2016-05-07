@@ -216,7 +216,8 @@ describe("File DB save tests", function () {
     //inject mocks
     let appUser = new AppUser("einstien",["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-    let provider = new Provider(path.resolve(home, "vincenttest"));
+    let provider = new Provider(path.resolve(home,"vincenttest"));
+    //provider.init(path.resolve(home,"vincenttest"));
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.groupCategories.data.configs = groupCategories;
@@ -254,7 +255,7 @@ describe("File DB save tests", function () {
     });
 
     it('should save valid hosts', (done)=> {
-        let host = provider.managers.hostManager.findValidHost("www.abc.co.za",appUser);
+        let host = provider.managers.hostManager.findValidHost("www.abc.co.za");
         let backupPath = provider.managers.hostManager.saveHost(host);
         if (backupPath) {
 

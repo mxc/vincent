@@ -11,10 +11,10 @@ import AppUser from './ui/AppUser';
 
 
 class Provider {
-
-    constructor(appdir) {
+    
+    constructor(appDir){
         this.managers = {};
-        this.configDir = appdir;
+        this.configDir = appDir;
         if (!this.configDir) {
             this.configDir = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
             this.configDir = path.resolve(this.configDir, ".vincent");
@@ -26,7 +26,7 @@ class Provider {
         //todo lookup default engine from config file.
         this._engine = new Engine(this);
     }
-
+    
     makeDBDir() {
         try {
             var stat = fs.statSync(this.getDBDir());
@@ -436,7 +436,32 @@ class Provider {
         return result;
     }
 
-   
+   _readAttributeCheck(appUser,host,callback){
+       if (this.checkPermissions(appUser,host,"r")){
+           return callback();
+       }else{
+           logger.logAndThrowSecruityPermission(appUser,host,"read attribute");
+       }
+   }
+
+    _writeAttributeCheck(appUser,host,callback){
+        if (this.checkPermissions(appUser,host,"w")){
+           return callback();
+        }else{
+            logger.logAndThrowSecruityPermission(appUser,host,"write attribute");
+        }
+    }
+
+    _executeAttributeCheck(appUser,host,callback){
+        if (this.checkPermissions(appUser,host,"x")){
+           return callback();
+        }else{
+            logger.logAndThrowSecruityPermission(appUser,host,"execute attribute");
+        }
+    }
+    
+
+
 }
 
 export default Provider;

@@ -68,24 +68,23 @@ class AnsibleEngine extends Engine {
         }
     }
 
-    export(host, appUser) {
+    export(host) {
         return new Promise((resolve, reject)=> {
             this.mkPlayBookDir()
                 .then((result)=> {
                     if (host) {
-                        host = this.provider.managers.hostManager.findValidHost(host, appUser);
-                        if (this.provider.checkPermissions(appUser, host, "x")) {
-                            this.loadEngineDefinition(host, appUser);
-                            return this.writePlaybook(host, appUser);
-                        } else {
-                            logger.logAndThrowSecruityPermission(appUser, host, "engine export");
+                        host = this.provider.managers.hostManager.findValidHost(host);
+                        if (host) {
+                            this.loadEngineDefinition(host);
+                            return this.writePlaybook(host);
                         }
-                    } else {
-                        this.provider.managers.hostManager.validHosts.forEach((chost)=> {
-                            this.loadEngineDefinition(chost, appUser);
-                        });
-                        this.writePlaybooks(appUser).then((filename)=>{ return filename; } );
                     }
+                    /*else {
+                     this.provider.managers.hostManager.validHosts.forEach((chost)=> {
+                     this.loadEngineDefinition(chost);
+                     });
+                     this.writePlaybooks().then((filename)=>{ return filename; } );
+                     }*/
                 }).then((results)=> {
                     return this.writeInventory();
                 })
@@ -118,13 +117,13 @@ class AnsibleEngine extends Engine {
     }
 
 
-    writePlaybooks(appUser) {
+    writePlaybooks() {
         let promises = [];
         for (let hostname in this.playbooks) {
-            let host = this.provider.managers.hostManager.findValidHost(hostname, appUser);
+            let host = this.provider.managers.hostManager.findValidHost(hostname);
             if (host) {
                 try {
-                    promises.push(this.writePlaybook(host, appUser));
+                    promises.push(this.writePlaybook(host));
                 } catch (e) {
                     logger.info(`Skipping playbook creation for host ${hostname} due to inadequate permissions`);
                 }
@@ -137,29 +136,25 @@ class AnsibleEngine extends Engine {
     /*
      Write out the yml playbook file using javascript ansible object
      */
-    writePlaybook(host, appUser) {
+    writePlaybook(host) {
         return new Promise((resolve, reject)=> {
-            host = this.provider.managers.hostManager.findValidHost(host, appUser);
-            if (this.provider.checkPermissions(appUser, host, "x")) {
-                let hostname = host.name;
-                try {
-                    fs.writeFile(this.playbookDir + `/${hostname}.yml`,
-                        this.playbooks[hostname].yml,
-                        (err)=> {
-                            if (err) {
-                                logger.logAndAddToErrors(`Error attempting to create playbook for ${hostname}`,
-                                    this.errors);
-                                reject(err);
-                            } else {
-                                resolve(this);
-                            }
-                        });
-                } catch (e) {
-                    logger.logAndAddToErrors(e.message, this.errors);
-                    throw e;
-                }
-            } else {
-                logger.logAndThrowSecruityPermission(appUser, host, "write playbook");
+            host = this.provider.managers.hostManager.findValidHost(host);
+            let hostname = host.name;
+            try {
+                fs.writeFile(this.playbookDir + `/${hostname}.yml`,
+                    this.playbooks[hostname].yml,
+                    (err)=> {
+                        if (err) {
+                            logger.logAndAddToErrors(`Error attempting to create playbook for ${hostname}`,
+                                this.errors);
+                            reject(err);
+                        } else {
+                            resolve(this);
+                        }
+                    });
+            } catch (e) {
+                logger.logAndAddToErrors(e.message, this.errors);
+                throw e;
             }
         });
     }
@@ -200,65 +195,57 @@ class AnsibleEngine extends Engine {
      Create the ansible javascript object from vincent's javascript host object. The ansible object holds the properties and
      values as defined by ansible modules to be used to generate the yml file on export with writePlaybook().
      */
-    loadEngineDefinition(host, appUser) {
-        host = this.provider.managers.hostManager.findValidHost(host, appUser);
-        if (this.provider.checkPermissions(appUser, host, "x")) {
-            this.inventory.add(host.name);
-            //needs to be an array to generate correct yml for ansible
-            var playbook = [];
-            playbook.push({hosts: host.name, tasks: []});
-            let tasks = playbook[0].tasks;
+    loadEngineDefinition(host) {
+        host = this.provider.managers.hostManager.findValidHost(host);
+        this.inventory.add(host.name);
+        //needs to be an array to generate correct yml for ansible
+        var playbook = [];
+        playbook.push({hosts: host.name, tasks: []});
+        let tasks = playbook[0].tasks;
 
-            for (let manager in this.provider.managers) {
-                if (this.provider.managers[manager] instanceof Manager) {
-                    if (this.provider.managers[manager] instanceof HostManager) continue;
-                    this.provider.managers[manager].exportToEngine("ansible", host, tasks);
-                }
+        for (let manager in this.provider.managers) {
+            if (this.provider.managers[manager] instanceof Manager) {
+                if (this.provider.managers[manager] instanceof HostManager) continue;
+                this.provider.managers[manager].exportToEngine("ansible", host, tasks);
             }
-            this.playbooks[host.name] = {};
-            this.playbooks[host.name].yml = yaml.safeDump(playbook); //cache the generated yml for playbook.
-            this.playbooks[host.name].object = playbook; //cache the generated object for playbook.
-            return this.playbooks[host.name].yml;
-        }else{
-            logger.warn(`User does not have permission to load engine definitions for host ${host.name}`);
         }
+        this.playbooks[host.name] = {};
+        this.playbooks[host.name].yml = yaml.safeDump(playbook); //cache the generated yml for playbook.
+        this.playbooks[host.name].object = playbook; //cache the generated object for playbook.
+        return this.playbooks[host.name].yml;
     }
 
     /*
      Method to retrieve host details using ansible target properties
      */
-    getInfo(host, appUser, checkhostkey, privkey, username, passwd, sudoPasswd) {
+    getInfo(host, checkhostkey, privkey, username, passwd, sudoPasswd) {
 
         return new Promise((resolve, reject)=> {
-                host = this.provider.managers.hostManager.findValidHost(host,appUser);
+                host = this.provider.managers.hostManager.findValidHost(host);
                 let cmd = 'ansible';
                 let args = this.getArgs(privkey, username, passwd);
                 let opts = this.getOpts(checkhostkey);
                 args.push("-m");
                 args.push("setup");
                 args.push(host.name);
-                if (this.provider.checkPermissions(appUser, host, "x")) {
-                    let proc = child_process.spawn(cmd, args, opts);
-                    proc.stdout.on('data', (data)=> {
-                        if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
-                            resolve(data.toString());
+                let proc = child_process.spawn(cmd, args, opts);
+                proc.stdout.on('data', (data)=> {
+                    if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
+                        resolve(data.toString());
+                    }
+                });
+                proc.stderr.on('data', (stderr)=> {
+                    //this happens when ansible can't suppress the echo to the terminal
+                    //all we do is ingore it and proceed. Not great as it leads to the
+                    //problem with a trailing error that needs to be ignored.
+                    if (!this.checkPasswordPrompt(proc, stderr, passwd, sudoPasswd)) {
+                        //hack for stderr -> empty error message generates incorrect response
+                        //we ignore it
+                        if (stderr.toString().length > 1) {
+                            reject(stderr.toString());
                         }
-                    });
-                    proc.stderr.on('data', (stderr)=> {
-                        //this happens when ansible can't suppress the echo to the terminal
-                        //all we do is ingore it and proceed. Not great as it leads to the
-                        //problem with a trailing error that needs to be ignored.
-                        if (!this.checkPasswordPrompt(proc, stderr, passwd, sudoPasswd)) {
-                            //hack for stderr -> empty error message generates incorrect response
-                            //we ignore it
-                            if (stderr.toString().length > 1) {
-                                reject(stderr.toString());
-                            }
-                        }
-                    });
-                } else {
-                    logger.logAndThrowSecruityPermission(appUser, host,"engine get info");
-                }
+                    }
+                });
             }
         );
     }
@@ -313,7 +300,6 @@ class AnsibleEngine extends Engine {
      * Run an ansible playbook!
      *
      * @param host
-     * @param appUser
      * @param checkhostkey
      * @param privkeyPath
      * @param username
@@ -321,46 +307,42 @@ class AnsibleEngine extends Engine {
      * @param sudoPasswd
      * @returns {Promise}
      */
-    runPlaybook(host, appUser, checkhostkey, privkeyPath, username, passwd, sudoPasswd) {
+    runPlaybook(host, checkhostkey, privkeyPath, username, passwd, sudoPasswd) {
 
         let cmd = 'ansible-playbook';
         let args = this.getArgs(privkeyPath, username, passwd);
         let opts = this.getOpts(checkhostkey);
         args.push(`${host.name}.yml`);
         return new Promise((resolve)=> {
-            host = this.provider.managers.hostManager.findValidHost(host, appUser);
-            if (this.provider.checkPermissions(appUser, host, "x")) {
-                let proc = child_process.spawn(cmd, args, opts);
-                let results = "";
+            host = this.provider.managers.hostManager.findValidHost(host);
+            let proc = child_process.spawn(cmd, args, opts);
+            let results = "";
 
-                proc.on('exit', (code)=> {
-                    let msg = "";
-                    if (code != 0) {
-                        msg = "**************** Playbook Failed ****************\n";
-                        msg = msg.concat(results, "\n**************** Playbook failed ****************\n");
-                    } else {
-                        msg = "**************** Playbook Succeeded ****************\n";
-                        msg = msg.concat(results, "\n**************** Playbook Succeeded ****************\n");
-                    }
-                    resolve(msg);
-                });
+            proc.on('exit', (code)=> {
+                let msg = "";
+                if (code != 0) {
+                    msg = "**************** Playbook Failed ****************\n";
+                    msg = msg.concat(results, "\n**************** Playbook failed ****************\n");
+                } else {
+                    msg = "**************** Playbook Succeeded ****************\n";
+                    msg = msg.concat(results, "\n**************** Playbook Succeeded ****************\n");
+                }
+                resolve(msg);
+            });
 
-                proc.stdout.on('data', (data)=> {
-                    if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
-                            results =results.concat(data.toString());
-                    }
-                });
+            proc.stdout.on('data', (data)=> {
+                if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
+                    results = results.concat(data.toString());
+                }
+            });
 
-                proc.stderr.on('data', (data)=> {
-                    if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
-                        if (data.toString().length > 3) {
-                            throw new Error(data.toString());
-                        }
+            proc.stderr.on('data', (data)=> {
+                if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
+                    if (data.toString().length > 3) {
+                        throw new Error(data.toString());
                     }
-                });
-            } else {
-                logger.logAndThrowSecruityPermission(appUser, host, "engine run playbook");
-            }
+                }
+            });
         });
 
     }

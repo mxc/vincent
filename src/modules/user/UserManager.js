@@ -258,7 +258,7 @@ class UserManager extends Manager {
         let self = this;
         context.Host.prototype.addUserAccount = function (user) {
             try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name,appUser);
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
                 if (!host) {
                     console.log(`Could not find ${this.name} in host managers host list`);
                     return;
@@ -285,7 +285,7 @@ class UserManager extends Manager {
             }
         };
         context.Host.prototype.listUserAccounts = function () {
-            let host = self.provider.managers.hostManager.findValidHost(this.name,appUser);
+            let host = self.provider.managers.hostManager.findValidHost(this.name);
             let userAccounts = self.getUserAccounts(host);
             if (userAccounts) {
                 return userAccounts.map((userAcc)=> {

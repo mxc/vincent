@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/17.
  */
 
-import {app} from '../../../../Vincent';
+import Vincent from '../../../../Vincent';
 import HostGroupElement from '../../HostGroup';
 import GroupElement from '../../Group';
 import Group from  './Group';
@@ -23,7 +23,7 @@ class HostGroup {
             } else {
                 groupname = data.group.name;
             }
-            let group = app.provider.groupManager.findValidGroupByName(groupname);
+            let group = Vincent.app.provider.groupManager.findValidGroupByName(groupname);
             if (group && data.members) {
                 this[_hostGroup] = new HostGroupElement({
                     group: group,

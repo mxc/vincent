@@ -15,6 +15,7 @@ describe('When a new host is initialised for the ansible engine it', ()=> {
         function (done) {
             this.timeout(15000);
             let provider = new Provider();
+            //provider.init();
             provider.managers.sshManager.loadFromJson([
                 {
                     name: "strict",

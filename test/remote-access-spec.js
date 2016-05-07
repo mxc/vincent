@@ -77,13 +77,13 @@ describe("HostManager configuration without remote access definition", ()=> {
             ]
         }];
 
-    var provider = new Provider();
-    //inject mocks
+    let provider = new Provider();
+    //provider.init();    //inject mocks
     let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-    let host = provider.managers.hostManager.findValidHost("www.example.com",appUser);
+    let host = provider.managers.hostManager.findValidHost("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("same");
@@ -177,13 +177,14 @@ describe("HostManager configuration with remote access definition", ()=> {
             ]
         }];
 
-    var provider = new Provider();
+ let provider = new Provider();
+   // provider.init();    //inject mocks
     //inject mocks
     let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-    let host = provider.managers.hostManager.findValidHost("www.example.com",appUser);
+    let host = provider.managers.hostManager.findValidHost("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("mark");
@@ -282,7 +283,8 @@ describe("HostManager configuration with invalid remote access definition", ()=>
             ]
         }];
 
-    var provider = new Provider();
+    let provider = new Provider();
+    //provider.init();    //inject mocks
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;

@@ -1,7 +1,7 @@
 /**
  * Created by mark on 2016/04/17.
  */
-import {app} from '../../../../Vincent';
+import Vincent from '../../../../Vincent';
 import Group from "./Group";
 
 const _appUser = Symbol["appUser"];
@@ -14,7 +14,7 @@ class GroupManager{
     }
 
     list() {
-        return app.provider.managers.groupManager.validGroups.map((group=> {
+        return Vincent.app.provider.managers.groupManager.validGroups.map((group=> {
             return group.name;
         }));
     }
@@ -29,7 +29,7 @@ class GroupManager{
     }
 
     save(){
-        app.provider.textDatastore.saveGroups();
+        Vincent.app.provider.textDatastore.saveGroups();
     }
 }
 

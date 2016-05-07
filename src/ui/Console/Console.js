@@ -3,11 +3,10 @@
  */
 
 import repl from 'repl';
-import Host from './../../modules/host/ui/console/Host';
 import logger from '../../Logger';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import Config from './Config';
-import {app} from "../../Vincent";
+import Vincent from "../../Vincent";
 import Ui from '../Ui';
 
 class Console extends Ui {
@@ -52,7 +51,7 @@ class Console extends Ui {
 
         //allow quit and exit for standalone cli mode only.
         //Killling the process in server mode would terminate the server
-        if (app.args.cli) {
+        if (Vincent.app.args.cli) {
             context.quit = function () {
                 console.log("Vincent console exited");
                 logger.info("Vincent console exited");
@@ -67,7 +66,7 @@ class Console extends Ui {
         }
         
         //logout funciton available in server mode only
-        if (app.args.daemon){
+        if (Vincent.app.args.daemon){
             context.logout=()=>{
                 this.session.socket.destroy();
             }
@@ -76,7 +75,7 @@ class Console extends Ui {
         //Load all hosts into memory
         context.loadAll = ()=>{
           try {
-              if (app.provider.loadAll()) {
+              if (Vincent.app.provider.loadAll()) {
                   console.log("Successfully loaded data store");
               } else {
                   console.log("There were errors during data store load.");
@@ -94,13 +93,13 @@ class Console extends Ui {
         ModuleLoader.managerOrderedIterator((managerClass)=> {
             try {
                 let name = managerClass.name.charAt(0).toLocaleLowerCase() + managerClass.name.slice(1);
-                app.provider.managers[name].loadConsoleUI(context,this.session.appUser);
+                Vincent.app.provider.managers[name].loadConsoleUI(context,this.session.appUser);
             } catch (e) {
                 logger.warn(e);
                 logger.warn("module does not offer console ui");
                 console.log(e);
             }
-        },app.provider);
+        },Vincent.app.provider);
     }
 
 }

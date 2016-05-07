@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/16.
  */
 
-import {app} from '../../../../Vincent';
+import Vincent from '../../../../Vincent';
 import UserElement from '../../User';
 import logger from '../../../../Logger';
 
@@ -19,7 +19,7 @@ class User {
     constructor(user,appUser) {
         if (typeof user === 'string' || (user.name && !user instanceof UserElement)) {
             this[_user] = new UserElement(user);
-            app.provider.managers.userManager.addValidUser(this[_user]);
+            Vincent.app.provider.managers.userManager.addValidUser(this[_user]);
         } else if (user instanceof UserElement) {
             this[_user] = user;
         } else {
@@ -41,7 +41,7 @@ class User {
     }
 
     set uid(uid) {
-        app.provider.userManager.updateUserUid(this[_user],uid);
+        Vincent.app.provider.userManager.updateUserUid(this[_user],uid);
     }
 
     get state() {

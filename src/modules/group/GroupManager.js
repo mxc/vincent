@@ -226,7 +226,7 @@ class GroupManager extends Manager {
         let self = this;
         context.Host.prototype.addHostGroup = function (data) {
             try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name,appUser);
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
                 if (!host) {
                     console.log(`Could not find ${this.name} in host managers host list`);
                     return;
@@ -256,7 +256,7 @@ class GroupManager extends Manager {
             }
         };
         context.Host.prototype.listHostGroups = function () {
-            let host = self.provider.managers.hostManager.findValidHost(this.name,appUser);
+            let host = self.provider.managers.hostManager.findValidHost(this.name);
             let hostGroups = self.getHostGroups(host);
             if (hostGroups) {
                 return hostGroups.map((hostGroup)=> {

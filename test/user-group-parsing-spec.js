@@ -26,7 +26,8 @@ var users = [
 
 
 describe("validating group configuration", function () {
-    var provider = new Provider();
+    let provider = new Provider();
+    //provider.init();    //inject mocks
     provider.managers.groupManager.loadFromJson(groups);
 
     it("should detect duplicate group names", function () {
@@ -62,7 +63,8 @@ describe("validating group configuration", function () {
 });
 
 describe("validating user configuration", function () {
-    var provider = new Provider();
+    let provider = new Provider();
+    //provider.init();    //inject mocks
     provider.managers.userManager.loadFromJson(users);
 
     it("should detect duplicate user names", function () {

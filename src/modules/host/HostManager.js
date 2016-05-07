@@ -6,10 +6,10 @@ import Provider from '../../Provider';
 import logger from '../../Logger';
 import Manager from '../base/Manager';
 import fs from 'fs';
-import ConsoleHostManager from './ui/console/HostManager';
+import ConsoleHostManager from './ui/console/HostManagerUI';
 import path from "path";
 import ModuleLoader from '../../utilities/ModuleLoader';
-import AppUser from '../../ui/AppUser';
+
 
 class HostManager extends Manager {
 
@@ -47,8 +47,7 @@ class HostManager extends Manager {
     }
 
 
-    findValidHost(vhost, appUser) {
-
+    findValidHost(vhost) {
         //accommodate Host object or hostname string
         if (typeof vhost === 'string') {
             var hostname = vhost;
@@ -60,11 +59,7 @@ class HostManager extends Manager {
 
         return this.validHosts.find((host)=> {
             if (host.name === hostname) {
-                if (this.provider.checkPermissions(appUser, host, "r")) {
-                    return host;
-                } else {
-                    logger.logAndThrowSecruityPermission(appUser, host, "find valid host");
-                }
+                return host;
             }
         });
     }
@@ -98,7 +93,7 @@ class HostManager extends Manager {
     /**
      Method to provision a host for the specific engine.
      */
-    provisionHostForEngine(targetHost, appUser) {
+    provisionHostForEngine(targetHost) {
         if (typeof targetHost == 'object') {
             if (!targetHost.name) {
                 throw new Error("provisioning a host for configu engine  requires the targetHost parameter object to " +
@@ -106,9 +101,9 @@ class HostManager extends Manager {
             }
             //if (!targetHost instanceof Host) {
             //check if it is a valud host and user has access rights to host.
-            targetHost = this.findValidHost(targetHost, appUser);
+            targetHost = this.findValidHost(targetHost);
             //}
-           return this.provider.engine.export(targetHost, appUser);
+            return this.provider.engine.export(targetHost);
         } else {
             throw new Error("The parameter  host to provisionHostForEngine must be of type Host or " +
                 "an HostComponent object");
@@ -183,14 +178,10 @@ class HostManager extends Manager {
         return host;
     }
 
-    export(appUser) {
+    export() {
         var obj = [];
         this.validHosts.forEach((host)=> {
-            if(this.provider.checkPermissions(appUser,host,"w")) {
-                obj.push(host.export());
-            }else{
-                logger.securityWarning(appUser,host,"host manager export");
-            }
+            obj.push(host.export());
         });
         return obj;
     }

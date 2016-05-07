@@ -3,7 +3,7 @@
  */
 
 import User from './User';
-import {app} from '../../../../Vincent';
+import Vincent from '../../../../Vincent';
 import UserAccountElement from '../../../user/UserAccount';
 
 const _userAccount = Symbol("userAccount");
@@ -58,9 +58,9 @@ class UserAccount {
 
     addAuthorizedUser(user) {
         if (typeof user === "string") {
-            var _user = app.provider.userManager.findValidUserByName(user);
+            var _user = Vincent.app.provider.userManager.findValidUserByName(user);
         } else if (user instanceof User) {
-            var _user = app.provider.userManager.findValidGroupByName(user.name);
+            var _user = Vincent.app.provider.userManager.findValidGroupByName(user.name);
         }
         if (_user) {
             this[_userAccount].addAuthorizedUser(_user);

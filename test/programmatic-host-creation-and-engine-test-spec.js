@@ -80,7 +80,8 @@ describe("The system", function () {
 //     });
 // });
 
-    let provider = new Provider();
+    let provider = new Provider(`${process.cwd()}/conf-example`);
+    //provider.init(`${process.cwd()}/conf-example`);
     let ansiblegen = new AnsibleGenerator(provider);
     let appUser = new AppUser("einstein",["sysadmin"]);
     
