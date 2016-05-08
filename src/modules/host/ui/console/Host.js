@@ -1,24 +1,25 @@
 /**
  * Created by mark on 2016/04/16.
  */
-import Provider from '../../../../Provider';
-import Host from '../../Host';
+
+import HostEntity from '../../Host';
 import User from './../../../user/ui/console/User';
 import Vincent from '../../../../Vincent';
-
+import Permissions from '../../../../ui/PermissionsUIManager';
 
 const _host = Symbol("host");
 const _appUser = Symbol("appUser");
 
-class HostUI {
+class Host extends Permissions {
 
     constructor(host, appUser) {
         //if parameter is of type HostElement (real Host) then we assume it is already
         //added to valid host and this is a reconstruction.
-        if (host instanceof Host) {
+        super();
+        if (host instanceof HostEntity) {
             this[_host] = host;
         } else if (typeof host === 'string') {
-            this[_host] = new Host(Vincent.app.provider, host, appUser.name, appUser.primaryGroup, 760);
+            this[_host] = new HostEntity(Vincent.app.provider, host, appUser.name, appUser.primaryGroup, 760);
             Vincent.app.provider.managers.hostManager.addHost(this[_host]);
         } else {
             throw new Error("Host constructor requires a host name or ip address as a string parameter");
@@ -126,4 +127,4 @@ class HostUI {
 
 }
 
-export default HostUI;
+export default Host;

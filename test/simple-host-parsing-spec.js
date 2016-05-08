@@ -5,7 +5,6 @@ import Host from "../src/modules/host/Host";
 import Group from "../src/modules/group/Group";
 import {expect} from 'chai';
 import Docker from './support/Docker';
-import child_process from 'child_process';
 import AppUser from '../src/ui/AppUser';
 
 describe("validating host configuration", function () {

@@ -6,7 +6,7 @@ import Provider from '../../Provider';
 import logger from '../../Logger';
 import Manager from '../base/Manager';
 import fs from 'fs';
-import ConsoleHostManager from './ui/console/HostManagerUI';
+import ConsoleHostManager from './ui/console/HostManager';
 import path from "path";
 import ModuleLoader from '../../utilities/ModuleLoader';
 
@@ -201,8 +201,6 @@ class HostManager extends Manager {
 
     loadConsoleUI(context, appUser) {
         context.hostManager = new ConsoleHostManager(appUser);
-        //context.Host = ConsoleHost;
-        //console.log(context.Host);
     }
 
     static getDependencies() {

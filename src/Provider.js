@@ -11,8 +11,8 @@ import AppUser from './ui/AppUser';
 
 
 class Provider {
-    
-    constructor(appDir){
+
+    constructor(appDir) {
         this.managers = {};
         this.configDir = appDir;
         if (!this.configDir) {
@@ -26,7 +26,7 @@ class Provider {
         //todo lookup default engine from config file.
         this._engine = new Engine(this);
     }
-    
+
     makeDBDir() {
         try {
             var stat = fs.statSync(this.getDBDir());
@@ -299,10 +299,10 @@ class Provider {
     //perm may be r,w,x or 4,2,1
     checkPermissions(appUser, host, perm) {
 
-        if (!appUser || !appUser instanceof AppUser){
+        if (!appUser || !appUser instanceof AppUser) {
             logger.logAndThrow("Parameter appUser must be of type AppUser and cannot be null or undefined");
         }
-        
+
         if (appUser.isAdmin) {
             return true;
         }
@@ -310,7 +310,7 @@ class Provider {
         let nperm = undefined;
         if (typeof perm === 'number' && (perm == 1 || perm == 4 || perm == 2)) {
             nperm = perm;
-        } else if (typeof perm === 'string' && perm.length===1) {
+        } else if (typeof perm === 'string' && perm.length === 1) {
             nperm = this._permStringToInteger(perm);
         }
 
@@ -322,15 +322,15 @@ class Provider {
         let group = host.group;
         let perms = host.permissions.toString(8);
 
-        if (appUser.name === owner && (parseInt(perms.charAt(0)) & nperm)!=0) {
+        if (appUser.name === owner && (parseInt(perms.charAt(0)) & nperm) != 0) {
             return true;
         }
 
-        if (appUser.groups.indexOf(group) != -1 && (parseInt(perms.charAt(1)) & nperm)!=0) {
+        if (appUser.groups.indexOf(group) != -1 && (parseInt(perms.charAt(1)) & nperm) != 0) {
             return true;
         }
 
-        if (parseInt((perms.charAt(2)) & nperm) !=0) {
+        if (parseInt((perms.charAt(2)) & nperm) != 0) {
             return true;
         }
 
@@ -340,12 +340,18 @@ class Provider {
     //perms may be an 3 digit decimal or a 9 character string (rwx){3}. If a number is provided it is assumed to be
     //octal.
     _validateAndConvertPermissions(perms) {
+        
+        //if we have been pased an octal as a string
+        if (typeof perms === "string" && perms.length === 3) {
+            perms = parseInt(perms);
+        }
+
         if (Number.isInteger(perms)) {
             if (isNaN(perms) || perms > "0777") {
                 logger.logAndThrow(`Invalid permissions syntax for ${perms} - max value exceeded.`);
             }
             return parseInt("" + perms, 8);
-        } else if (typeof perms === 'string') {
+        } else if (typeof perms === 'string' && perms.length === 9) {
             let regex = /([r\-]{1}[w\-]{1}[x\-]{1})?/g;
             //var result = regex.exec(perms);
             let octal = "";
@@ -354,6 +360,7 @@ class Provider {
                 octal = octal.concat(this._permStringToInteger(regex.exec(perms)[1]));
                 octal = octal.concat(this._permStringToInteger(regex.exec(perms)[1]));
             } catch (e) {
+                console.log(e);
                 logger.logAndThrow(`Invalid permissions syntax for ${perms} - string format error`);
             }
             return parseInt(octal, 8); //convert it to decimal;
@@ -370,9 +377,9 @@ class Provider {
             if (!str.match(regex)) {
                 logger.logAndThrow(`Invalid permissions syntax for ${str} - _permStringToInteger error`);
             }
-            if (str.charAt(0) === 'r') perm +=4;
+            if (str.charAt(0) === 'r') perm += 4;
             if (str.charAt(1) === "w") perm += +2;
-            if (str.charAt(2) == 'x') perm +=1;
+            if (str.charAt(2) == 'x') perm += 1;
         } else if (str.match(/^[rwx]{1}$/)) {
             switch (str) {
                 case 'r':
@@ -392,7 +399,7 @@ class Provider {
     }
 
 
-    _integerToOctalString(perm){
+    _integerToOctalString(perm) {
         let perms = perm.toString(8);
         perms = perms.concat(this._singleIntegerToOctalString(parseInt(perms.charAt(0))),
             this._singleIntegerToOctalString(parseInt(perms.charAt(1))),
@@ -403,7 +410,7 @@ class Provider {
 
     //convert single digit integer to permission string. Number is assumed to be an octal
     _singleIntegerToOctalString(perm) {
-        if (typeof perm !== "number" || perm > "07" || perm<0) {
+        if (typeof perm !== "number" || perm > "07" || perm < 0) {
             logger.logAndThrow(`Invalid permissions syntax for ${perm} - octalToString error`);
         }
         let result = "";
@@ -436,30 +443,29 @@ class Provider {
         return result;
     }
 
-   _readAttributeCheck(appUser,host,callback){
-       if (this.checkPermissions(appUser,host,"r")){
-           return callback();
-       }else{
-           logger.logAndThrowSecruityPermission(appUser,host,"read attribute");
-       }
-   }
-
-    _writeAttributeCheck(appUser,host,callback){
-        if (this.checkPermissions(appUser,host,"w")){
-           return callback();
-        }else{
-            logger.logAndThrowSecruityPermission(appUser,host,"write attribute");
+    _readAttributeCheck(appUser, permObj, callback) {
+        if (this.checkPermissions(appUser, permObj, "r")) {
+            return callback();
+        } else {
+            logger.logAndThrowSecruityPermission(appUser, permObj, "read attribute");
         }
     }
 
-    _executeAttributeCheck(appUser,host,callback){
-        if (this.checkPermissions(appUser,host,"x")){
-           return callback();
-        }else{
-            logger.logAndThrowSecruityPermission(appUser,host,"execute attribute");
+    _writeAttributeCheck(appUser, permObj, callback) {
+        if (this.checkPermissions(appUser, permObj, "w")) {
+            return callback();
+        } else {
+            logger.logAndThrowSecruityPermission(appUser, permObj, "write attribute");
         }
     }
-    
+
+    _executeAttributeCheck(appUser, permObj, callback) {
+        if (this.checkPermissions(appUser, permObj, "x")) {
+            return callback();
+        } else {
+            logger.logAndThrowSecruityPermission(appUser, permObj, "execute attribute");
+        }
+    }
 
 
 }

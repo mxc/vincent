@@ -5,10 +5,7 @@
 
 class Manager {
     
-    // initialiseHost(host){
-    //     throw new Error ("Method must be overridden in child object");
-    // }
-    
+   
     updateHost(host,hosts,hostDef){
         throw new Error ("Method updateHost must be overridden in child object");
     }

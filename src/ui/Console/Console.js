@@ -65,7 +65,7 @@ class Console extends Ui {
             };
         }
         
-        //logout funciton available in server mode only
+        //logout function available in server mode only
         if (Vincent.app.args.daemon){
             context.logout=()=>{
                 this.session.socket.destroy();

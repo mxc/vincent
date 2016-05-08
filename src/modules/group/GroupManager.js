@@ -3,16 +3,16 @@
 import Group from './Group';
 import logger from './../../Logger';
 import Provider from './../../Provider';
-import Manager from './../base/Manager';
+import PermissionsManager from './../base/PermissionsManager';
 import HostGroup from './HostGroup';
 import UserManager from './../user/UserManager';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import ConsoleGroupManager from './ui/console/GroupManager';
 import ConsoleGroup from './ui/console/Group';
 import ConsoleHostGroup from './ui/console/HostGroup';
-import path from "path";
 
-class GroupManager extends Manager {
+
+class GroupManager extends PermissionsManager {
 
     constructor(provider) {
         if (!provider instanceof Provider) {
@@ -92,8 +92,11 @@ class GroupManager extends Manager {
     }
 
     loadFromJson(groupDef) {
-        if (Array.isArray(groupDef)) {
-            groupDef.forEach((data) => {
+        this.owner = groupDef.owner;
+        this.group = groupDef.group;
+        this.permissions=groupDef.permissions;
+        if (Array.isArray(groupDef.groups)) {
+            groupDef.groups.forEach((data) => {
                 try {
                     var group = new Group(data);
                     this.addValidGroup(group);
@@ -102,14 +105,19 @@ class GroupManager extends Manager {
                 }
             });
         } else {
-            throw new Error("GroupDef parameter must be an array of groupDef data");
+            throw new Error("GroupDef.groups must be an array of groups' data");
         }
     }
 
     export() {
-        var obj = [];
+        var obj = {
+            owner: this.owner,
+            group: this.group,
+            permissions: this.permissions,
+            groups: []
+        };
         this.validGroups.forEach((group)=> {
-            obj.push(group.export());
+            obj.groups.push(group.export());
         });
         return obj;
     }

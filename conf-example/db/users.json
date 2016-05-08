@@ -1,4 +1,9 @@
-[
+{
+
+"owner": "root",
+"group":"useradmin",
+"permissions":664,
+"users":[
   {
     "name": "user1",
     "key": "user1.pub",
@@ -19,3 +24,5 @@
     "state": "present"
   }
 ]
+
+}

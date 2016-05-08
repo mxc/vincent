@@ -4,25 +4,35 @@ import Provider from './../src/Provider';
 import {expect} from 'chai';
 
 
-var groups = [
-    {name: 'group1'},
-    {name: 'group2'},
-    {name: 'group2'},
-    {name: 'group3', gid: 1000},
-    {name: 'group4', gid: 1000},
-    {}
-];
+var groups = {
+    "owner": "root",
+    "group": "groupadmin",
+    "permissions": "660",
+    "groups": [
+        {name: 'group1'},
+        {name: 'group2'},
+        {name: 'group2'},
+        {name: 'group3', gid: 1000},
+        {name: 'group4', gid: 1000},
+        {gid:10001}
+    ]
+};
 
-var users = [
-    {name: 'user1', key: 'user1.pub', state: 'present'},
-    {name: 'user2', state: 'absent'},
-    {name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'},
-    {name: 'user4', state: 'absent'},
-    {name: 'user5', state: 'deleted'},
-    {name: 'user2', state: 'present'},
-    {uid: 2000},
-    {name: 'user6', state: 'present', uid: 1000}
-];
+var users = {
+    "owner": "root",
+    "group": "useradmin",
+    "permissions":"660",
+    "users": [
+        {name: 'user1', key: 'user1.pub', state: 'present'},
+        {name: 'user2', state: 'absent'},
+        {name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'},
+        {name: 'user4', state: 'absent'},
+        {name: 'user5', state: 'deleted'},
+        {name: 'user2', state: 'present'},
+        {uid: 2000},
+        {name: 'user6', state: 'present', uid: 1000}
+    ]
+};
 
 
 describe("validating group configuration", function () {
@@ -43,21 +53,26 @@ describe("validating group configuration", function () {
     });
 
     it("should return an array of valid groups", function () {
-        var validGroups = [
-            {
-                name: 'group1',
-                state: 'present'
-            },
-            {
-                name: 'group2',
-                state: 'present'
-            },
-            {
-                name: 'group3',
-                gid: 1000,
-                state: 'present'
-            }
-        ];
+        var validGroups = {
+            owner: "root",
+            group: "groupadmin",
+            permissions: parseInt(660, 8),
+            groups: [
+                {
+                    name: 'group1',
+                    state: 'present'
+                },
+                {
+                    name: 'group2',
+                    state: 'present'
+                },
+                {
+                    name: 'group3',
+                    gid: 1000,
+                    state: 'present'
+                }
+            ]
+        };
         expect(provider.managers.groupManager.export()).to.deep.equal(validGroups);
     });
 });
@@ -81,12 +96,17 @@ describe("validating user configuration", function () {
     });
 
     it("should return an array of valid users", function () {
-        var validUsers = [
-            {name: 'user1', key: 'user1.pub', state: 'present', uid: undefined},
-            {name: 'user2', key: undefined, state: 'absent', uid: undefined},
-            {name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'},
-            {name: 'user4', key: undefined, state: 'absent', uid: undefined}
-        ];
+        var validUsers = {
+            owner: "root",
+            group: "useradmin",
+            permissions: "664",
+            users: [
+                {name: 'user1', key: 'user1.pub', state: 'present', uid: undefined},
+                {name: 'user2', key: undefined, state: 'absent', uid: undefined},
+                {name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'},
+                {name: 'user4', key: undefined, state: 'absent', uid: undefined}
+            ]
+        };
         expect(provider.managers.userManager.export()).to.deep.equal(validUsers);
     });
 

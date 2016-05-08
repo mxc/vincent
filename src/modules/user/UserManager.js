@@ -2,20 +2,17 @@
 
 import User from './User';
 import Host from '../host/Host';
-import UserCategories from './UserCategories';
 import ConsoleUser from './ui/console/User';
 import ConsoleUserAccount from './ui/console/UserAccount';
 import ConsoleUserManager from './ui/console/UserManager';
-import HostManager from '../host/HostManager';
 import UserAccount from './UserAccount';
 import Provider from './../../Provider';
 import logger from './../../Logger';
-import Manager from '../base/Manager';
+import PermissionsManager from '../base/PermissionsManager';
 import ModuleLoader from '../../utilities/ModuleLoader';
-import path from "path";
 
 
-class UserManager extends Manager {
+class UserManager extends PermissionsManager {
 
     constructor(provider) {
         if (!provider instanceof Provider || !provider) {
@@ -26,6 +23,13 @@ class UserManager extends Manager {
         this.validUsers = [];
         this.errors = [];
         this.engines = ModuleLoader.loadEngines('user', provider);
+        try {
+            this.owner = "root"; //default owner
+            this.group = "useradmin"; //default group
+            this.permissions = 664; //default permissions
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     exportToEngine(engine, host, struct) {
@@ -117,22 +121,37 @@ class UserManager extends Manager {
     }
 
     export() {
-        var obj = [];
+        var obj = {
+            owner: this.owner,
+            group: this.group,
+            permissions: this.permissions.toString(8),
+            users: []
+        };
+
         this.validUsers.forEach((user)=> {
-            obj.push(user.export());
+            obj.users.push(user.export());
         });
+
         return obj;
     }
 
     loadFromJson(userDef) {
-        userDef.forEach((data) => {
-            try {
-                var user = new User(data);
-                this.addValidUser(user);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error validating user. ${e.message}`, this.errors);
-            }
-        });
+
+        let owner = userDef.owner;
+        let group = userDef.group;
+        let permissions = userDef.permissions;
+        if (Array.isArray(userDef.users)) {
+            userDef.users.forEach((data) => {
+                try {
+                    var user = new User(data);
+                    this.addValidUser(user);
+                } catch (e) {
+                    logger.logAndAddToErrors(`Error validating user. ${e.message}`, this.errors);
+                }
+            });
+        } else {
+            throw new Error("UserDef.users must be an array of users' data");
+        }
     }
 
     loadFromFile() {
@@ -254,50 +273,78 @@ class UserManager extends Manager {
      * Function to allow modules to manipulate the repl context to add functionality
      * @param context
      */
-    loadConsoleUI(context,appUser) {
+    loadConsoleUI(context, appUser) {
         let self = this;
         context.Host.prototype.addUserAccount = function (user) {
             try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name);
-                if (!host) {
-                    console.log(`Could not find ${this.name} in host managers host list`);
-                    return;
-                }
-                if (typeof user === "string") {
-                    var _user = self.provider.managers.userManager.findValidUserByName(user);
-                } else if (typeof user === "object" && user.name) {
-                    var _user = self.provider.managers.userManager.findValidUserByName(user.name);
-                }
-                if (_user) {
-                    let userdata = {user: _user};
-                    if (user.authorized_keys) {
-                        userdata.authorized_keys = user.authorized_keys;
+                return Vincent.provider._writeAttributeCheck(this[_appUser], host, ()=> {
+                    let host = self.provider.managers.hostManager.findValidHost(this.name);
+                    if (!host) {
+                        console.log(`Could not find ${this.name} in host managers host list`);
+                        return false;
                     }
-                    let userAccount = new UserAccount(self.provider, userdata);
-                    self.addUserAccountToHost(host, userAccount);
-                } else {
-                    console.log("user not found in valid user list");
-                    return;
-                }
-                console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}`);
+                    if (typeof user === "string") {
+                        var _user = self.provider.managers.userManager.findValidUserByName(user);
+                    } else if (typeof user === "object" && user.name) {
+                        var _user = self.provider.managers.userManager.findValidUserByName(user.name);
+                    }
+                    if (_user) {
+                        let userdata = {user: _user};
+                        if (user.authorized_keys) {
+                            userdata.authorized_keys = user.authorized_keys;
+                        }
+                        let userAccount = new UserAccount(self.provider, userdata);
+                        self.addUserAccountToHost(host, userAccount);
+                    } else {
+                        console.log("user not found in valid user list");
+                        return;
+                    }
+                    console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}`);
+                    return true;
+                });
             } catch (e) {
                 console.log(e);
+                return false;
             }
         };
         context.Host.prototype.listUserAccounts = function () {
-            let host = self.provider.managers.hostManager.findValidHost(this.name);
-            let userAccounts = self.getUserAccounts(host);
-            if (userAccounts) {
-                return userAccounts.map((userAcc)=> {
-                    return new ConsoleUserAccount(userAcc);
+            try {
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
+                return Vincent.app.provider._readAttributeCheck(this[_appUser], host, ()=> {
+                    let userAccounts = self.getUserAccounts(host);
+                    if (userAccounts) {
+                        return userAccounts.map((userAcc)=> {
+                            return new ConsoleUserAccount(userAcc);
+                        });
+                    } else {
+                        return `No user accounts defined for host ${this.name}`;
+                    }
                 });
-            } else {
-                return `No user accounts defined for host ${this.name}`;
+            } catch (e) {
+                console.log(e);
+                return false;
             }
         };
+        
+        context.Host.prototype.getUserAccount=function(username){
+            try {
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
+                return Vincent.app.provider._readAttributeCheck(this[_appUser], host, ()=> {
+                    let userAccount = self.findUserAccountForHostByName(host,username);
+                    if (userAccount) {
+                        return new ConsoleUserAccount(userAccount,this[_appUser]);
+                    } else {
+                        console.log(`No user accounts defined for host ${this.name}`);
+                        return false;
+                    }
+                });
+            } catch (e) {
+                console.log(e);
+                return false;
+            }            
+        }
 
         context.userManager = new ConsoleUserManager(appUser);
-        context.User = ConsoleUser;
     }
 
     static getDependencies() {

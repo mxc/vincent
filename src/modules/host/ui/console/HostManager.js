@@ -1,22 +1,25 @@
 /**
  * Created by mark on 2016/04/16.
  */
-import HostUI from './HostUI';
+import Host from './Host';
 import Provider from '../../../../Provider';
 import Vincent from '../../../../Vincent';
 import logger from '../../../../Logger';
+
 const _appUser = Symbol("appUser");
+const _manager = Symbol("manager");
 
-class HostManagerUI {
 
+class HostManager {
 
     constructor(appUser) {
         this[_appUser] = appUser;
+        this[_manager] = Vincent.app.provider.managers.hostManager;
     }
 
     addHost(hostname) {
         if (typeof hostname === 'string') {
-            var host = new HostUI(hostname, this[_appUser]);
+            var host = new Host(hostname, this[_appUser]);
             console.log(`created host ${hostname}`);
             return host;
         } else {
@@ -25,7 +28,7 @@ class HostManagerUI {
     }
 
     list() {
-        let tmpList = Vincent.app.provider.managers.hostManager.validHosts.filter((host=> {
+        let tmpList = this[_manager].validHosts.filter((host=> {
             try {
                 return Vincent.app.provider._readAttributeCheck(this[_appUser], host, ()=> {
                     return true
@@ -35,34 +38,48 @@ class HostManagerUI {
             }
         }));
         return tmpList.map((host)=> {
-            return new HostUI(host, this[_appUser]);
+            return new Host(host, this[_appUser]);
         });
     }
 
     getHost(hostname) {
-        let host = Vincent.app.provider.managers.hostManager.findValidHost(hostname);
-        return Vincent.app.provider._readAttributeCheck(this[_appUser], host, () => {
-            return new HostUI(host, this[_appUser]);
-        });
+        try {
+            let host = this[_manager].findValidHost(hostname);
+            return Vincent.app.provider._readAttributeCheck(this[_appUser], host, () => {
+                return new Host(host, this[_appUser]);
+            });
+        } catch (e) {
+            console.log(e.message);
+            return false;
+        }
     }
 
     saveHosts() {
         console.log("saving hosts");
-        Vincent.app.provider.managers.hostManager.validHosts.forEach((host)=> {
-            this.saveHost(host);
+        let counter = 0;
+        this[_manager].validHosts.forEach((host)=> {
+            if (this.saveHost(host)) {
+                counter++;
+            }
         });
+        return counter;
     }
 
     saveHost(host) {
-        if (typeof host === 'string') {
-            var realhost = Vincent.app.provider.managers.hostManager.findValidHost(host);
-        } else {
-            realhost = host;
+        try {
+            if (typeof host === 'string') {
+                var realhost = this[_manager].findValidHost(host);
+            } else {
+                realhost = host;
+            }
+            return Vincent.app.provider._writeAttributeCheck(this[_appUser], realhost, () => {
+                return this[_manager].saveHost(realhost);
+                console.log(`host ${realhost.name} successfully saved`);
+            });
+        }catch(e){
+            console.log(e);
+            return false;
         }
-        return Vincent.app.provider._writeAttributeCheck(this[_appUser], realhost, () => {
-           return Vincent.app.provider.managers.hostManager.saveHost(realhost);
-            console.log(`host ${realhost.name} successfully saved`);
-        });
     }
 
     generatePlaybooks() {
@@ -85,4 +102,4 @@ class HostManagerUI {
 
 }
 
-export default HostManagerUI;
+export default HostManager;

@@ -43,8 +43,8 @@ class Logger {
         throw new Error(msg);
     }
 
-    securityWarning(appUser,host, action){
-        let msg =`User ${appUser.name} does not have the required permissions for host ${host.name} for the action ${action}.`;
+    securityWarning(appUser,permObj, action){
+        let msg =`User ${appUser.name} does not have the required permissions for ${permObj.name? permObj.name : permObj.constructor.name} for the action ${action}.`;
         this.warn(msg);
         return msg;
     }
