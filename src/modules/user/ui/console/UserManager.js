@@ -6,23 +6,23 @@ import Vincent from '../../../../Vincent'
 import User from "./User"
 import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
 
-const _appUser = Symbol("appUser");
-const _manager = Symbol("manager");
-const _provider = Symbol("provider");
+
+var data = new WeakMap();
 
 class UserManager extends PermissionsUIManager {
 
     constructor(appUser) {
         super(appUser,Vincent.app.provider.managers.userManager);
-        this[_appUser] = appUser;
-        this[_manager] = Vincent.app.provider.managers.userManager;
-        this[_provider] = Vincent.app.provider;
+        let obj = {};
+        obj.appUser = appUser;
+        obj.permObj = Vincent.app.provider.managers.userManager;
+        data.set(this,obj);
     }
 
     list() {
         try {
-           return this[_provider]._readAttributeCheck(this[_appUser], this[_manager],()=> {
-              return this[_manager].validUsers.map((user=> {
+           return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=> {
+              return data.get(this).permObj.validUsers.map((user=> {
                   return user.name;
               }));
           });
@@ -34,9 +34,9 @@ class UserManager extends PermissionsUIManager {
 
     getUser(username) {
         try {
-            let user = this[_manager].findValidUser(username);
-            return this[_provider]._readAttributeCheck(this[_appUser], this[_manager], () => {
-                return new User(user, this[_appUser]);
+            let user = data.get(this).permObj.findValidUser(username);
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj, () => {
+                return new User(user, data.get(this).appUser,data.get(this).permObj);
             });
         } catch (e) {
             console.log(e);
@@ -44,14 +44,15 @@ class UserManager extends PermissionsUIManager {
         }
     }
 
-    addUser(data) {
+    addUser(userData) {
         try {
-            return this[_provider]._writeAttributeCheck(this[_appUser], this[_manager], ()=> {
-                if (typeof data === 'string' || (typeof data === "object" && !data instanceof User)) {
-                    console.log(`created user ${data}`);
-                    return new User(data,this[_appUser],this);
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, ()=> {
+                if (userData && (typeof userData === 'string' || userData.name)) {
+                    let user = new User(userData,data.get(this).appUser,this);
+                    console.log(`created user ${userData.name? userData.name : userData}`);
+                    return user;
                 } else {
-                    console.log("Parameter must be a username string");
+                    console.log("Parameter must be a username string or a object with mandatory a name and optionally a uid and state property.");
                     return false;
                 }
             });
@@ -63,14 +64,15 @@ class UserManager extends PermissionsUIManager {
 
     save() {
         try {
-            return this[_provider]._writeAttributeCheck(this[_appUser], this[_manager], ()=> {
-                this[_manager].userManager.save();
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, ()=> {
+                return data.get(this).permObj.save();
             });
         } catch (e) {
             console.log(e);
             return false;
         }
     }
+    
 }
 
 export default UserManager;

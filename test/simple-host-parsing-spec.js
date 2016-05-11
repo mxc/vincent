@@ -221,22 +221,22 @@ describe("validating host configuration", function () {
     provider.managers.hostManager.loadHosts(hosts);
 
     it("should detect hosts without a name property", function () {
-        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host  - The parameter data must be a hostname " +
+        expect(provider.managers.hostManager.errors.permObj.indexOf("Error loading host - Could not create host  - The parameter data must be a hostname " +
             "or an object with a mandatory property \"name\".")).not.to.equal(-1);
     });
 
     it("should detect hosts without an owner property", function () {
-        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.owner.com - Owner must be a username or object of type User.")).not.to.equal(-1);
+        expect(provider.managers.hostManager.errors.permObj.indexOf("Error loading host - Could not create host missing.owner.com - Owner must be a username or object of type User.")).not.to.equal(-1);
     });
 
 
     it("should detect hosts without a group property", function () {
-        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.group.com - Group must be a string.")).not.to.equal(-1);
+        expect(provider.managers.hostManager.errors.permObj.indexOf("Error loading host - Could not create host missing.group.com - Group must be a string.")).not.to.equal(-1);
     });
 
 
     it("should detect hosts without a permissions property", function () {
-        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.permissions.com - Permissions cannot be undefined.")).not.to.equal(-1);
+        expect(provider.managers.hostManager.errors.permObj.indexOf("Error loading host - Could not create host missing.permissions.com - Permissions cannot be undefined.")).not.to.equal(-1);
     });
 
 

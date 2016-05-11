@@ -6,20 +6,22 @@ import Provider from '../../../../Provider';
 import Vincent from '../../../../Vincent';
 import logger from '../../../../Logger';
 
-const _appUser = Symbol("appUser");
-const _manager = Symbol("manager");
+
+var data = new WeakMap();
 
 
 class HostManager {
 
     constructor(appUser) {
-        this[_appUser] = appUser;
-        this[_manager] = Vincent.app.provider.managers.hostManager;
+        let obj = {};
+        obj.appUser = appUser;
+        obj.permObj = Vincent.app.provider.managers.hostManager;
+        data.set(this,obj);
     }
 
     addHost(hostname) {
         if (typeof hostname === 'string') {
-            var host = new Host(hostname, this[_appUser]);
+            var host = new Host(hostname, data.get(this).appUser);
             console.log(`created host ${hostname}`);
             return host;
         } else {
@@ -28,9 +30,9 @@ class HostManager {
     }
 
     list() {
-        let tmpList = this[_manager].validHosts.filter((host=> {
+        let tmpList = data.get(this).permObj.validHosts.filter((host=> {
             try {
-                return Vincent.app.provider._readAttributeCheck(this[_appUser], host, ()=> {
+                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, ()=> {
                     return true
                 });
             } catch (e) {
@@ -38,15 +40,15 @@ class HostManager {
             }
         }));
         return tmpList.map((host)=> {
-            return new Host(host, this[_appUser]);
+            return new Host(host, data.get(this).appUser);
         });
     }
 
     getHost(hostname) {
         try {
-            let host = this[_manager].findValidHost(hostname);
-            return Vincent.app.provider._readAttributeCheck(this[_appUser], host, () => {
-                return new Host(host, this[_appUser]);
+            let host = data.get(this).permObj.findValidHost(hostname);
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
+                return new Host(host, data.get(this).appUser);
             });
         } catch (e) {
             console.log(e.message);
@@ -57,7 +59,7 @@ class HostManager {
     saveHosts() {
         console.log("saving hosts");
         let counter = 0;
-        this[_manager].validHosts.forEach((host)=> {
+        data.get(this).permObj.validHosts.forEach((host)=> {
             if (this.saveHost(host)) {
                 counter++;
             }
@@ -68,12 +70,12 @@ class HostManager {
     saveHost(host) {
         try {
             if (typeof host === 'string') {
-                var realhost = this[_manager].findValidHost(host);
+                var realhost = data.get(this).permObj.findValidHost(host);
             } else {
                 realhost = host;
             }
-            return Vincent.app.provider._writeAttributeCheck(this[_appUser], realhost, () => {
-                return this[_manager].saveHost(realhost);
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, realhost, () => {
+                return data.get(this).permObj.saveHost(realhost);
                 console.log(`host ${realhost.name} successfully saved`);
             });
         }catch(e){

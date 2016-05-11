@@ -8,70 +8,71 @@ import UserAccountElement from '../../../user/UserAccount';
 import Host from '../../../host/ui/console/Host';
 import AppUser from '../../../../ui/AppUser';
 
-const _userAccount = Symbol("userAccount");
-const _appUser = Symbol("appUser");
-const _host = Symbol("host");
 const _manager = Symbol("manager");
 
+var data = new WeakMap();
+
 class UserAccount {
-    constructor(data, host, appUser) {
+    constructor(userData, host, appUser) {
         if (!appUser instanceof AppUser) {
             console.log("The appUser parameter must be of type AppUser.");
-            return {msg: "UserAccount creation failed"};
+            return {msg: "UserAccount creation failed - parameter appUser not of type AppUser"};
         }
-        this[_appUser] = appUser;
 
-        if (!host instanceof Host) {
-            console.log("The appUser parameter must be of type AppUser.");
-            return {msg: "UserAccount creation failed"};
+        let obj={};
+        obj.appUser = appUser;
+
+        console.log(host);
+        if (!(host instanceof Host)) {
+            console.log("The host parameter must be of type Host.");
+            return {msg: "UserAccount creation failed - parameter host not of type Host."};
         }
-        this[_host] = host;
+        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name);
+        obj.permObj  = rHost;
 
-        // if (!manager instanceof UserManager) {
-        //     console.log("The manager parameter must be of type UserManager.");
-        //     return { msg:"UserAccount creation failed"};
-        // }
-        //
-        // this[_host] = host;
-
-        if (typeof data === "string" || typeof data.user === "string" || data.user instanceof User) {
+        if (typeof userData === "string" || typeof userData.user === "string" || userData.user instanceof User) {
             let username = '';
-            if (typeof data === "string") {
-                username = data;
-            } else if (typeof data.user === 'string') {
-                username = data.user;
+            if (typeof userData === "string") {
+                username = userData;
+            } else if (typeof userData.user === 'string') {
+                username = userData.user;
             } else {
-                username = data.user.name;
+                username = userData.user.name;
             }
-            let user = app.provider.userManager.findValidUserByName(username);
-            if (user && data.authorized_keys) {
-                this[_userAccount] = new UserAccountElement({
+            let user = Vincent.app.provider.managers.userManager.findValidUserByName(username);
+            if (user && userData.authorized_keys) {
+                obj.userAccount = new UserAccountElement({
                     user: user,
-                    authorized_keys: data.authorized_keys
+                    authorized_keys: userData.authorized_keys
                 });
             } else if (user) {
-                this[_userAccount] = new UserAccountElement({user: user});
+                obj.userAccount = new UserAccountElement(Vincent.app.provider,{user: user});
             } else {
-                console.log(`The user ${data} is not a valid user.`);
-                throw new Error(`The user ${data} is not a valid user.`)
+                console.log(`The user ${userData} is not a valid user.`);
+                throw new Error(`The user ${userData} is not a valid user.`)
             }
-        } else if (data instanceof UserAccountElement) {
-            this[_userAccount] = data;
+        } else if (userData instanceof UserAccountElement) {
+            obj.userAccount = userData;
+        }else{
+            console.log("The data parameter must be a username string or a object with a user property of type string of User.");
+            return {msg: "UserAccount creation failed"};
         }
+        Vincent.app.provider.managers.userManager.addUserAccountToHost(obj.permObj,obj.userAccount);
+        data.set(this,obj);
     }
 
     get user() {
         return this._readAttributeWrapper(()=> {
-            return Object.freeze(User(this[_userAccount].user));
+            return Object.freeze(User(data.get(this).userAccount.user));
         });
     }
 
     get authorized_keys() {
         return this._readAttributeWrapper(()=> {
-            if (Vincent.app.provider.checkPermissions(this[_appUser], this[_host], "w")) {
-                return this[_userAccount].authorized_keys;
+            if (Vincent.app.provider.checkPermissions(data.get(this).appUser, data.get(this).permObj, "w")) {
+                return data.get(this).userAccount.user.authorized_keys;
             } else {
-                return Object.freeze(this[_userAccount].authorized_keys);
+                return Object.freeze(data.get(this).userAccount.user.authorized_keys);
             }
         });
     }
@@ -80,8 +81,8 @@ class UserAccount {
         return this._writeAttributeWrapper(()=> {
             if (Array.isArray(array)) {
                 if (array.length > 0 && typeof array[0] === 'string') {
-                    this[_userAccount].authorized_keys = array;
-                    return this[_userAccount].authorized_keys;
+                    data.get(this).userAccount.user.authorized_keys = array;
+                    return data.get(this).userAccount.user.authorized_keys;
                 } else {
                     console.log("Invalid array format for authorized_keys");
                     return false;
@@ -98,8 +99,8 @@ class UserAccount {
                 var _user = Vincent.app.provider.userManager.findValidGroupByName(user.name);
             }
             if (_user) {
-                this[_userAccount].addAuthorizedUser(_user);
-                return this[_userAccount].authorized_keys;
+                data.get(this).userAccount.user.addAuthorizedUser(_user);
+                return data.get(this).userAccount.user.authorized_keys;
             } else {
                 console.log("User was not found in valid users list.");
                 return false;
@@ -120,7 +121,7 @@ class UserAccount {
 
     _readAttributeWrapper(func) {
         try {
-            return Vincent.app.provider._readAttributeCheck(this[_appUser], this[_host], func);
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
         } catch (e) {
             console.log(e);
             return false;
@@ -129,7 +130,7 @@ class UserAccount {
 
     _writeAttributeWrapper(func) {
         try {
-            return Vincent.app.provider._writeAttributeCheck(this[_appUser], this[_host], func);
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
         } catch (e) {
             console.log(e);
             return false;

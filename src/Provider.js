@@ -207,7 +207,7 @@ class Provider {
     }
 
     saveToFile(filename, manager, backup) {
-        let archivePath = "";
+        let archivePath = "no backup required.";
         let currentPath = path.resolve(this.getDBDir() + "/" + filename);
         if (backup) {
             try {
@@ -297,7 +297,7 @@ class Provider {
     }
 
     //perm may be r,w,x or 4,2,1
-    checkPermissions(appUser, host, perm) {
+    checkPermissions(appUser, permObj, perm) {
 
         if (!appUser || !appUser instanceof AppUser) {
             logger.logAndThrow("Parameter appUser must be of type AppUser and cannot be null or undefined");
@@ -318,9 +318,9 @@ class Provider {
             logger.logAndThrow(`Invalid permission syntax ${perm} - checkPermissions`);
         }
 
-        let owner = host.owner;
-        let group = host.group;
-        let perms = host.permissions.toString(8);
+        let owner = permObj.owner;
+        let group = permObj.group;
+        let perms = permObj.permissions.toString(8);
 
         if (appUser.name === owner && (parseInt(perms.charAt(0)) & nperm) != 0) {
             return true;
@@ -340,7 +340,7 @@ class Provider {
     //perms may be an 3 digit decimal or a 9 character string (rwx){3}. If a number is provided it is assumed to be
     //octal.
     _validateAndConvertPermissions(perms) {
-        
+
         //if we have been pased an octal as a string
         if (typeof perms === "string" && perms.length === 3) {
             perms = parseInt(perms);
@@ -350,7 +350,7 @@ class Provider {
             if (isNaN(perms) || perms > "0777") {
                 logger.logAndThrow(`Invalid permissions syntax for ${perms} - max value exceeded.`);
             }
-            return parseInt("" + perms, 8);
+            return parseInt(perms, 8);
         } else if (typeof perms === 'string' && perms.length === 9) {
             let regex = /([r\-]{1}[w\-]{1}[x\-]{1})?/g;
             //var result = regex.exec(perms);

@@ -2,14 +2,16 @@
 
 import User from './User';
 import Host from '../host/Host';
-import ConsoleUser from './ui/console/User';
-import ConsoleUserAccount from './ui/console/UserAccount';
-import ConsoleUserManager from './ui/console/UserManager';
+import HostUI from '../host/ui/console/Host';
+import UserUI from './ui/console/User';
+import UserAccountUI from './ui/console/UserAccount';
+import UserManagerUI from './ui/console/UserManager';
 import UserAccount from './UserAccount';
 import Provider from './../../Provider';
 import logger from './../../Logger';
 import PermissionsManager from '../base/PermissionsManager';
 import ModuleLoader from '../../utilities/ModuleLoader';
+import Vincent from '../../Vincent';
 
 
 class UserManager extends PermissionsManager {
@@ -23,13 +25,9 @@ class UserManager extends PermissionsManager {
         this.validUsers = [];
         this.errors = [];
         this.engines = ModuleLoader.loadEngines('user', provider);
-        try {
-            this.owner = "root"; //default owner
-            this.group = "useradmin"; //default group
-            this.permissions = 664; //default permissions
-        } catch (e) {
-            console.log(e);
-        }
+        this.owner = "root"; //default owner
+        this.group = "useradmin"; //default group
+        this.permissions = 664; //default permissions
     }
 
     exportToEngine(engine, host, struct) {
@@ -269,52 +267,31 @@ class UserManager extends PermissionsManager {
 
     }
 
+
     /**
      * Function to allow modules to manipulate the repl context to add functionality
      * @param context
+     * @param appUser
      */
     loadConsoleUI(context, appUser) {
         let self = this;
-        context.Host.prototype.addUserAccount = function (user) {
-            try {
-                return Vincent.provider._writeAttributeCheck(this[_appUser], host, ()=> {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name);
-                    if (!host) {
-                        console.log(`Could not find ${this.name} in host managers host list`);
-                        return false;
-                    }
-                    if (typeof user === "string") {
-                        var _user = self.provider.managers.userManager.findValidUserByName(user);
-                    } else if (typeof user === "object" && user.name) {
-                        var _user = self.provider.managers.userManager.findValidUserByName(user.name);
-                    }
-                    if (_user) {
-                        let userdata = {user: _user};
-                        if (user.authorized_keys) {
-                            userdata.authorized_keys = user.authorized_keys;
-                        }
-                        let userAccount = new UserAccount(self.provider, userdata);
-                        self.addUserAccountToHost(host, userAccount);
-                    } else {
-                        console.log("user not found in valid user list");
-                        return;
-                    }
-                    console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}`);
-                    return true;
-                });
-            } catch (e) {
-                console.log(e);
-                return false;
-            }
+        HostUI.prototype.addUserAccount = function (user) {
+            let func =function() {
+                var userAccount = new UserAccountUI(user,this,appUser);
+                console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}.`);
+                return userAccount;
+            };
+            func = func.bind(this);
+            return this._writeAttributeWrapper(func);
         };
-        context.Host.prototype.listUserAccounts = function () {
+        HostUI.prototype.listUserAccounts = function () {
             try {
                 let host = self.provider.managers.hostManager.findValidHost(this.name);
-                return Vincent.app.provider._readAttributeCheck(this[_appUser], host, ()=> {
+                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                     let userAccounts = self.getUserAccounts(host);
                     if (userAccounts) {
                         return userAccounts.map((userAcc)=> {
-                            return new ConsoleUserAccount(userAcc);
+                            return new UserAccountUI(userAcc);
                         });
                     } else {
                         return `No user accounts defined for host ${this.name}`;
@@ -325,14 +302,14 @@ class UserManager extends PermissionsManager {
                 return false;
             }
         };
-        
-        context.Host.prototype.getUserAccount=function(username){
+
+        HostUI.prototype.getUserAccount = function (username) {
             try {
                 let host = self.provider.managers.hostManager.findValidHost(this.name);
-                return Vincent.app.provider._readAttributeCheck(this[_appUser], host, ()=> {
-                    let userAccount = self.findUserAccountForHostByName(host,username);
+                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                    let userAccount = self.findUserAccountForHostByName(host, username);
                     if (userAccount) {
-                        return new ConsoleUserAccount(userAccount,this[_appUser]);
+                        return new UserAccountUI(userAccount, this[_appUser]);
                     } else {
                         console.log(`No user accounts defined for host ${this.name}`);
                         return false;
@@ -341,10 +318,10 @@ class UserManager extends PermissionsManager {
             } catch (e) {
                 console.log(e);
                 return false;
-            }            
-        }
+            }
+        };
 
-        context.userManager = new ConsoleUserManager(appUser);
+        context.userManager = new UserManagerUI(appUser);
     }
 
     static getDependencies() {

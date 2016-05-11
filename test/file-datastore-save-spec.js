@@ -227,7 +227,7 @@ describe("File DB save tests", function () {
 
     it('should save valid user and archive previous file', ()=> {
         let backupPath = provider.managers.userManager.save();
-        if (backupPath) {
+        if (backupPath!=="no backup required.") {
             let result = fs.statSync(backupPath);
             expect(result.isFile()).to.be.true;
         }
@@ -244,7 +244,7 @@ describe("File DB save tests", function () {
 
     it('should save valid groups and backup previous file', ()=> {
         let backupPath = provider.managers.groupManager.save();
-        if (backupPath) {
+        if (backupPath!=="no backup required.") {
             let result = fs.statSync(backupPath);
             //verify backup
             expect(result.isFile()).to.be.true;
@@ -257,7 +257,7 @@ describe("File DB save tests", function () {
     it('should save valid hosts', (done)=> {
         let host = provider.managers.hostManager.findValidHost("www.abc.co.za");
         let backupPath = provider.managers.hostManager.saveHost(host);
-        if (backupPath) {
+        if (backupPath!=="no backup required.") {
 
         }
         console.log(provider.getDBDir());
@@ -269,7 +269,7 @@ describe("File DB save tests", function () {
 
     it('should save groupCategoires and backup previous file', ()=> {
         let backupPath = provider.managers.groupCategories.save();
-        if (backupPath) {
+        if (backupPath!=="no backup required.") {
             let result = fs.statSync(backupPath);
             //verify backup
             expect(result.isFile()).to.be.true;
@@ -282,7 +282,7 @@ describe("File DB save tests", function () {
 
     it('should save userCategoires and backup previous file', ()=> {
         let backupPath = provider.managers.userCategories.save();
-        if (backupPath) {
+        if (backupPath!=="no backup required.") {
             let result = fs.statSync(backupPath);
             //verify backup
             expect(result.isFile()).to.be.true;

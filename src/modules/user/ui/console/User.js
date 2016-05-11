@@ -7,14 +7,12 @@ import UserElement from '../../User';
 import UserManager from './UserManager';
 import logger from '../../../../Logger';
 import AppUser from '../../../../ui/AppUser';
+import PermissionHelper from '../../../../ui/base/PermissionHelper';
 
 
+var data = new WeakMap();
 
-const _user = Symbol['user'];
-const _appUser = Symbol("appUser");
-const _manager = Symbol("manager");
-
-class User {
+class User extends PermissionHelper {
 
     /*
      parameter may be username of an object with name,uid keys or a UserElement. USerElemetn is used
@@ -22,60 +20,61 @@ class User {
      { name: <username>,uid:<int>, state:<present|absent> }
      */
     constructor(user, appUser, manager) {
-        if (typeof user === 'string' || (user.name && !user instanceof UserElement)) {
-            this[_user] = new UserElement(user);
-            Vincent.app.provider.managers.userManager.addValidUser(this[_user]);
+        let obj ={};
+        if (user && (typeof user === 'string' || ((user.name!=undefined) && !(user instanceof UserElement)))) {
+            obj.user = new UserElement(user);
+            Vincent.app.provider.managers.userManager.addValidUser(obj.user);
         } else if (user instanceof UserElement) {
-            this[_user] = user;
+            obj.user = user;
         } else {
-            throw new Error("The parameter user must be a user name or data object with at least a name key.");
+            throw new Error("The parameter user must be a user name or data object with a name and optional uid, state key.");
         }
         if (!appUser instanceof AppUser) {
             throw new Error("The parameter appUser must be of type AppUser.");
         }
-        this[_appUser] = appUser;
+        obj.appUser = appUser;
         if (!manager instanceof UserManager) {
             throw new Error("The parameter manager must be of type UserManager.");
         }
-        this[_manager] = manager;
+        obj.permObj = manager;
+        super(obj.appUser,obj.permObj);
+        data.set(this,obj);
     }
 
     get name() {
         return this._readAttributeWrapper(()=> {
-            return this[_user].name;
+            return data.get(this).user.name;
         });
     }
 
     set name(name) {
         return this._writeAttributeWrapper(()=> {
-            this[_user].name = name;
-            return true;
+            data.get(this).user.name = name;
         });
     }
 
     get uid() {
         return this._readAttributeWrapper(()=> {
-            return this[_user].uid;
+            return data.get(this).user.uid;
         });
     }
 
     set uid(uid) {
         return this._writeAttributeWrapper(()=> {
-            Vincent.app.provider.userManager.updateUserUid(this[_user], uid);
+            Vincent.app.provider.userManager.updateUserUid(data.get(this).user, uid);
             return true;
         });
     }
 
     get state() {
         return this._readAttributeWrapper(()=> {
-            return this[_user].state;
+            return data.get(this).user.state;
         });
     }
 
     set state(state) {
         return this._writeAttributeWrapper(()=> {
-            this[_user].state = state;
-            return true;
+            data.get(this).user.state = state;
         });
     }
 
@@ -87,30 +86,18 @@ class User {
     }
 
     inspect() {
-        return this._readAttributeWrapper(()=> {
+        try {
+            return this._readAttributeWrapper(()=> {
+                return {
+                    name: this.name,
+                    uid: this.uid ? this.uid : "-",
+                    state: this.state
+                };
+            });
+        }catch(e) {
             return {
-                name: this.name,
-                uid: this.uid ? this.uid : "-",
-                state: this.state
-            };
-        });
-    }
-
-    _readAttributeWrapper(func) {
-        try {
-            return Vincent.app.provider._readAttributeCheck(this[_appUser], this[_manager], func);
-        } catch (e) {
-            console.log(e);
-            return false;
-        }
-    }
-
-    _writeAttributeWrapper(func) {
-        try {
-            return Vincent.app.provider._writeAttributeCheck(this[_appUser], this[_manager], func);
-        } catch (e) {
-            console.log(e);
-            return false;
+                msg:"Permission denied"
+            }
         }
     }
 

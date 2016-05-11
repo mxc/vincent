@@ -4,52 +4,51 @@
 
 
 import Vincent from '../Vincent';
+import PermissionHelper from './base/PermissionHelper';
 
-const _appUser = Symbol("appUser");
-const _manager = Symbol("manager");
-const _provider = Symbol("provider");
+var data = new WeakMap();
 
-class PermissionsUIManager  {
+
+class PermissionsUIManager extends PermissionHelper {
 
     constructor(appUser,manager){
-        this[_appUser]=appUser;
-        this[_manager]=manager;
-        this[_provider] = Vincent.app.provider;
+        super(appUser,manager);
+        data.set(this,{appUser:appUser,permObj:manager})
     }
 
     get owner(){
-        return this[_provider]._readAttributeCheck(this[_appUser], this[_manager], ()=> {
-            return this[_manager].owner;
+        return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            return data.get(this).permObj.owner;
         });
     }
 
     get group(){
-        return this[_provider]._readAttributeCheck(this[_appUser], this[_manager], ()=> {
-            return this[_manager].group;
+        return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            return data.get(this).permObj.group;
         });
     }
 
     get permissions(){
-        return this[_provider]._readAttributeCheck(this[_appUser], this[_manager], ()=> {
-            return this[_manager].permissions;
+        return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            return data.get(this).permObj.permissions;
         });
     }
 
     set owner(owner) {
-        tthis[_provider]._writeAttributeCheck(this[_appUser], this[_manager], ()=> {
-            this[_manager].owner = owner;
+        Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            data.get(this).permObj.owner = owner;
         });
     }
 
     set group(group) {
-        this[_provider]._writeAttributeCheck(this[_appUser], this[_manager], ()=> {
-            this[_manager].group = group;
+        Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            data.get(this).permObj.group = group;
         });
     }
 
     set permissions(permissions) {
-        this[_provider]._writeAttributeCheck(this[_appUser], this[_manager], ()=> {
-            this[_manager].permissions = permissions;
+        Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            data.get(this).permObj.permissions = permissions;
         });
     }
 

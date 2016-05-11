@@ -65,7 +65,7 @@ class UserCategories extends Manager {
     }
 
     save(backup = true) {
-        this.provider.saveToFile("includes/user-categories.json", this, backup);
+       return  this.provider.saveToFile("includes/user-categories.json", this, backup);
     }
 
     /**

@@ -3,7 +3,7 @@
 import logger from './../../Logger';
 import Base from './../base/Base';
 
-class User extends Base {
+class User  {
     /*
      Parameter can be user name or data structure:
      {
@@ -14,7 +14,7 @@ class User extends Base {
      }
      */
     constructor(data) {
-        super();
+        //super();
         //check if we were provided with a user name or a data object
         if (typeof data === 'string') {
             var valid = /\w/;

@@ -21,7 +21,7 @@ class HostManager extends Manager {
         this.provider = provider;
         this.validHosts = [];
         this.errors = {
-            manager: []
+            permObj: []
         };
     }
 
@@ -118,7 +118,7 @@ class HostManager extends Manager {
             }
             catch (e) {
                 logger.logAndAddToErrors(`Error loading host - ${e.message}`,
-                    this.errors.manager);
+                    this.errors.permObj);
             }
         });
         return this.validHosts;
