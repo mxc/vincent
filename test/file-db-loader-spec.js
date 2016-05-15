@@ -7,6 +7,7 @@
 import Provider from '../src/Provider';
 import ModuleLoader from '../src/utilities/ModuleLoader';
 import {expect} from 'chai';
+import User from '../src/modules/user/User';
 
 describe("File DB loader tests", function () {
 
@@ -14,18 +15,29 @@ describe("File DB loader tests", function () {
 
     let provider = new Provider(`${process.cwd()}/conf-example`);
     //provider.init(`${process.cwd()}/conf-example`);
-    
+
+
     it('should load user categories', ()=> {
+        var validUsers = [
+            new User({name: 'www-data', key: 'www-data.pub', state: 'present', uid: undefined}),
+            new User({name: 'postgres', key: undefined, state: 'absent', uid: undefined}),
+            new User({name: 'dev1', key: 'dev1.pub', uid: 1000, state: 'present'}),
+        ];
+
+        provider.managers.userManager.validUsers = validUsers;
+
         provider.managers.userCategories.loadFromFile();
-        expect(provider.managers.userCategories.configs["staff-user-category"].length).to.equal(2);
-        expect(provider.managers.userCategories.configs["devs-user-category"][0].user.name)
+        expect(provider.managers.userCategories.findUserCategory("staff-user-category").userAccounts.length).to.equal(0);
+        expect(provider.managers.userCategories.findUserCategory("app-services-user-category").userAccounts.length).to.equal(2);
+        expect(provider.managers.userCategories.findUserCategory("devs-user-category").userAccounts[0].user.name)
             .to.equal("dev1");
+        provider.managers.userManager.validUsers = [];
     });
 
     it('should load group categories', ()=> {
         provider.managers.groupCategories.loadFromFile();
-        expect(provider.managers.groupCategories.configs["server-groups"].length).to.equal(1);
-        expect(provider.managers.groupCategories.configs["desktop-groups"][0].group.name)
+        expect(provider.managers.groupCategories.findGroupCategory("server-groups").hostGroups.length).to.equal(1);
+        expect(provider.managers.groupCategories.findGroupCategory("desktop-groups").hostGroups[0].group.name)
             .to.equal("ansible-full");
     });
 
@@ -52,6 +64,7 @@ describe("File DB loader tests", function () {
     });
 
     it('should load group entries', ()=> {
+        provider.managers.groupManager.validGroups=[];
         provider.managers.groupManager.loadFromFile();
         expect(provider.managers.groupManager.validGroups.length)
             .to.equal(3);

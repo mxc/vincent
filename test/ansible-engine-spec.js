@@ -79,7 +79,6 @@ describe("ansible engine", () => {
     let appUser = new AppUser("einstien",["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
     let provider = new Provider(path.resolve(home,"vincenttest"));
-    //provider.init(path.resolve(home,"vincenttest"));
     var gen = provider.engine;
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
@@ -110,6 +109,7 @@ describe("ansible engine", () => {
             done();
         }).catch(e=> {
             console.log(e);
+            done();
             throw new Error(e);
         });
     });

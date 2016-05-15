@@ -8,6 +8,7 @@ import UserUI from '../src/modules/user/ui/console/User';
 import UserManagerUI from '../src/modules/user/ui/console/UserManager';
 import HostManagerUI from '../src/modules/host/ui/console/HostManager';
 import Vincent from '../src/Vincent';
+import User from '../src/modules/user/User';
 
 describe("UserManager UI should", ()=> {
 
@@ -208,13 +209,12 @@ describe("UserManager UI should", ()=> {
 
     it("allow authorised users to add UserAccounts to host by name", ()=> {
         try {
-            Vincent.app.provider.managers.userManager.loadConsoleUI({});
             let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let userManagerUi = new UserManagerUI(appUser);
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
             let user = userManagerUi.addUser({name: "newton", uid: 1000, state: "present"});
-            //let user2 = userManagerUi.addUser({name:"pascal",uid:1001,state:"present"});
             let userAccount = host.addUserAccount('newton');
             expect(userAccount.user).to.deep.equal(user);
         } finally {
@@ -226,28 +226,25 @@ describe("UserManager UI should", ()=> {
 
     it("throw an exception when authorised users tries to add an invalid user to a host", ()=> {
         try {
-            Vincent.app.provider.managers.userManager.loadConsoleUI({});
             let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let userManagerUi = new UserManagerUI(appUser);
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            //let user = userManagerUi.addUser({name:"newton",uid:1000,state:"present"});
-            //let user2 = userManagerUi.addUser({name:"pascal",uid:1001,state:"present"});
-            let userAccount = host.addUserAccount('newton');
-            expect(userAccount).to.be.false;
+            let func = function(){  host.addUserAccount('newton'); };
+            expect(func).to.throw("The user newton is not a valid user.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
             Vincent.app.provider.managers.userManager.permissions = 664;
         }
-
     });
 
 
     it("throw an exception when an unauthorised users tries to add a valid user ", ()=> {
         try {
-            Vincent.app.provider.managers.userManager.loadConsoleUI({});
             let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
             let userManagerUi = new UserManagerUI(appUser);
@@ -255,14 +252,84 @@ describe("UserManager UI should", ()=> {
             //change permissions so user has no access to host
             host.group = "ops";
             host.owner = "newton";
-            let func = host.addUserAccount('pascal');
+            let func = ()=>{ host.addUserAccount('pascal'); }
             expect(func).to.throw("User einstein does not have the required permissions for www.coffeecup.co.za for the action write attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
             Vincent.app.provider.managers.userManager.permissions = 664;
         }
+    });
 
+    it("should allow a UserAccount to be defined by a data object",()=>{
+        try {
+            let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({}, appUser);
+            let hostManagerUi = new HostManagerUI(appUser);
+            let host = hostManagerUi.addHost("www.coffeecup.co.za");
+            let userManagerUi = new UserManagerUI(appUser);
+            let user = userManagerUi.addUser({name: "pascal", uid: 1001, state: "present"});
+            userManagerUi.addUser({name: "descarts", uid: 1002, state: "present"});
+            let userAccount =  host.addUserAccount({user: 'pascal', authorized_keys: [{name:"descarts", state:"present"}]});
+            expect(userAccount.user.name).to.equal("pascal");
+        }finally {
+            Vincent.app.provider.managers.hostManager.validHosts = [];
+            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.userManager.permissions = 664;
+        }
+    });
+
+
+    it("should allow authorized users to get a list of user categories",()=>{
+
+        var validUsers = [
+            new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
+            new User({name: 'user2', key: undefined, state: 'absent', uid: undefined}),
+            new User({name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'}),
+            new User({name: 'user4', key: undefined, state: 'present', uid: undefined})
+        ];
+
+        var userCategories = [
+            {
+                "name": "cat1",
+                "config": [
+                    {
+                        user: {
+                            name: "user1",
+                            state: "absent"
+                        },
+                        authorized_keys: [
+                            {name: "user2"},
+                            {name: "user1"}]
+                    },
+                    {
+                        user: {
+                            name: "user2"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "cat2",
+                "config": [
+                    {user: {name: "user3", state: "present"}},
+                    {user: {name: "user1"}, authorized_keys: [{name: "user2"}, {name: "user1"}]}
+                ]
+            }
+        ];
+
+
+        try {
+            let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            Vincent.app.provider.managers.userManager.validUsers = validUsers;
+            Vincent.app.provider.managers.userCategories.loadFromJson(userCategories);
+            let userManagerUi = new UserManagerUI(appUser);
+            expect(userManagerUi.listUserCategories()[0].userAccounts[0].name).to.equal("user1");
+          }finally {
+            Vincent.app.provider.managers.hostManager.validHosts = [];
+            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.userManager.permissions = 664;
+        }
     });
 
 });

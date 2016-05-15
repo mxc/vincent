@@ -90,10 +90,11 @@ class Console extends Ui {
             console.log("Not yet implemented");
         };
 
+        //load the per session context objects
         ModuleLoader.managerOrderedIterator((managerClass)=> {
             try {
                 let name = managerClass.name.charAt(0).toLocaleLowerCase() + managerClass.name.slice(1);
-                Vincent.app.provider.managers[name].loadConsoleUI(context,this.session.appUser);
+                Vincent.app.provider.managers[name].loadConsoleUIForSession(context,this.session.appUser);
             } catch (e) {
                 logger.warn(e);
                 logger.warn("module does not offer console ui");

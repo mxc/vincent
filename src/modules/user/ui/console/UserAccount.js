@@ -22,7 +22,6 @@ class UserAccount {
         let obj={};
         obj.appUser = appUser;
 
-        console.log(host);
         if (!(host instanceof Host)) {
             console.log("The host parameter must be of type Host.");
             return {msg: "UserAccount creation failed - parameter host not of type Host."};
@@ -41,7 +40,7 @@ class UserAccount {
             }
             let user = Vincent.app.provider.managers.userManager.findValidUserByName(username);
             if (user && userData.authorized_keys) {
-                obj.userAccount = new UserAccountElement({
+                obj.userAccount = new UserAccountElement(Vincent.app.provider,{
                     user: user,
                     authorized_keys: userData.authorized_keys
                 });
@@ -63,7 +62,7 @@ class UserAccount {
 
     get user() {
         return this._readAttributeWrapper(()=> {
-            return Object.freeze(User(data.get(this).userAccount.user));
+            return Object.freeze(new User(data.get(this).userAccount.user,data.get(this).appUser,data.get(this).permObj));
         });
     }
 
@@ -109,13 +108,13 @@ class UserAccount {
     }
 
     toString() {
-        return `{ user: ${this.user.name},authorized_keys:${this.authorized_keys} }`;
+        return `{ user: ${ data.get(this).userAccount.user.name},authorized_keys:${ data.get(this).userAccount.user.authorized_keys} }`;
     }
 
     inspect() {
         return {
-            user: this.user.name,
-            authorized_keys: this.authorized_keys
+            user:  data.get(this).userAccount.user.name,
+            authorized_keys:  data.get(this).userAccount.user.authorized_keys
         }
     }
 

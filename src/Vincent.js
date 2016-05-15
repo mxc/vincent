@@ -10,6 +10,7 @@ import LdapAuthProvider from './ui/authentication/LdapAuthProvider';
 import DBAuthProvider from './ui/authentication/DBAuthProvider';
 import UnixAuthProvider from './ui/authentication/UnixAuthProvider';
 import AppUser from './ui/AppUser';
+import ModuleLoader from './utilities/ModuleLoader';
 
 
 class Vincent {
@@ -84,7 +85,7 @@ class Vincent {
                                     logger.info(`login successful for user ${username}`);
                                     s.write("\n\rAuthentication Successful.");
                                     let user = new AppUser(username, auth.getGroups());
-                                    let console = this.startConsole(s, user);
+                                    let console = this.startServerConsole(s, user);
                                 } else {
                                     logger.info(`login failed for user ${username}`);
                                     s.write("\n\rAuthentication failure. Closing connection.");
@@ -117,7 +118,7 @@ class Vincent {
     }
 
 
-    startConsole(socket, user) {
+    startServerConsole(socket, user) {
         logger.info("Starting Vincent console");
         return new Console(socket, user);
     }
@@ -180,7 +181,7 @@ class Vincent {
 
     start() {
         if (this.args.cli) {
-            app.startConsole();
+            app.startConsole();//todo fix me
         } else {
             app.startServer();
         }

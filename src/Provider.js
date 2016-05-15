@@ -8,7 +8,7 @@ import fs from 'fs';
 import Manager from './modules/base/Manager';
 import mkdirp from 'mkdirp';
 import AppUser from './ui/AppUser';
-
+import UserCategories from './modules/user/UserCategories';
 
 class Provider {
 
@@ -221,8 +221,9 @@ class Provider {
                 logger.warn(`${filename} file does not exists.`);
             }
         }
-        let groups = JSON.stringify(manager.export(), null, 2);
-        fs.writeFileSync(currentPath, groups);
+        let obj = manager.export();
+        var json = JSON.stringify(obj, null, 2);
+        fs.writeFileSync(currentPath, json);
         return archivePath;
     }
 

@@ -12,21 +12,32 @@ var data = new WeakMap();
 class UserManager extends PermissionsUIManager {
 
     constructor(appUser) {
-        super(appUser,Vincent.app.provider.managers.userManager);
+        super(appUser, Vincent.app.provider.managers.userManager);
         let obj = {};
         obj.appUser = appUser;
         obj.permObj = Vincent.app.provider.managers.userManager;
-        data.set(this,obj);
+        data.set(this, obj);
     }
 
     list() {
         try {
-           return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=> {
-              return data.get(this).permObj.validUsers.map((user=> {
-                  return user.name;
-              }));
-          });
-        }catch(e){
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                return data.get(this).permObj.validUsers.map((user=> {
+                    return user.name;
+                }));
+            });
+        } catch (e) {
+            console.log(e);
+            return [];
+        }
+    }
+
+    listUserCategories() {
+        try {
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                return Vincent.app.provider.managers.userCategories.data;
+            });
+        } catch (e) {
             console.log(e);
             return [];
         }
@@ -35,8 +46,8 @@ class UserManager extends PermissionsUIManager {
     getUser(username) {
         try {
             let user = data.get(this).permObj.findValidUser(username);
-            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj, () => {
-                return new User(user, data.get(this).appUser,data.get(this).permObj);
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, () => {
+                return new User(user, data.get(this).appUser, data.get(this).permObj);
             });
         } catch (e) {
             console.log(e);
@@ -46,10 +57,10 @@ class UserManager extends PermissionsUIManager {
 
     addUser(userData) {
         try {
-            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, ()=> {
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 if (userData && (typeof userData === 'string' || userData.name)) {
-                    let user = new User(userData,data.get(this).appUser,this);
-                    console.log(`created user ${userData.name? userData.name : userData}`);
+                    let user = new User(userData, data.get(this).appUser, this);
+                    console.log(`created user ${userData.name ? userData.name : userData}`);
                     return user;
                 } else {
                     console.log("Parameter must be a username string or a object with mandatory a name and optionally a uid and state property.");
@@ -64,7 +75,7 @@ class UserManager extends PermissionsUIManager {
 
     save() {
         try {
-            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, ()=> {
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 return data.get(this).permObj.save();
             });
         } catch (e) {
@@ -72,7 +83,7 @@ class UserManager extends PermissionsUIManager {
             return false;
         }
     }
-    
+
 }
 
 export default UserManager;

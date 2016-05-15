@@ -9,13 +9,6 @@ Account user is a user with a list of authorized keys associate with this user a
 */
 
 class UserAccount extends HostComponent {
-    /*
-      Parameter data must be the following data structure:
-        {
-           user: <user>
-           authorized_keys: [] //array of user name
-        }
-   */
     constructor(provider, data) {
         super(provider);
         this.data = {authorized_keys: []};
@@ -42,9 +35,14 @@ class UserAccount extends HostComponent {
                     }
                 }
                 if (data.authorized_keys) {
+
+                    if (!(Array.isArray(data.authorized_keys))){
+                        throw new Error("Authorized_keys property must be an array of objects with a name and state property.");
+                    }
+
                     data.authorized_keys.forEach((authorizedUserDef)=> {
                         if (typeof authorizedUserDef !== "object"){
-                            throw new Error("Authorized_keys must be an array of userdefs.");
+                            throw new Error("Authorized_keys must be an array of objects with a name and state property.");
                         }
                         var user = this.provider.managers.userManager.findValidUserByName(authorizedUserDef.name);
                         if (!user) {

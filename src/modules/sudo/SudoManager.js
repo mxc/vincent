@@ -139,10 +139,13 @@ class SudoManager extends Manager {
         return [UserManager,GroupManager];
     }
 
-    loadConsoleUI(context) {
+    loadConsoleUIForSession(context,appUser) {
         //no op
     }
 
+    loadConsolUI(){
+        
+    }
 }
 
 

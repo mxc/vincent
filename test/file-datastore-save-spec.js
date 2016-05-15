@@ -221,7 +221,7 @@ describe("File DB save tests", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.groupCategories.data.configs = groupCategories;
-    provider.managers.userCategories.data.configs = userCategories;
+    provider.managers.userCategories.loadFromJson(userCategories);
     provider.managers.hostManager.loadHosts(hosts);
 
 
@@ -280,7 +280,7 @@ describe("File DB save tests", function () {
     });
 
 
-    it('should save userCategoires and backup previous file', ()=> {
+    it('should save userCategories and backup previous file', ()=> {
         let backupPath = provider.managers.userCategories.save();
         if (backupPath!=="no backup required.") {
             let result = fs.statSync(backupPath);

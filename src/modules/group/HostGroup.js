@@ -44,10 +44,10 @@ class HostGroup extends HostComponent {
                             }
                         } else {
                             //is this a user category? If so addValidGroup all members from the category
-                            let members = this.provider.managers.userCategories.findUserCategory(username);
-                            if (members) {
-                                members.forEach((userAccountData)=> {
-                                    let user = this.provider.managers.userManager.findValidUserByName(userAccountData.user.name);
+                            let userCat = this.provider.managers.userCategories.findUserCategory(username);
+                            if (userCat) {
+                                userCat.userAccounts.forEach((tuser)=> {
+                                    let user = this.provider.managers.userManager.findValidUserByName(tuser.user.name);
                                     try {
                                         this.addMember(user);
                                     } catch (e) {
@@ -94,9 +94,6 @@ class HostGroup extends HostComponent {
             //UserManager should be in global object cache
             var validUser = this.provider.managers.userManager.findValidUser(user);
             if (validUser && validUser.state != "absent") {
-                //if (!this.data.members) {
-                //    this.data.members = [];
-                //}
                 var t_user = this.data.members.find((muser) => {
                     if (muser.equals(validUser)) {
                         return muser;
@@ -104,12 +101,9 @@ class HostGroup extends HostComponent {
                 });
                 if (t_user) {
                     logger.logAndAddToErrors(`${user.name} is already a member of group ${this.data.name}`, this.errors);
-                } else if (!validUser.key) {
-                    logger.logAndThrow(`${user.name} does not have a public key`);
                 } else {
                     this.data.members.push(validUser.clone());
-                }
-                return this;
+                };
             } else {
                 logger.logAndThrow(`Cannot add member to group. Parameter user with name ${user.name} is not a valid user or user is absent.`);
             }

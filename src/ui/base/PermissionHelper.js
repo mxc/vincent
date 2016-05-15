@@ -14,7 +14,8 @@ class PermissionHelper {
 
     _readAttributeWrapper(func) {
         try {
-            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
+            let func1 = ()=>{ return func(data.get(this).appUser, data.get(this).permObj)};
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func1);
         } catch (e) {
             console.log(e);
             throw e;
@@ -23,7 +24,8 @@ class PermissionHelper {
 
     _writeAttributeWrapper(func) {
         try {
-            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
+            let func1 = ()=>{ return func(data.get(this).appUser, data.get(this).permObj)};
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, func1);
         } catch (e) {
             console.log(e);
             throw e;

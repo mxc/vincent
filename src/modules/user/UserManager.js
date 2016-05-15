@@ -134,7 +134,6 @@ class UserManager extends PermissionsManager {
     }
 
     loadFromJson(userDef) {
-
         let owner = userDef.owner;
         let group = userDef.group;
         let permissions = userDef.permissions;
@@ -173,16 +172,16 @@ class UserManager extends PermissionsManager {
         return host.data.users;
     }
 
-    updateUserUid(user, uid) {
-        let _user = this.findValidUser(user)
-        if (_user) {
-            if (this.findValidUserByUid(uid)) {
-                throw new Error("A user with the uid already exists");
-            } else {
-                _user.data.uid = uid;
-            }
-        }
-    }
+    // updateUserUid(user, uid) {
+    //     let _user = this.findValidUser(user)
+    //     if (_user) {
+    //         if (this.findValidUserByUid(uid)) {
+    //             throw new Error("A user with the uid already exists");
+    //         } else {
+    //             _user.data.uid = uid;
+    //         }
+    //     }
+    // }
 
     addUserAccountToHost(host, userAccount, fromUserCategory = false) {
         if (!host instanceof Host) {
@@ -240,7 +239,7 @@ class UserManager extends PermissionsManager {
         });
     }
 
-    findUserAccountForHostByName(host, userName) {
+    findUserAccountForHostByUserName(host, userName) {
         return host.data.users.find((userAccount) => {
             if (userAccount.name === userName) {
                 return userAccount;
@@ -273,56 +272,64 @@ class UserManager extends PermissionsManager {
      * @param context
      * @param appUser
      */
-    loadConsoleUI(context, appUser) {
+    loadConsoleUIForSession(context, appUser) {
+
         let self = this;
-        HostUI.prototype.addUserAccount = function (user) {
-            let func =function() {
-                var userAccount = new UserAccountUI(user,this,appUser);
-                console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}.`);
-                return userAccount;
+        if (!HostUI.prototype.addUserAccount) {
+            HostUI.prototype.addUserAccount = function (user) {
+                let func = function (appUserP, permObj) {
+                    var userAccount = new UserAccountUI(user, this, appUserP);
+                    console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}.`);
+                    return userAccount;
+                };
+                func = func.bind(this);
+                return this._writeAttributeWrapper(func);
             };
-            func = func.bind(this);
-            return this._writeAttributeWrapper(func);
-        };
-        HostUI.prototype.listUserAccounts = function () {
-            try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name);
-                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
-                    let userAccounts = self.getUserAccounts(host);
-                    if (userAccounts) {
-                        return userAccounts.map((userAcc)=> {
-                            return new UserAccountUI(userAcc);
-                        });
-                    } else {
-                        return `No user accounts defined for host ${this.name}`;
-                    }
-                });
-            } catch (e) {
-                console.log(e);
-                return false;
-            }
-        };
+        }
 
-        HostUI.prototype.getUserAccount = function (username) {
-            try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name);
-                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
-                    let userAccount = self.findUserAccountForHostByName(host, username);
-                    if (userAccount) {
-                        return new UserAccountUI(userAccount, this[_appUser]);
-                    } else {
-                        console.log(`No user accounts defined for host ${this.name}`);
-                        return false;
-                    }
-                });
-            } catch (e) {
-                console.log(e);
-                return false;
+        if (!HostUI.prototype.listUserAccounts) {
+            HostUI.prototype.listUserAccounts = function () {
+                try {
+                    let host = self.provider.managers.hostManager.findValidHost(this.name);
+                    return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                        let userAccounts = self.getUserAccounts(host);
+                        if (userAccounts) {
+                            return userAccounts.map((userAcc)=> {
+                                return new UserAccountUI(userAcc);
+                            });
+                        } else {
+                            return `No user accounts defined for host ${this.name}`;
+                        }
+                    });
+                } catch (e) {
+                    console.log(e);
+                    return false;
+                }
             }
-        };
+        }
 
+        if (!HostUI.prototype.getUserAccount) {
+            HostUI.prototype.getUserAccount = function (username) {
+                try {
+                    let host = self.provider.managers.hostManager.findValidHost(this.name);
+                    return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                        let userAccount = self.findUserAccountForHostByUserName(host, username);
+                        if (userAccount) {
+                            return new UserAccountUI(userAccount, data.get(this).appUser);
+                        } else {
+                            console.log(`No user accounts defined for host ${this.name}`);
+                            return false;
+                        }
+                    });
+                } catch (e) {
+                    console.log(e);
+                    return false;
+                }
+            };
+        }
         context.userManager = new UserManagerUI(appUser);
     }
+
 
     static getDependencies() {
         return [];
@@ -331,6 +338,121 @@ class UserManager extends PermissionsManager {
     save(backup = true) {
         return this.provider.saveToFile("users.json", this, backup);
     }
+
+    findHostsWithUser(user) {
+        if (typeof user === "string") {
+            user = this.provider.userManager.findValidUser(user);
+        }
+        if (user instanceof User) {
+            let hosts = this.provider.managers.hostManager.validHosts.filter((host)=> {
+                if (this.getUserAccountForUser(host, user)) {
+                    return host;
+                }
+            });
+            return hosts;
+        } else {
+            throw new Error("Parameter user must be a username or instance of User.");
+        }
+    }
+
+
+    getUserAccountForUser(host, user) {
+        if (host instanceof Host && user instanceof User) {
+            let userAccounts = this.getUserAccounts(host);
+            let userAccount = userAccounts.find((userAccount)=> {
+                if (userAccount.user.name === tUser.name) {
+                    return userAccount;
+                }
+            });
+            return userAccount;
+        } else {
+            throw new Error("Host parameter must be an instance of Host and user parameter must be an instance of User");
+        }
+    }
+
+    changeUserState(user, state) {
+        let tuser;
+        if ((typeof user === 'string') || user instanceof User) {
+            let tuser = this.findValidUser(user);
+            if (tuser) {
+                tuser.state = state;
+                //if use is globally marked as absent then mark user as absent in all hosts categories and groups
+                if(state==='absent') {
+                    //user state in hosts
+                    let hosts = this.provider.managers.hostManager.validHosts;
+                    hosts.forEach((host)=> {
+                        let userAccount = this.getUserAccountForUser(host, tUser);
+                        if (userAccount) {
+                            userAccount.user.state = state;
+                        }
+                    });
+                    //user state in usercategories
+                    let userCategories = this.provider.managers.userCategories.findCategoriesForUser(tUser);
+                    userCategories.forEach((userCategory)=> {
+                        let ttUser = userCategory.findUser(tUser);
+                        if (ttUser) ttUser.state = state;
+                    });
+                    //user state in group categories
+                    let groupCategories = this.provider.managers.groupCategories.findCategoriesWithUser(tUser);
+                    groupCategories.forEach((groupCategory)=> {
+                        groupCategory.findUser(tUser).state = state;
+                    });
+                }
+            } else {
+                logger.warn(`User ${user.name? user.name: user} requested to be marked as ${state} is not a valid user.`);
+            }
+        } else {
+            logger.warn("User parameter must be a username or instance of User.");
+        }
+    }
+
+
+    deleteUser(user, updateHosts = true) {
+        if ((typeof user == 'string') || user instanceof User) {
+            let username;
+            if (user instanceof User) {
+                username = user.name;
+            } else {
+                username = user;
+            }
+            let rUser = this.validUsers.forEach((user, index, array)=> {
+                if (user.name === username) {
+                    array.splice(index, 1);
+                    return user;
+                }
+            });
+            if (!rUser) {
+                logger.warn("User requested to be marked as absent is not a valid user.");
+            } else if (updateHosts) {
+                this.provider.managers.hostManager.validHosts.forEach((host)=> {
+                    this.deleteUserFromHost(host,user);
+                });
+                //update UserCategories
+                this.provider.managers.userCategories.categories.forEach((cat)=> {
+                    cat.userAccounts.find((userAccount, index, array)=> {
+                        if (userAccount.user.name === username) {
+                            array.splice(index, 1);
+                            return userAccount;
+                        }
+                    });
+                });
+            }
+        } else {
+            logger.warn("User parameter must be a username or instance of User.");
+        }
+    }
+
+    deleteUserFromHost(host,username){
+        let hostUsers = this.userManager.getUserAccounts(host);
+        hostUsers.find((hostUser, index, array)=> {
+            if (hostUser.user.name = username) {
+                array.splice(index, 1);
+                return hostUser;
+            }
+        });
+    }
+
+    
 
 }
 

@@ -199,10 +199,10 @@ class HostManager extends Manager {
         }
     }
 
-    loadConsoleUI(context, appUser) {
+    loadConsoleUIForSession(context, appUser) {
         context.hostManager = new ConsoleHostManager(appUser);
     }
-
+    
     static getDependencies() {
         return [];
     }

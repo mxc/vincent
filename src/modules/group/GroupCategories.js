@@ -6,6 +6,8 @@ import GroupManager from './GroupManager';
 import HostGroup from './HostGroup';
 import Manager from '../base/Manager';
 import Provider from '../../Provider';
+import GroupCategory from './GroupCategory';
+import Group from "./Group";
 
 class GroupCategories extends Manager {
 
@@ -15,8 +17,7 @@ class GroupCategories extends Manager {
         }
         super();
         this.provider = provider;
-        this.data = {};
-        this.data.configs = {};
+        this.data = [];
         this._state = "not loaded";
     }
 
@@ -24,8 +25,26 @@ class GroupCategories extends Manager {
         //no op
     }
 
-    get configs() {
-        return this.data.configs;
+    findCategoriesForUser(user) {
+        if ((typeof user == 'string') || user instanceof User) {
+            if (user instanceof User) {
+                user = user.name;
+            }
+            return this.data.filter((cat)=> {
+                return cat.users.find((tuser)=> {
+                    if (tuser.name === user) {
+                        return tuser;
+                    }
+                });
+            });
+        } else {
+            throw new Error("Parameter user must be a username or of type User.");
+        }
+    }
+
+
+    get categories() {
+        return this.data;
     }
 
     addGroupCategory(groupCategory) {
@@ -43,7 +62,7 @@ class GroupCategories extends Manager {
             if (data) {
                 return this.loadFromJson(data);
             }
-        }else{
+        } else {
             logger.warn("Cannot load includes/group-categories.json. It does not exist.")
         }
     }
@@ -53,7 +72,11 @@ class GroupCategories extends Manager {
      * @returns {{}|*}
      */
     export() {
-        return this.data;
+        let arr = [];
+        this.data.forEach((groupCategory)=>{
+            arr.push(groupCategory.export());
+        });
+        return arr;
     }
 
     loadFromJson(groupCategoriesData) {
@@ -62,9 +85,19 @@ class GroupCategories extends Manager {
                 if (!groupCategory.name || !groupCategory.config) {
                     logger.logAndThrow("The data mus have properties name and config");
                 }
-                this.data.configs[groupCategory.name] = groupCategory.config;
-                this._state = "loaded";
+                let groupHosts = [];
+                groupCategory.config.forEach((groupHost)=> {
+                    try{
+                        let group = new Group(groupHost.group);
+                        this.provider.managers.groupManager.addValidGroup(group);
+                    }catch(e){
+                        //swallow duplicate group error
+                    }
+                        groupHosts.push(new HostGroup(this.provider, groupHost));
+                });
+                this.data.push(new GroupCategory(groupCategory.name, groupHosts));
             });
+            this._state = "loaded";
         } else {
             throw new Error("The groupCategoriesData variable should be an array of GroupDefs.");
         }
@@ -75,11 +108,17 @@ class GroupCategories extends Manager {
     }
 
     findGroupCategory(name) {
-        return this.data.configs[name];
+        if (typeof name === 'string') {
+            return this.data.find((groupCat)=> {
+                if (groupCat.name === name) {
+                    return groupCat;
+                }
+            });
+        }
     }
 
     clear() {
-        this.data.configs = [];
+        this.data = [];
     }
 
     static getDependencies() {
@@ -88,9 +127,9 @@ class GroupCategories extends Manager {
 
     addGroupCategoryToHost(host, groupCategory) {
         //lookup host category group definition
-        let groups = this.findGroupCategory(groupCategory);
+        let groupCat = this.findGroupCategory(groupCategory);
         //if it's valid
-        if (groups) {
+        if (groupCat) {
             //add to exports includes definition
             let groupCategoriesObj = host._export.includes.groupCategories;
             if (!groupCategoriesObj) {
@@ -100,13 +139,13 @@ class GroupCategories extends Manager {
             groupCategoriesObj.push(groupCategory);
             let errors = [];
             //add groups to the host definition
-            groups.forEach((groupDef)=> {
+            groupCat.hostGroups.forEach((hostGroup)=> {
                 try {
-                    let newGroup = new HostGroup(this.provider, groupDef);
-                    this.provider.managers.groupManager.addHostGroupToHost(host, newGroup, true);
+                    //let newGroup = new HostGroup(this.provider, hostGroup);
+                    this.provider.managers.groupManager.addHostGroupToHost(host, hostGroup, true);
                 } catch (e) {
                     logger.warn(`Warning adding user category: ${e.message}`);
-                    errors.push(`Error adding ${groupDef.group.name} from group category ${groupCategory} - ${e.message}`);
+                    errors.push(`Error adding ${hostGroup.group.name} from group category ${groupCategory} - ${e.message}`);
                 }
             });
             if (errors.length > 0) {
@@ -122,9 +161,6 @@ class GroupCategories extends Manager {
         if (hostDef.includes) {
             let groupCategories = hostDef.includes.groupCategories;
             if (groupCategories) {
-                // if (!host._export.includes) {
-                //     host._export.includes = {};
-                // }
                 host.checkIncludes();
                 groupCategories.forEach((groupCategory) => {
                     try {
@@ -137,9 +173,10 @@ class GroupCategories extends Manager {
         }
     }
 
-    loadConsoleUI(context) {
+    loadConsoleUIForSession(context, appUser) {
         //no op
     }
+
 }
 
 export default GroupCategories;

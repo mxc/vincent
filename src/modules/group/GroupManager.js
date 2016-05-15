@@ -212,7 +212,8 @@ class GroupManager extends PermissionsManager {
 
     findHostGroup(host, hostGroup) {
         return host.data.groups.find((hgroup)=> {
-            if (hgroup.group.equals(hostGroup.group)) {
+            if (hgroup.group.name ===hostGroup.group.name) {
+                console.log(`found ${hgroup.group.name}`);
                 return hgroup;
             }
         });
@@ -220,7 +221,7 @@ class GroupManager extends PermissionsManager {
 
     findHostGroupByName(host, groupName) {
         return host.data.groups.find((hostGroup) => {
-            if (hostGroup.name === groupName) {
+            if (hostGroup.group.name === groupName) {
                 return hostGroup;
             }
         });
@@ -230,7 +231,7 @@ class GroupManager extends PermissionsManager {
         return [UserManager];
     }
 
-    loadConsoleUI(context,appUser) {
+    loadConsoleUIForSession(context,appUser) {
         let self = this;
         context.Host.prototype.addHostGroup = function (data) {
             try {
@@ -278,7 +279,8 @@ class GroupManager extends PermissionsManager {
         context.groupManager = new ConsoleGroupManager();
         context.Group = ConsoleGroup;
     }
-
+    
+    
     updateGroupGid(group, gid){
         let _group =  this.findValidGroup(group);
         if(_group){
