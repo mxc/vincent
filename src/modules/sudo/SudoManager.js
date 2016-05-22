@@ -75,7 +75,7 @@ class SudoManager extends Manager {
         this.data.configs = [];
     }
 
-    updateHost(hosts, host, hostDef){
+    loadHost(hosts, host, hostDef){
         if (hostDef.sudoerEntries) {
             hostDef.sudoerEntries.forEach((sudoEntryData)=> {
                 try {
@@ -143,7 +143,7 @@ class SudoManager extends Manager {
         //no op
     }
 
-    loadConsolUI(){
+    loadConsoleUI(){
         
     }
 }

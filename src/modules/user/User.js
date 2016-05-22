@@ -61,13 +61,13 @@ class User  {
         return this.data.state;
     }
 
-    set state(state) {
-        if (state !== "present" && state !== "absent") {
-            logger.logAndThrow(`User state is either present or absent not ${state}`);
-        } else {
-            this.data.state = state;
-        }
-    }
+    //set state(state) {
+    //    if (state !== "present" && state !== "absent") {
+    //        logger.logAndThrow(`User state is either present or absent not ${state}`);
+    //    } else {
+    //        this.data.state = state;
+    //    }
+    //}
 
     get key() {
         return this.data.key;
@@ -79,14 +79,6 @@ class User  {
 
     get uid() {
         return this.data.uid;
-    }
-
-     equals(user) {
-        if (!user instanceof User) {
-            return false;
-        } else {
-            return user.name === this.data.name && this.uid === user.uid;
-        }
     }
 
     merge(user) {

@@ -33,7 +33,7 @@ class AnsibleEngine extends EngineComponent {
                 sudo: 'yes'
             });
             if (host.ssh.validUsersOnly) {
-                //remove on refactor
+                //current on refactor
                 let userAccounts = this.provider.managers.userManager.getUserAccounts(host);
                 let users = '';
                 userAccounts.forEach((user, index)=> {

@@ -9,16 +9,14 @@ import UnixAuth from '../src/ui/authentication/UnixAuthProvider';
 import Provider from '../src/Provider';
 import {expect} from 'chai';
 
-describe("The unix authenication module ", ()=> {
+describe("The unix authenication module", ()=> {
     "use strict";
 
     let provider = new Provider(`${process.cwd()}/conf-example`);
     //provider.init(`${process.cwd()}/conf-example`);
 
     it("should successfully authenticate user", function (done) {
-        //  let docker = new Docker();
-        //  docker.startDocker("vincentsshkeys").then((ipaddr)=> {
-        this.timeout(20000);
+        this.timeout(10000);
         let auth = new UnixAuth(provider);
         auth.authenticate("vincent", "pass").then((result)=> {
             expect(result).to.be.true;
@@ -28,7 +26,6 @@ describe("The unix authenication module ", ()=> {
             }).catch((e)=>{
             done(e);
         });
-        //});
     });
 
     it("should successfully retrieve user groups", function(done) {

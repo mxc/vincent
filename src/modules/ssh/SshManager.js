@@ -73,7 +73,7 @@ class SshManager extends Manager {
         this.data.configs = [];
     }
 
-    updateHost(hosts, host, hostDef) {
+    loadHost(hosts, host, hostDef) {
         //Configure hostSsh for host if configured
         if (hostDef.ssh) {
             try {

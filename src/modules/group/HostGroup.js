@@ -34,32 +34,34 @@ class HostGroup extends HostComponent {
                 }
 
                 if (data.members) {
-                    data.members.forEach((username)=> {
-                        let user = this.provider.managers.userManager.findValidUserByName(username);
-                        if (user) {
-                            try {
-                                this.addMember(user);
-                            } catch (e) {
-                                logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
-                            }
-                        } else {
-                            //is this a user category? If so addValidGroup all members from the category
-                            let userCat = this.provider.managers.userCategories.findUserCategory(username);
-                            if (userCat) {
-                                userCat.userAccounts.forEach((tuser)=> {
-                                    let user = this.provider.managers.userManager.findValidUserByName(tuser.user.name);
-                                    try {
-                                        this.addMember(user);
-                                    } catch (e) {
-                                        logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
-                                    }
-                                });
+                        data.members.forEach((username)=> {
+                            username = username.name ? username.name : username;
+                            let user = this.provider.managers.userManager.findValidUserByName(username);
+                            if (user) {
+                                user = user.clone();
+                                try {
+                                    this.addMember(user);
+                                } catch (e) {
+                                    logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
+                                }
                             } else {
-                                logger.logAndAddToErrors(`There was an error adding member ${username} to the group ${data.group.name}. ` +
-                                    ` User is not valid.`, this.errors);
+                                //is this a user category? If so addValidGroup all members from the category
+                                let userCat = this.provider.managers.userCategories.findUserCategory(username);
+                                if (userCat) {
+                                    userCat.userAccounts.forEach((userAcc)=> {
+                                        let user = this.provider.managers.userManager.findValidUserByName(userAcc.user.name);
+                                        try {
+                                            this.addMember(user);
+                                        } catch (e) {
+                                            logger.logAndAddToErrors(`There was an error adding members to the group ${data.group.name}. ${e.message}`, this.errors);
+                                        }
+                                    });
+                                } else {
+                                    logger.logAndAddToErrors(`There was an error adding member ${username} to the group ${data.group.name}. ` +
+                                        ` User is not valid.`, this.errors);
+                                }
                             }
-                        }
-                    });
+                        });
                 }
             } else {
                 logger.logAndThrow("The data parameter for HostGroup must be an data object or undefined.");
@@ -95,7 +97,7 @@ class HostGroup extends HostComponent {
             var validUser = this.provider.managers.userManager.findValidUser(user);
             if (validUser && validUser.state != "absent") {
                 var t_user = this.data.members.find((muser) => {
-                    if (muser.equals(validUser)) {
+                    if (muser.name == validUser.name) {
                         return muser;
                     }
                 });
@@ -134,6 +136,10 @@ class HostGroup extends HostComponent {
             });
         }
         return obj;
+    }
+
+    clone(){
+        return new HostGroup(this.provider,this.data);
     }
 
 }

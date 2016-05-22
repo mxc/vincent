@@ -2,13 +2,13 @@
  * Created by mark on 2016/05/09.
  */
 
-import Provider from '../src/Provider';
+import Provider from '../../src/Provider';
 import {expect} from 'chai';
-import AppUser from '../src/ui/AppUser';
-import UserUI from '../src/modules/user/ui/console/User';
-import UserManagerUI from '../src/modules/user/ui/console/UserManager';
-import HostManagerUI from '../src/modules/host/ui/console/HostManager';
-import Vincent from '../src/Vincent';
+import AppUser from '../../src/ui/AppUser';
+import UserUI from '../../src/modules/user/ui/console/User';
+import UserManagerUI from '../../src/modules/user/ui/console/UserManager';
+import HostManagerUI from '../../src/modules/host/ui/console/HostManager';
+import Vincent from '../../src/Vincent';
 
 describe("UI User object should", ()=> {
 

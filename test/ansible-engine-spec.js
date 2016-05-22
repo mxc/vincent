@@ -133,8 +133,10 @@ describe("ansible engine", () => {
     it("should get ansible facts using ssh key authentication", function (done) {
         let docker = new Docker();
         let running = false;
-        this.timeout(10000);
+        this.timeout(17000);
         docker.startDocker("vincentsshkeys").then(ipaddr=> {
+            console.log("Not finding IP Addy");
+            console.log(ipaddr);
             running = true;
             return new Promise(resolve=> {
                 gen.inventory = new Set([ipaddr]);
@@ -168,7 +170,7 @@ describe("ansible engine", () => {
     it("should get ansible facts using password and sudo password", function (done) {
         let docker = new Docker();
         let running = false;
-        this.timeout(10000);
+        this.timeout(25000);
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;
             return new Promise(resolve=> {

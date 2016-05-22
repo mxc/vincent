@@ -236,7 +236,7 @@ class UserCategories extends Manager {
                 //for each user in category add to the host
                 rUserCategory.userAccounts.forEach((userAccount)=> {
                     try {
-                        //let newUserAccount = new UserAccount(this.provider, userAccount);
+                        userAccount = userAccount.clone();
                         this.provider.managers.userManager.addUserAccountToHost(host, userAccount, true);
                     } catch (e) {
                         logger.warn(`Warning adding user category: ${e.message}`);
@@ -255,7 +255,7 @@ class UserCategories extends Manager {
         }
     }
 
-    updateHost(hosts, host, hostDef) {
+    loadHost(hosts, host, hostDef) {
         //Add user categories into the user array
         if (hostDef.includes) {
             let userCategories = hostDef.includes.userCategories;

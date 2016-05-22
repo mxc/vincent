@@ -72,7 +72,7 @@ class UserManager extends PermissionsManager {
         }
         if (user instanceof User) {
             return validUsers.find((muser)=> {
-                return muser.equals(user);
+                return muser.name==user.name;
             });
         }
         if (typeof user === "string") {
@@ -88,7 +88,7 @@ class UserManager extends PermissionsManager {
      * @returns {T}
      */
     findValidUserByName(user) {
-        if (typeof user === 'string') {
+        if (typeof user == 'string') {
             return this.validUsers.find((muser)=> {
                 if (muser.name === user) {
                     return muser;
@@ -203,7 +203,8 @@ class UserManager extends PermissionsManager {
                     logger.info(`User ${userAccount.user.name} already exists on host,merging authorized_keys.`);
                     this.mergeUserAccount(host, foundUserAccount, userAccount);
                 } else {
-                    host.data.users.push(userAccount);
+                    let ua = userAccount.clone();
+                    host.data.users.push(ua);
                     userAccount.host = host;
                     if (!fromUserCategory) {
                         host._export.users.push(userAccount.export());
@@ -231,23 +232,45 @@ class UserManager extends PermissionsManager {
         });
     }
 
-    findUserAccountForHost(host, hostUser) {
+    findUserAccountForHost(host, userAccount) {
+        if(!userAccount instanceof UserAccount){
+            throw new Error("Parameter userAccount must be of type UserAccount.");
+        }
         return host.data.users.find((huser)=> {
-            if (huser.user.equals(hostUser.user)) {
+            if (huser.name ==userAccount.user.name) {
                 return huser;
             }
         });
     }
 
-    findUserAccountForHostByUserName(host, userName) {
-        return host.data.users.find((userAccount) => {
-            if (userAccount.name === userName) {
-                return userAccount;
-            }
-        });
+
+    findUserAccountForUser(host, user) {
+        if (host instanceof Host && user instanceof User) {
+            let userAccounts = this.getUserAccounts(host);
+            let userAccount = userAccounts.find((userAccount)=> {
+                if (userAccount.user.name === user.name) {
+                    return userAccount;
+                }
+            });
+            return userAccount;
+        } else {
+            throw new Error("Host parameter must be an instance of Host and user parameter must be an instance of User");
+        }
     }
 
-    updateHost(hosts, host, hostDef) {
+    findUserAccountForHostByUserName(host, userName) {
+        if(host instanceof Host && typeof userName == 'string') {
+            return host.data.users.find((userAccount) => {
+                if (userAccount.name === userName) {
+                    return userAccount;
+                }
+            });
+        }else{
+            throw new Error("Parameter host must be of type Host and userName must be a string.");
+        }
+    }
+
+    loadHost(hosts, host, hostDef) {
         if (hostDef.users) {
             hostDef.users.forEach(
                 (userDef) => {
@@ -339,67 +362,71 @@ class UserManager extends PermissionsManager {
         return this.provider.saveToFile("users.json", this, backup);
     }
 
-    findHostsWithUser(user) {
-        if (typeof user === "string") {
-            user = this.provider.userManager.findValidUser(user);
+    /**
+     * Returns an array of hosts that have user accounts for provided user and whose state is equal to the state parameter.
+     *
+     * @param user
+     * @param state 'present','absent' or undefined for both
+     * @returns {Array.<T>|*}
+     */
+    findHostsWithUser(user, state) {
+        if (state !== 'present' && state !== 'absent' && state !== undefined) {
+            throw new Error(`Parameter state must either be 'present','absent' or undefined not ${state}`);
         }
-        if (user instanceof User) {
+        if (typeof user !== "string" && !(user instanceof User)) {
+            throw new Error("Parameter user must be a username or instance of User.");
+        }
+        user = this.findValidUser(user);
+        if (user) {
             let hosts = this.provider.managers.hostManager.validHosts.filter((host)=> {
-                if (this.getUserAccountForUser(host, user)) {
-                    return host;
+                if (this.findUserAccountForUser(host, user)) {
+                    if (state) {
+                        if (user.state === state) {
+                            return host;
+                        }
+                    } else {
+                        return host;
+                    }
                 }
             });
             return hosts;
-        } else {
-            throw new Error("Parameter user must be a username or instance of User.");
-        }
-    }
-
-
-    getUserAccountForUser(host, user) {
-        if (host instanceof Host && user instanceof User) {
-            let userAccounts = this.getUserAccounts(host);
-            let userAccount = userAccounts.find((userAccount)=> {
-                if (userAccount.user.name === tUser.name) {
-                    return userAccount;
-                }
-            });
-            return userAccount;
-        } else {
-            throw new Error("Host parameter must be an instance of Host and user parameter must be an instance of User");
         }
     }
 
     changeUserState(user, state) {
-        let tuser;
+        if (state!=='absent' && state !=='present'){
+            throw new Error(`Parameter state must be 'present' or 'absent' not ${state}`);
+        }
         if ((typeof user === 'string') || user instanceof User) {
-            let tuser = this.findValidUser(user);
-            if (tuser) {
-                tuser.state = state;
+            let tUser = this.findValidUser(user);
+            if (tUser) {
+                tUser.data.state = state;
                 //if use is globally marked as absent then mark user as absent in all hosts categories and groups
-                if(state==='absent') {
+                if (state === 'absent') {
                     //user state in hosts
                     let hosts = this.provider.managers.hostManager.validHosts;
                     hosts.forEach((host)=> {
-                        let userAccount = this.getUserAccountForUser(host, tUser);
+                        let userAccount = this.findUserAccountForUser(host, tUser);
                         if (userAccount) {
-                            userAccount.user.state = state;
+                            userAccount.user.data.state = state;
                         }
                     });
                     //user state in usercategories
                     let userCategories = this.provider.managers.userCategories.findCategoriesForUser(tUser);
                     userCategories.forEach((userCategory)=> {
-                        let ttUser = userCategory.findUser(tUser);
-                        if (ttUser) ttUser.state = state;
+                        let ttUser = userCategory.findUserAccountForUser(tUser);
+                        if (ttUser) ttUser.user.data.state = state;
                     });
                     //user state in group categories
                     let groupCategories = this.provider.managers.groupCategories.findCategoriesWithUser(tUser);
                     groupCategories.forEach((groupCategory)=> {
-                        groupCategory.findUser(tUser).state = state;
+                        groupCategory.findUser(tUser).forEach((user)=>{
+                            user.data.state = state;
+                        });
                     });
                 }
             } else {
-                logger.warn(`User ${user.name? user.name: user} requested to be marked as ${state} is not a valid user.`);
+                logger.warn(`User ${user.name ? user.name : user} requested to be marked as ${state} is not a valid user.`);
             }
         } else {
             logger.warn("User parameter must be a username or instance of User.");
@@ -409,23 +436,29 @@ class UserManager extends PermissionsManager {
 
     deleteUser(user, updateHosts = true) {
         if ((typeof user == 'string') || user instanceof User) {
+            //normalise username for search
             let username;
             if (user instanceof User) {
                 username = user.name;
             } else {
                 username = user;
             }
-            let rUser = this.validUsers.forEach((user, index, array)=> {
-                if (user.name === username) {
-                    array.splice(index, 1);
-                    return user;
-                }
-            });
+
+            let rUser = this.findValidUserByName(username);
             if (!rUser) {
-                logger.warn("User requested to be marked as absent is not a valid user.");
-            } else if (updateHosts) {
-                this.provider.managers.hostManager.validHosts.forEach((host)=> {
-                    this.deleteUserFromHost(host,user);
+                logger.warn("User requested to be deleted is not a valid user.");
+                return;
+            }
+            //check if the user is currently associated with a UserAccount in any valid hosts and whose state is  "present"
+            let hosts = this.findHostsWithUser(rUser, 'present');
+            if (hosts.length > 0) {
+                throw new Error(`User ${username} has accounts in ${hosts.length} hosts. First mark user as 'absent' before they can be deleted.`);
+            }
+
+            //delete user entry from userAccount entries in host as the user has been previously marked as deleted.
+            if (updateHosts) {
+                this.findHostsWithUser(rUser, 'absent').forEach((host)=> {
+                    this.removeUserFromHost(host, user);
                 });
                 //update UserCategories
                 this.provider.managers.userCategories.categories.forEach((cat)=> {
@@ -437,22 +470,29 @@ class UserManager extends PermissionsManager {
                     });
                 });
             }
+            // can safely remove user from valid users list as no references exists from validHosts
+            this.validUsers.find((user, index, array)=> {
+                if (user.name === username) {
+                    array.splice(index, 1);
+                    return user;
+                }
+            });
+
         } else {
             logger.warn("User parameter must be a username or instance of User.");
         }
     }
 
-    deleteUserFromHost(host,username){
-        let hostUsers = this.userManager.getUserAccounts(host);
+    removeUserFromHost(host, username) {
+        let hostUsers = this.getUserAccounts(host);
         hostUsers.find((hostUser, index, array)=> {
-            if (hostUser.user.name = username) {
+            if (hostUser.user.name === username) {
                 array.splice(index, 1);
                 return hostUser;
             }
         });
     }
 
-    
 
 }
 

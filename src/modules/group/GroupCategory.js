@@ -3,6 +3,7 @@
  */
 
 import HostGroup from './HostGroup';    
+import User from '../user/User';
 
 class GroupCategory {
     
@@ -22,6 +23,24 @@ class GroupCategory {
             obj.config.push(hostGroup.export());
         });
         return obj;
+    }
+
+    findUser(user){
+        if(!user instanceof User && typeof user !=='string'){
+            throw new Error("Parameter user must be of type User or a user name string.");
+        }
+        let users=[];
+        this.hostGroups.forEach((hostGroup)=>{
+            return hostGroup.members.find((user)=>{
+                if (user.name == user){
+                    if(!users.includes(user)){
+                        users.push(user);
+                    }
+                    return user;
+                }
+            });
+        });
+        return users;
     }
 }
 

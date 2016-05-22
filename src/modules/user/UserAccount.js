@@ -27,7 +27,7 @@ class UserAccount extends HostComponent {
                     if (user) {
                         this.data.user = user.clone();
                         if (data.user.state === "absent") {
-                            this.data.user.state = "absent";
+                            this.data.user.data.state = "absent";
                         }
                         this._export.user = this.data.user.exportId();
                     } else {
@@ -58,13 +58,13 @@ class UserAccount extends HostComponent {
                     });
                 }
             } else {
-                logger.logAndThrow("The data parameter for UserAccount must be an data object or undefined.");
+                logger.logAndThrow("The data parameter for UserAccount must be an data object.");
             }
             this.data.source = data;
         }
     }
 
-    addAuthorizedUser(user, state) {
+     addAuthorizedUser(user, state) {
         //if the user has been marked as absent and will be deleted
         //authorized keys are superfluous.
         if (this.state=='absent'){
@@ -137,6 +137,10 @@ class UserAccount extends HostComponent {
         return this._export;
     }
 
+    clone(){
+            let ua = new UserAccount(this.provider, this.data);
+            return ua;
+    }
 }
 
 export default UserAccount;

@@ -3,6 +3,7 @@
  */
 
 import UserAccount from './UserAccount';
+import User from './User';
 
 
 class UserCategory  {
@@ -37,6 +38,18 @@ class UserCategory  {
             obj.config.push(user.export());
         });
         return obj;
+    }
+
+    findUserAccountForUser(user){
+        if (!user instanceof User && typeof user !=='string'){
+            throw new Error("Parameter user must be of type User or a user name string.");
+        }
+        user = user instanceof User? user.name: user;
+        return this.userAccounts.find((tUserAccount)=>{
+            if(tUserAccount.user.name == user){
+                return tUserAccount;
+            }
+        });
     }
 
 }

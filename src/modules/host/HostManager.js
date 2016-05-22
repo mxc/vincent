@@ -124,7 +124,7 @@ class HostManager extends Manager {
         return this.validHosts;
     }
 
-    updateHost() {
+    loadHost() {
         //Mo op
     }
 
@@ -164,7 +164,7 @@ class HostManager extends Manager {
         try {
             ModuleLoader.managerOrderedIterator((managerClass)=> {
                 let manager = this.provider.getManagerFromClassName(managerClass);
-                manager.updateHost(this, host, hostDef);
+                manager.loadHost(this, host, hostDef);
             }, this.provider);
         } catch (e) {
             logger.logAndAddToErrors(`Error processing updateHost for managers -${e.message ? e.message : e}`,

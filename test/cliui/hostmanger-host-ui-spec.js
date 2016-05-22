@@ -1,12 +1,12 @@
 /**
  * Created by mark on 2016/05/01.
  */
-import Provider from '../src/Provider';
+import Provider from '../../src/Provider';
 import {expect} from 'chai';
-import AppUser from '../src/ui/AppUser';
-import HostUI from '../src/modules/host/ui/console/Host';
-import HostManagerUI from '../src/modules/host/ui/console/HostManager';
-import Vincent from '../src/Vincent';
+import AppUser from '../../src/ui/AppUser';
+import HostUI from '../../src/modules/host/ui/console/Host';
+import HostManagerUI from '../../src/modules/host/ui/console/HostManager';
+import Vincent from '../../src/Vincent';
 
 describe("HostManager UI should", ()=> {
 
@@ -14,7 +14,7 @@ describe("HostManager UI should", ()=> {
     Vincent.app = {provider: provider};
 
     it("prevent unauthorised users from loading engine definitions for hosts without permissions", (done)=> {
-        let appUser = new AppUser("newton", ["dev"], "devops",);
+        let appUser = new AppUser("newton", ["dev"], "devops");
         let hostManagerUi = new HostManagerUI(appUser);
         let host = hostManagerUi.addHost("dogzrule.co.za");
         //change host owner
@@ -35,7 +35,7 @@ describe("HostManager UI should", ()=> {
 
 
     it("allow authorised users to load engine definitions for hosts with permissions", (done)=> {
-        let appUser = new AppUser("newton", ["dev"], "devops",);
+        let appUser = new AppUser("newton", ["dev"], "devops");
         let hostManagerUi = new HostManagerUI(appUser);
         let host = hostManagerUi.addHost("dogzrule.co.za");
         //change host owner
@@ -51,7 +51,7 @@ describe("HostManager UI should", ()=> {
 
     it("prevent unauthorised users from obtaining a reference to a host", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev"], "devops",);
+            let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner
@@ -67,7 +67,7 @@ describe("HostManager UI should", ()=> {
 
     it("allow authorised users to obtain a reference to a host", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev"], "devops",);
+            let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             let tmpHost = hostManagerUi.getHost("dogzrule.co.za");
@@ -80,7 +80,7 @@ describe("HostManager UI should", ()=> {
 
     it("prevent unauthorised users from saving a host definition", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev"], "devops",);
+            let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner
@@ -99,7 +99,7 @@ describe("HostManager UI should", ()=> {
 
     it("allow authorised users to save a host definition", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev"], "devops",);
+            let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             Vincent.app.provider.managers.hostManager.saveHost = ()=> {
@@ -115,7 +115,7 @@ describe("HostManager UI should", ()=> {
 
     it("only save host definitions to which the appUser has write permissions when invoking saveAll", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev"], "devops",);
+            let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             let host2 = hostManagerUi.addHost("locatzsux.co.za");
@@ -161,7 +161,7 @@ describe("Host UI should", ()=> {
     it("prevent unauthorised users from loading engine definitions", ()=> {
 
         try {
-            let appUser = new AppUser("newton", ["dev"], "devops",);
+            let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner

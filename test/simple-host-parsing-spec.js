@@ -217,7 +217,6 @@ describe("validating host configuration", function () {
     let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-
     provider.managers.hostManager.loadHosts(hosts);
 
     it("should detect hosts without a name property", function () {
@@ -280,7 +279,7 @@ describe("validating host configuration", function () {
                         authorized_keys: [{name: "user1", state: "present"}]
                     },
                     {
-                        user: {name: "user2", state: "absent"},
+                        user: {name: "user2", state: "absent"}
                     }
                 ],
                 groups: [
@@ -291,7 +290,7 @@ describe("validating host configuration", function () {
                         ]
                     },
                     {
-                        group: {name: "group2", state: "present"},
+                        group: {name: "group2", state: "present"}
                     },
                     {
                         group: {name: "group3", state: "present"},
@@ -309,21 +308,21 @@ describe("validating host configuration", function () {
                 permissions: 770,
                 users: [
                     {
-                        user: {name: "user2", state: "absent"},
+                        user: {name: "user2", state: "absent"}
                     },
                     {
-                        user: {name: "user3", state: "present"},
+                        user: {name: "user3", state: "present"}
                     },
                     {
-                        user: {name: "user4", state: "absent"},
+                        user: {name: "user4", state: "absent"}
                     }
                 ],
                 groups: [
                     {
-                        group: {name: "group2", state: "present"},
+                        group: {name: "group2", state: "present"}
                     },
                     {
-                        group: {name: "group3", state: "present"},
+                        group: {name: "group3", state: "present"}
                     }
                 ]
             },
@@ -339,12 +338,12 @@ describe("validating host configuration", function () {
                             {name: "user3", state: "absent", state: "present"}]
                     },
                     {
-                        user: {name: "user2", state: "absent"},
+                        user: {name: "user2", state: "absent"}
                     }
                 ],
                 groups: [
                     {
-                        group: {name: "group3", state: "present"},
+                        group: {name: "group3", state: "present"}
                     }
 
                 ]
@@ -357,7 +356,7 @@ describe("validating host configuration", function () {
         let docker = new Docker();
         let running = false;
         var gen = provider.engine;
-        this.timeout(12000);
+        this.timeout(20000);
         let host = {};
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;

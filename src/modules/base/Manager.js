@@ -6,8 +6,8 @@
 class Manager {
     
    
-    updateHost(host,hosts,hostDef){
-        throw new Error ("Method updateHost must be overridden in child object");
+    loadHost(host, hosts, hostDef){
+        throw new Error ("Method loadHost must be overridden in child object");
     }
     
     loadFromFile(){

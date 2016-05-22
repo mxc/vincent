@@ -8,6 +8,7 @@ import Manager from '../base/Manager';
 import Provider from '../../Provider';
 import GroupCategory from './GroupCategory';
 import Group from "./Group";
+import User from '../user/User';
 
 class GroupCategories extends Manager {
 
@@ -25,16 +26,18 @@ class GroupCategories extends Manager {
         //no op
     }
 
-    findCategoriesForUser(user) {
+    findCategoriesWithUser(user) {
         if ((typeof user == 'string') || user instanceof User) {
             if (user instanceof User) {
                 user = user.name;
             }
             return this.data.filter((cat)=> {
-                return cat.users.find((tuser)=> {
-                    if (tuser.name === user) {
-                        return tuser;
-                    }
+                return cat.hostGroups.find((hostGroup)=> {
+                   return hostGroup.members.find((tuser)=> {
+                        if (tuser.name === user) {
+                            return tuser;
+                        }
+                    });
                 });
             });
         } else {
@@ -73,7 +76,7 @@ class GroupCategories extends Manager {
      */
     export() {
         let arr = [];
-        this.data.forEach((groupCategory)=>{
+        this.data.forEach((groupCategory)=> {
             arr.push(groupCategory.export());
         });
         return arr;
@@ -83,17 +86,17 @@ class GroupCategories extends Manager {
         if (Array.isArray(groupCategoriesData)) {
             groupCategoriesData.forEach((groupCategory)=> {
                 if (!groupCategory.name || !groupCategory.config) {
-                    logger.logAndThrow("The data mus have properties name and config");
+                    logger.logAndThrow("The data must have properties name and config.");
                 }
                 let groupHosts = [];
                 groupCategory.config.forEach((groupHost)=> {
-                    try{
+                    try {
                         let group = new Group(groupHost.group);
                         this.provider.managers.groupManager.addValidGroup(group);
-                    }catch(e){
+                    } catch (e) {
                         //swallow duplicate group error
                     }
-                        groupHosts.push(new HostGroup(this.provider, groupHost));
+                    groupHosts.push(new HostGroup(this.provider, groupHost));
                 });
                 this.data.push(new GroupCategory(groupCategory.name, groupHosts));
             });
@@ -156,7 +159,7 @@ class GroupCategories extends Manager {
         }
     }
 
-    updateHost(hosts, host, hostDef) {
+    loadHost(hosts, host, hostDef) {
         //Add group categories into the groups array
         if (hostDef.includes) {
             let groupCategories = hostDef.includes.groupCategories;

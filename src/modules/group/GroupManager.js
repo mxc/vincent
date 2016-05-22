@@ -6,6 +6,7 @@ import Provider from './../../Provider';
 import PermissionsManager from './../base/PermissionsManager';
 import HostGroup from './HostGroup';
 import UserManager from './../user/UserManager';
+import User from './../user/User';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import ConsoleGroupManager from './ui/console/GroupManager';
 import ConsoleGroup from './ui/console/Group';
@@ -126,13 +127,12 @@ class GroupManager extends PermissionsManager {
         this.validGroups = [];
     }
 
-    updateHost(hosts, host, hostDef) {
+    loadHost(hosts, host, hostDef) {
         //group and group membership validation
         if (hostDef.groups) {
             hostDef.groups.forEach((groupDef) => {
                 try {
                     let hostGroup = new HostGroup(host.provider, groupDef);
-
                     this.addHostGroupToHost(host, hostGroup);
                     Array.prototype.push.apply(hosts.errors[host.name], hostGroup.errors);
                 } catch (e) {
@@ -164,6 +164,17 @@ class GroupManager extends PermissionsManager {
         return host.data.groups;
     }
 
+    findHostGroupsWithUser(user){
+        if(! user instanceof User && typeof user!=='string'){
+            let hostGroups = [];
+            this.provider.managers.hostManager.validHosts.forEach((host)=>{
+
+            });
+        }else{
+            throw new Error("Parameter user must be of type User or a user name string.");
+        }
+    }
+
     addHostGroupToHost(host, hostGroup, fromGroupCategory = false) {
 
         //update host for userAccounts
@@ -183,10 +194,10 @@ class GroupManager extends PermissionsManager {
                     logger.info(`Group ${hostGroup.group.name} already exists on host.`);
                     this.mergeGroup(host, foundHostGroup, hostGroup);
                 } else {
-                    host.data.groups.push(hostGroup);
-                    hostGroup.host = host;
+                    let hg = hostGroup.clone();
+                    host.data.groups.push(hg);
                     if (!fromGroupCategory) {
-                        host._export.groups.push(hostGroup.export());
+                        host._export.groups.push(hg.export());
                     }
                 }
                 Array.prototype.push.apply(host.errors, hostGroup.errors);
@@ -230,6 +241,7 @@ class GroupManager extends PermissionsManager {
     static getDependencies() {
         return [UserManager];
     }
+
 
     loadConsoleUIForSession(context,appUser) {
         let self = this;
