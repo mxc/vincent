@@ -32,17 +32,6 @@ class UserManager extends PermissionsUIManager {
         }
     }
 
-    listUserCategories() {
-        try {
-            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
-                return Vincent.app.provider.managers.userCategories.data;
-            });
-        } catch (e) {
-            console.log(e);
-            return [];
-        }
-    }
-
     getUser(username) {
         try {
             let user = data.get(this).permObj.findValidUser(username);

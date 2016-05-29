@@ -60,15 +60,12 @@
         ]
       }
     ],
-    "includes": {
-      "ssh": "strict",
-      "userCategories": [
-        "staff-user-category"
-      ],
-      "groupCategories": [
-        "server-groups",
-        "desktop-groups"
-      ]
+    "config":{
+		"ssh": {
+			"permitRoot": "no",
+	      		"validUsersOnly": "true",
+	      		"passwordAuthentication": "no"
+	}
     }
   },
   {
@@ -110,9 +107,12 @@
         ]
       }
     ],
-    "includes": {
-      "ssh": "strict"
-    }
+    "ssh": {
+		"permitRoot": "no",
+      		"validUsersOnly": "true",
+      		"passwordAuthentication": "no"
+	}
+
   },
   {
     "name": "www.abc.co.za",
@@ -120,10 +120,10 @@
     "group": "sysadmin",
     "permissions":770,
     "remoteAccess": {
-      "remoteUser": "ansible"
+      "remoteUser": "ansible",
+      "authentication": "password",
+      "sudoAuthentication": "false"
     },
-    "authentication": "password",
-    "sudoAuthentication": "false",
     "users": [
       {
         "user": {
@@ -162,8 +162,12 @@
         ]
       }
     ],
-    "includes": {
-      "ssh": "strict-with-root"
+    "config":{
+	"ssh": {
+      		"permitRoot": "without-password",
+      		"validUsersOnly": "true",
+      		"passwordAuthentication": "no"
+	}
     }
   }
 ]

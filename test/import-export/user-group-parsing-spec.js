@@ -1,6 +1,6 @@
 'use strict';
 
-import Provider from './../src/Provider';
+import Provider from './../../src/Provider';
 import {expect} from 'chai';
 
 

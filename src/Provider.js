@@ -8,7 +8,6 @@ import fs from 'fs';
 import Manager from './modules/base/Manager';
 import mkdirp from 'mkdirp';
 import AppUser from './ui/AppUser';
-import UserCategories from './modules/user/UserCategories';
 
 class Provider {
 
@@ -226,6 +225,8 @@ class Provider {
         fs.writeFileSync(currentPath, json);
         return archivePath;
     }
+
+
 
     /**
      * Convenience function to return the configure datastore directory

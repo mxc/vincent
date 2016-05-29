@@ -17,6 +17,9 @@ class HostSsh extends HostComponent {
         return this.data.data;
     }
 
+    export(){
+            return this.data.export();
+    }
 
 }
 

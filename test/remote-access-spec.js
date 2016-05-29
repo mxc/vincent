@@ -78,8 +78,6 @@ describe("HostManager configuration without remote access definition", ()=> {
         }];
 
     let provider = new Provider();
-    //provider.init();    //inject mocks
-    let appUser = new AppUser("einstien",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
@@ -97,7 +95,7 @@ describe("HostManager configuration without remote access definition", ()=> {
         expect(host.remoteAccess.sudoAuthentication).to.equal(false);
     });
 
-    it("should not addValidGroup definition to model export", ()=> {
+    it("should not add definition to model export", ()=> {
         expect(host.export().remoteAccess).to.equal(undefined);
     })
 });
@@ -198,11 +196,11 @@ describe("HostManager configuration with remote access definition", ()=> {
         expect(host.remoteAccess.sudoAuthentication).to.equal(false);
     });
 
-    it("should not addValidGroup definition to model export", ()=> {
-        expect(host.export().remoteAccess).to.deep.equal({
+    it("should not add definition to model export", ()=> {
+        expect(host.export().remoteAccess.data).to.deep.equal({
             remoteUser: "mark",
             authentication: "publicKey",
-            sudoAuthentication: false,
+            sudoAuthentication: false
         });
     })
 });

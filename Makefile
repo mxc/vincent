@@ -5,6 +5,10 @@ current:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/current/*.js
 
+api:
+	clear
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/api/*.js
+
 cliui:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/cliui/*.js
@@ -12,5 +16,9 @@ cliui:
 main:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/*.js
+
+import-export:
+	clear
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/import-export/*.js
 
 .ALL: main cliui current

@@ -11,7 +11,7 @@ import ModuleLoader from '../../utilities/ModuleLoader';
 import ConsoleGroupManager from './ui/console/GroupManager';
 import ConsoleGroup from './ui/console/Group';
 import ConsoleHostGroup from './ui/console/HostGroup';
-
+import Host from '../host/Host';
 
 class GroupManager extends PermissionsManager {
 
@@ -57,7 +57,7 @@ class GroupManager extends PermissionsManager {
             return this.validGroups.find((mgroup) => {
                 return mgroup.equals(group);
             });
-        }if(typeof Group==="string"){
+        }if(typeof group=="string"){
             return this.findValidGroupByName(group);
         } else {
             logger.logAndThrow(`The parameter group is not an instance of Group`);
@@ -165,25 +165,36 @@ class GroupManager extends PermissionsManager {
     }
 
     findHostGroupsWithUser(user){
-        if(! user instanceof User && typeof user!=='string'){
+        if(user instanceof User || typeof user=='string'){
             let hostGroups = [];
-            this.provider.managers.hostManager.validHosts.forEach((host)=>{
-
+            this.provider.managers.hostManager.validHosts.forEach((host)=> {
+                    Array.prototype.push.apply(hostGroups,this.findHostGroupsWithUserForHost(host,user));
             });
+            return hostGroups;
         }else{
             throw new Error("Parameter user must be of type User or a user name string.");
         }
     }
 
-    addHostGroupToHost(host, hostGroup, fromGroupCategory = false) {
+    findHostGroupsWithUserForHost(host,user){
+        host = this.provider.managers.hostManager.findValidHost(host);
+        user = this.provider.managers.userManager.findValidUser(user);
+        let hostGroups = [];
+        let hgs = this.provider.managers.groupManager.getHostGroups(host);
+            hgs.forEach((hg)=>{
+                if(hg.containsMember(user)){
+                    hostGroups.push(hg);
+                }
+            });
+        return hostGroups;
+        };
+
+
+    addHostGroupToHost(host, hostGroup) {
 
         //update host for userAccounts
         if (!host.data.groups) {
             host.data.groups = [];
-        }
-
-        if (!host._export.groups) {
-            host._export.groups = [];
         }
 
         if (hostGroup instanceof HostGroup) {
@@ -196,9 +207,6 @@ class GroupManager extends PermissionsManager {
                 } else {
                     let hg = hostGroup.clone();
                     host.data.groups.push(hg);
-                    if (!fromGroupCategory) {
-                        host._export.groups.push(hg.export());
-                    }
                 }
                 Array.prototype.push.apply(host.errors, hostGroup.errors);
             } else {
@@ -211,26 +219,34 @@ class GroupManager extends PermissionsManager {
 
     mergeGroup(host, existingGroup, newGroup) {
         existingGroup.merge(newGroup);
-        //drop return group.
-        host._export.groups.find((group, index)=> {
-            if (group.name === existingGroup.name) {
-                host._export.groups.splice(index, 1);
-                host._export.groups.push(existingGroup.export());
-                return group;
-            }
-        });
     }
 
-    findHostGroup(host, hostGroup) {
+    findHostGroup(host, group) {
+        if(!(host instanceof Host) || (!(group instanceof Group) && !(group instanceof HostGroup))){
+            logger.logAndThrow("Parameter host must be an instance of Host and parameter hostGroup must be " +
+                "an instance of HostGroup or Group.");
+        }
         return host.data.groups.find((hgroup)=> {
-            if (hgroup.group.name ===hostGroup.group.name) {
-                console.log(`found ${hgroup.group.name}`);
-                return hgroup;
+            if(group instanceof Group) {
+                if (hgroup.group.name === group.name) {
+                    return hgroup;
+                }
+            }else {
+                if (hgroup.group.name === group.group.name) {
+                    return hgroup;
+                }
             }
         });
     }
 
     findHostGroupByName(host, groupName) {
+        if(!(host instanceof Host)){
+            logger.logAndThrow("Host must be an instanceof Host.");
+        }
+        if(!host.data.groups){
+            logger.logAndThrow(`No groups defined for host ${host.name}.`);
+        }
+
         return host.data.groups.find((hostGroup) => {
             if (hostGroup.group.name === groupName) {
                 return hostGroup;
@@ -302,6 +318,33 @@ class GroupManager extends PermissionsManager {
                 _group.data.gid=gid;
             }
         }
+    }
+
+    removeUserFromHostGroups(host,user){
+        if(!(host instanceof Host)){
+            logger.logAndThrow("Parameter host must be an instance of Host.");
+        }
+        if(user instanceof User){
+            user = user.name;
+        }
+        if(typeof user =='string'){
+                if(host.data.groups){
+                    host.data.groups.forEach((hg)=>{
+                        hg.removeMember(user);
+                    });
+                }
+        }else{
+           logger.logAndThrow("Parameter user must be a string or instance of User.");
+        }
+    }
+
+    findHostsWithGroup(group){
+        group = this.findValidGroup(group);
+        return this.provider.managers.hostManager.validHosts.filter((host)=>{
+             if (this.findHostGroup(host,group)){
+                 return host;
+             }
+        });
     }
 }
 

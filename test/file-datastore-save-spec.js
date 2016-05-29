@@ -166,53 +166,6 @@ describe("File DB save tests", function () {
     ];
 
 
-    var userCategories = [
-        {
-            "name": "cat1",
-            "config": [
-                {
-                    user: {
-                        name: "user1",
-                        state: "absent"
-                    },
-                    authorized_keys: [
-                        {name: "user2"},
-                        {name: "user1"}]
-                },
-                {
-                    user: {
-                        name: "user2"
-                    }
-                }
-            ]
-        },
-        {
-            "name": "cat2",
-            "config": [
-                {user: {name: "user3", state: "present"}},
-                {user: {name: "user1"}, authorized_keys: [{name: "user2"}, {name: "user1"}]}
-            ]
-        }
-    ];
-
-    var groupCategories = [
-        {
-            name: "groupcat1",
-            config: [
-                {group: {name: "group4"}, members: ["user1"]},
-                {group: {name: "group5"}, members: ["user2", "user1"]}
-            ]
-        },
-        {
-            name: "groupcat2",
-            config: [
-                {group: {name: "group6"}, members: ["user"]},
-                {group: {name: "group7"}, members: ["user2", "user3"]}
-            ]
-        }
-    ];
-
-
     //inject mocks
     let appUser = new AppUser("einstien",["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
@@ -220,8 +173,6 @@ describe("File DB save tests", function () {
     //provider.init(path.resolve(home,"vincenttest"));
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
-    provider.managers.groupCategories.data.configs = groupCategories;
-    provider.managers.userCategories.loadFromJson(userCategories);
     provider.managers.hostManager.loadHosts(hosts);
 
 
@@ -231,7 +182,6 @@ describe("File DB save tests", function () {
             let result = fs.statSync(backupPath);
             expect(result.isFile()).to.be.true;
         }
-        console.log(provider.getConfigDir());
         var result = fs.statSync(`${provider.getDBDir()}/users.json`);
         expect(result.isFile()).to.be.true;
     });
@@ -254,43 +204,13 @@ describe("File DB save tests", function () {
         expect(result.isFile()).to.be.true;
     });
 
-    it('should save valid hosts', (done)=> {
+    it('should save valid hosts', ()=> {
         let host = provider.managers.hostManager.findValidHost("www.abc.co.za");
         let backupPath = provider.managers.hostManager.saveHost(host);
-        if (backupPath!=="no backup required.") {
-
-        }
-        console.log(provider.getDBDir());
-        var result = fs.statSync(`${provider.getDBDir()}/hosts/${host.name}.json`);
-        //verify new file
-        expect(result.isFile()).to.be.true;
-        done();
-    });
-
-    it('should save groupCategoires and backup previous file', ()=> {
-        let backupPath = provider.managers.groupCategories.save();
-        if (backupPath!=="no backup required.") {
-            let result = fs.statSync(backupPath);
-            //verify backup
-            expect(result.isFile()).to.be.true;
-        }
-        var result = fs.statSync(`${provider.getDBDir()}/includes/group-categories.json`);
+        expect(backupPath).to.equal("no backup required.");
+;        var result = fs.statSync(`${provider.getDBDir()}/hosts/${host.name}.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
     });
-
-
-    it('should save userCategories and backup previous file', ()=> {
-        let backupPath = provider.managers.userCategories.save();
-        if (backupPath!=="no backup required.") {
-            let result = fs.statSync(backupPath);
-            //verify backup
-            expect(result.isFile()).to.be.true;
-        }
-        var result = fs.statSync(`${provider.getDBDir()}/includes/user-categories.json`);
-        //verify new file
-        expect(result.isFile()).to.be.true;
-    });
-
 
 });

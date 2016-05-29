@@ -8,36 +8,40 @@ import logger from './../../Logger';
 
 class HostSudoEntry extends HostComponent {
 
-    constructor(provider,host, data) {
+    constructor(provider, host, data) {
         super(provider);
         this.errors = [];
-        if (!data && !data.userList && !Array.isArray(data.userList)) {
-            logger.logAndThrow("The data def parameter for SudoEntry must have a userList array property");
+        if (!data && !data.userList && !Array.isArray(data.userList) && !data instanceof SudoEntry) {
+            logger.logAndThrow("The data parameter for SudoEntry must have a userList array property.");
         }
-        this.data = new SudoEntry(data.name);
-        data.userList.forEach((userEntry)=> {
+        if (!data.commandSpec) {
+            logger.logAndThrow("The data parameter for SudoEntry must have a commandSpec array property.");
+        }
+
+         let entry = {};
+        if (data instanceof SudoEntry) {
+            entry = data;
+        } else {
+            entry = new SudoEntry(this.provider, data);
+        }
+        entry.userList.users.forEach((userEntry)=> {
             //determine if this is a group or user reference
-            let added = false;
-            if (userEntry.group) {
-                let group = this.provider.managers.groupManager.findHostGroupByName(host,userEntry.group.name);
-                if (group) {
-                    this.data.addGroup(group);
-                    added = true;
-                }
-            } else {
-                let user = this.provider.managers.userManager.findUserAccountForHostByUserName(host,userEntry.user.name);
-                if (user) {
-                    this.data.addUser(user);
-                    added = true;
-                }
-            }
-            if (!added) {
-                let name = userEntry.group ? userEntry.group.name : userEntry.user.name;
-                logger.logAndAddToErrors('User entry for ${name} was not added for sudoer entry ' +
-                    'as user or group is not valid for host', this.errors);
+            let user = this.provider.managers.userManager.findUserAccountForHostByUserName(host, userEntry.name);
+            if (!user) {
+                entry.removeUserGroup(userEntry);
+                logger.logAndAddToErrors(`User ${userEntry.name} was not added to sudoer entry ' +
+                    'as the user is not valid for host`, this.errors);
             }
         });
-        this.data.commandSpec = data.commandSpec;
+        entry.userList.groups.forEach((group)=> {
+            let vgroup = this.provider.managers.groupManager.findHostGroupByName(host, group.name);
+            if (!vgroup) {
+                entry.removeUserGroup(group);
+                logger.logAndAddToErrors(`Group ${group.name} was not added to sudoer entry ' +
+                    'as the group is not valid for host`, this.errors);
+            }
+        });
+        this.data = entry;
     }
 
 
@@ -45,11 +49,28 @@ class HostSudoEntry extends HostComponent {
         return this.data;
     }
 
-    clear() {
-        this.data = {};
-        this._export = {};
+    get userList() {
+        return this.data.userList;
+    }
+    get users(){
+        return this.data.userList.users;
     }
 
+    get groups(){
+        return this.data.userList.groups;
+    }
+
+    get commandSpec(){
+        return this.data.commandSpec;
+    }
+
+    clear() {
+        this.data = {};
+    }
+
+    export(){
+        this.data.export();
+    }
 }
 
 export default HostSudoEntry;

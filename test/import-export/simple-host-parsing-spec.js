@@ -1,11 +1,11 @@
-import Provider from "../src/Provider.js";
-import User from "../src/modules/user/User";
-import UserAccount from "../src/modules/user/UserAccount";
-import Host from "../src/modules/host/Host";
-import Group from "../src/modules/group/Group";
+import Provider from "../../src/Provider.js";
+import User from "../../src/modules/user/User";
+import UserAccount from "../../src/modules/user/UserAccount";
+import Host from "../../src/modules/host/Host";
+import Group from "../../src/modules/group/Group";
 import {expect} from 'chai';
-import Docker from './support/Docker';
-import AppUser from '../src/ui/AppUser';
+import Docker from './../support/Docker';
+import AppUser from '../../src/ui/AppUser';
 
 describe("validating host configuration", function () {
 
@@ -212,7 +212,6 @@ describe("validating host configuration", function () {
     ];
 
     let provider = new Provider();
-    //provider.init();    //inject mocks
     //inject mocks
     let appUser = new AppUser("einstein",["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
@@ -266,6 +265,10 @@ describe("validating host configuration", function () {
             "public key defined")).not.to.equal(-1);
     });
 
+    it("should detect a UserAccount which has itself in it's authorized_keys list", function () {
+        expect(provider.managers.hostManager.errors["www.example.com"].indexOf("UserAccount user1 cannot be added to itself as an authorized user.")).not.to.equal(-1);
+    });
+
     it("should return an array of valid hosts", function () {
         var validHosts = [
             {
@@ -275,8 +278,7 @@ describe("validating host configuration", function () {
                 permissions: 770,
                 users: [
                     {
-                        user: {name: "user1", state: "present"},
-                        authorized_keys: [{name: "user1", state: "present"}]
+                        user: {name: "user1", state: "present"}
                     },
                     {
                         user: {name: "user2", state: "absent"}
@@ -334,8 +336,7 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name: "user1", state: "present"},
-                            {name: "user3", state: "absent", state: "present"}]
+                        authorized_keys: [{name: "user3", state: "present"}]
                     },
                     {
                         user: {name: "user2", state: "absent"}
@@ -349,6 +350,8 @@ describe("validating host configuration", function () {
                 ]
             }
         ];
+        //console.log(provider.managers.hostManager.export()[0].users);
+        //console.log(validHosts[0].users);
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 

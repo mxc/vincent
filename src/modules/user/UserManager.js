@@ -72,7 +72,7 @@ class UserManager extends PermissionsManager {
         }
         if (user instanceof User) {
             return validUsers.find((muser)=> {
-                return muser.name==user.name;
+                return muser.name == user.name;
             });
         }
         if (typeof user === "string") {
@@ -172,28 +172,13 @@ class UserManager extends PermissionsManager {
         return host.data.users;
     }
 
-    // updateUserUid(user, uid) {
-    //     let _user = this.findValidUser(user)
-    //     if (_user) {
-    //         if (this.findValidUserByUid(uid)) {
-    //             throw new Error("A user with the uid already exists");
-    //         } else {
-    //             _user.data.uid = uid;
-    //         }
-    //     }
-    // }
-
-    addUserAccountToHost(host, userAccount, fromUserCategory = false) {
+    addUserAccountToHost(host, userAccount) {
         if (!host instanceof Host) {
             logger.logAndThrow("Parameter host must be of type Host");
         }
         //update host for userAccounts
         if (!host.data.users) {
             host.data.users = [];
-        }
-
-        if (!host._export.users) {
-            host._export.users = [];
         }
 
         if (userAccount instanceof UserAccount) {
@@ -205,10 +190,6 @@ class UserManager extends PermissionsManager {
                 } else {
                     let ua = userAccount.clone();
                     host.data.users.push(ua);
-                    userAccount.host = host;
-                    if (!fromUserCategory) {
-                        host._export.users.push(userAccount.export());
-                    }
                 }
                 Array.prototype.push.apply(host.errors, userAccount.errors);
             } else {
@@ -222,22 +203,14 @@ class UserManager extends PermissionsManager {
     mergeUserAccount(host, existingUser, newUser) {
         //merge user objects
         existingUser.merge(newUser);
-        //update the exports data structure
-        host._export.users.find((user, index)=> {
-            if (user.name === existingUser.name) {
-                host._export.users.splice(index, 1);
-                host._export.users.push(existingUser.export());
-                return user;
-            }
-        });
     }
 
     findUserAccountForHost(host, userAccount) {
-        if(!userAccount instanceof UserAccount){
+        if (!userAccount instanceof UserAccount) {
             throw new Error("Parameter userAccount must be of type UserAccount.");
         }
         return host.data.users.find((huser)=> {
-            if (huser.name ==userAccount.user.name) {
+            if (huser.name == userAccount.user.name) {
                 return huser;
             }
         });
@@ -259,13 +232,19 @@ class UserManager extends PermissionsManager {
     }
 
     findUserAccountForHostByUserName(host, userName) {
-        if(host instanceof Host && typeof userName == 'string') {
+        if(!host instanceof Host){
+            logger.logAndThrow("Host must be an instanceof Host.");
+        }
+        if(!host.data.users){
+            logger.logAndThrow(`No users defined for host ${host.name}.`);
+        }
+        if (host instanceof Host && typeof userName == 'string') {
             return host.data.users.find((userAccount) => {
                 if (userAccount.name === userName) {
                     return userAccount;
                 }
             });
-        }else{
+        } else {
             throw new Error("Parameter host must be of type Host and userName must be a string.");
         }
     }
@@ -394,7 +373,7 @@ class UserManager extends PermissionsManager {
     }
 
     changeUserState(user, state) {
-        if (state!=='absent' && state !=='present'){
+        if (state !== 'absent' && state !== 'present') {
             throw new Error(`Parameter state must be 'present' or 'absent' not ${state}`);
         }
         if ((typeof user === 'string') || user instanceof User) {
@@ -410,19 +389,6 @@ class UserManager extends PermissionsManager {
                         if (userAccount) {
                             userAccount.user.data.state = state;
                         }
-                    });
-                    //user state in usercategories
-                    let userCategories = this.provider.managers.userCategories.findCategoriesForUser(tUser);
-                    userCategories.forEach((userCategory)=> {
-                        let ttUser = userCategory.findUserAccountForUser(tUser);
-                        if (ttUser) ttUser.user.data.state = state;
-                    });
-                    //user state in group categories
-                    let groupCategories = this.provider.managers.groupCategories.findCategoriesWithUser(tUser);
-                    groupCategories.forEach((groupCategory)=> {
-                        groupCategory.findUser(tUser).forEach((user)=>{
-                            user.data.state = state;
-                        });
                     });
                 }
             } else {
@@ -457,18 +423,24 @@ class UserManager extends PermissionsManager {
 
             //delete user entry from userAccount entries in host as the user has been previously marked as deleted.
             if (updateHosts) {
+                //remove user from hosts
                 this.findHostsWithUser(rUser, 'absent').forEach((host)=> {
                     this.removeUserFromHost(host, user);
                 });
-                //update UserCategories
-                this.provider.managers.userCategories.categories.forEach((cat)=> {
-                    cat.userAccounts.find((userAccount, index, array)=> {
-                        if (userAccount.user.name === username) {
-                            array.splice(index, 1);
-                            return userAccount;
-                        }
+                //remove user from host groups
+                let hgs = this.provider.managers.groupManager.findHostGroupsWithUser(rUser);
+                if (hgs) {
+                    hgs.forEach((hg)=> {
+                        hg.removeMember(rUser);
                     });
-                });
+                }
+                //remove user from sudoentries
+                let hses = this.provider.managers.sudoManager.findHostSudoEntriesForUser(user);
+                if (hses) {
+                    hses.forEach((hse)=> {
+                        hse.removeUserGroup(rUser);
+                    });
+                }
             }
             // can safely remove user from valid users list as no references exists from validHosts
             this.validUsers.find((user, index, array)=> {
@@ -483,13 +455,24 @@ class UserManager extends PermissionsManager {
         }
     }
 
-    removeUserFromHost(host, username) {
+    removeUserFromHost(host, user) {
+        user = this.findValidUser(user);
+        if(!user){
+            logger.logAndThrow("Parameter user must be a User object or a user name string.");
+        }
+        if(!host instanceof Host){
+            logger.logAndThrow("Parameter host must be a Host object.");
+        }
         let hostUsers = this.getUserAccounts(host);
         hostUsers.find((hostUser, index, array)=> {
-            if (hostUser.user.name === username) {
+            if (hostUser.user.name === user.name) {
                 array.splice(index, 1);
                 return hostUser;
             }
+            //remove user from groups
+            this.provider.managers.groupManager.removeUserFromHostGroups(host, user);
+            //remove user from sudoer entry
+            this.provider.managers.sudoManager.removeUserGroupFromHostSudoEntries(host, user);
         });
     }
 

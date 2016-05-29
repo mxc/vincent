@@ -4,9 +4,7 @@
 
 import {System} from 'es6-module-loader';
 import UserManager from  './../modules/user/UserManager';
-import UserCategories from  './../modules/user/UserCategories';
 import GroupManager from  './../modules/group/GroupManager';
-import GroupCategories from  './../modules/group/GroupCategories';
 import HostManager from './../modules/host/HostManager'
 import SudoManager from './../modules/sudo/SudoManager'
 import UserAnsibleEngine from './../modules/user/engine/AnsibleEngine';
@@ -51,9 +49,7 @@ class ModuleLoader {
 
         return new Promise(resolve => {
             ModuleLoader.modules.push(UserManager);
-            ModuleLoader.modules.push(UserCategories);
             ModuleLoader.modules.push(GroupManager);
-            ModuleLoader.modules.push(GroupCategories);
             ModuleLoader.modules.push(HostManager);
             ModuleLoader.modules.push(SshManager);
             ModuleLoader.modules.push(SudoManager);
@@ -61,13 +57,6 @@ class ModuleLoader {
                 let name = manager.name.charAt(0).toLowerCase() + manager.name.slice(1);
                 provider.managers[name] = new manager(provider);
             }, provider);
-
-
-            //provider.managers.userManager = new UserManager(provider);
-            //provider.managers.groupManager = new GroupManager(provider);
-            //provider.managers.hostManager = new HostManager(provider);
-            //provider.managers.sshManager = new SshManager(provider);
-            //provider.managers.sudoManager = new SudoManager(provider);
             resolve();
         });
 

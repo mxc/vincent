@@ -1,12 +1,13 @@
 /**
- * Created by mark on 2016/05/21.
+ * Created by mark on 2016/05/26.
  */
-'use strict';
+"use strict";
 
 import Provider from './../../src/Provider';
 import {expect} from 'chai';
 import UserAccount from '../../src/modules/user/UserAccount';
 import User from '../../src/modules/user/User';
+
 
 var groups = {
     "owner": "root",
@@ -34,39 +35,6 @@ var users = {
         {name: 'user6', state: 'present', uid: 1001}
     ]
 };
-
-var userCategories = [
-    {
-        "name": "cat1",
-        "config": [
-            {
-                user: {
-                    name: "user4",
-                    state: "present"
-                },
-                authorized_keys: [
-                    {name: "user2"},
-                    {name: "user1"}]
-            },
-            {
-                user: {
-                    name: "user3"
-                }
-            }
-        ]
-    }
-];
-
-var groupCategories = [
-    {
-        name: "groupcat1",
-        config: [
-            {group: {name: "group4"}, members: ["user4"]},
-            {group: {name: "group5"}, members: ["user2", "user4"]}
-        ]
-    }
-];
-
 
 var host = {
     name: "www.example.co.za",
@@ -107,19 +75,34 @@ var host = {
             ]
         }
     ],
-    includes: {
-        userCategories: ["cat1"],
-        groupCategories: ["group1"]
-    }
 };
 
 describe("user management should", function () {
     let provider = new Provider();
     provider.managers.userManager.loadFromJson(users);
     provider.managers.groupManager.loadFromJson(groups);
-    provider.managers.userCategories.loadFromJson(userCategories);
-    provider.managers.groupCategories.loadFromJson(groupCategories);
     provider.managers.hostManager.loadFromJson(host);
+
+    it("allow useraccount state to be changed to absent", function () {
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        let userAccount = provider.managers.userManager.findUserAccountForHostByUserName(host,"user1");
+        expect(userAccount.state).to.equal("present");
+        userAccount.state="absent";
+        let ua= provider.managers.userManager.findUserAccountForHostByUserName(host,"user1");
+        expect(ua.state).to.equal("absent");
+    });
+
+    it("throw an error if the useraccount state is changed to an invalid value", function () {
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        let ua= provider.managers.userManager.findUserAccountForHostByUserName(host,"user1");
+        //expect(()=>{ ua.state='present'}).to.not.throw();
+        //expect(()=>{ ua.state='absent'}).to.not.throw();
+        ua.state='present';
+        expect(()=>{ ua.state='xyz'}).to.throw("UserAccount state can only be present or absent not xyz.");
+    });
+
+
+
 
 
     it("allow users not added to any hosts to be deleted", function () {
@@ -194,7 +177,8 @@ describe("user management should", function () {
     it("allow users to be removed from a host and remain in validUser list", function () {
         var host = provider.managers.hostManager.findValidHost("www.example.co.za");
         try {
-            provider.managers.userManager.removeUserFromHost(host, "user1");
+            let user = provider.managers.userManager.findValidUser("user1");
+            provider.managers.userManager.removeUserFromHost(host,user);
             expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user1")).to.equal(undefined);
         } finally {
             provider.managers.userManager.addUserAccountToHost(host, new UserAccount(provider, {
@@ -205,72 +189,6 @@ describe("user management should", function () {
         }
     });
 
-    it("mark users as 'absent' in userCategories when marked 'absent' in validUsers", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
-        try {
-            expect(provider.managers.userManager.findValidUserByName("user4").state).to.equal("present");
-            expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user4").name).to.equal("user4");
-            provider.managers.userManager.changeUserState('user4', 'absent');
-            expect(provider.managers.userManager.findValidUserByName("user4").state).to.equal("absent");
-            expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user4").user.state).to.equal("absent");
-            let userAccounts = provider.managers.userCategories.findUserCategory("cat1").userAccounts;
-            let userAccount = userAccounts.find((userAccount)=> {
-                console.log(userAccount.name)
-                if (userAccount.name === 'user4') {
-                    return userAccount;
-                }
-            });
-            expect(userAccount.state).to.equal("absent");
-        } finally {
-            provider.managers.userManager.changeUserState('user4', 'present');
-            let users = provider.managers.userCategories.findUserCategory("cat1").userAccounts;
-            users.find((user)=> {
-                if (user.name === 'user4') {
-                    user.data.state = "present";
-                    return user;
-                }
-            });
-        }
-    });
-
-    it("mark users as 'absent' in groupCategories when marked 'absent' in validUsers", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
-        try {
-            expect(provider.managers.userManager.findValidUserByName("user4").state).to.equal("present");
-
-            let gcs = provider.managers.groupCategories.findCategoriesWithUser("user4");
-            gcs.forEach((gc)=>{
-               gc.hostGroups.forEach((hg)=>{
-                   hg.members.forEach((user)=>{
-                       if(user.name=='user4'){
-                           expect(user.state).to.equal("present");
-                       }
-                   });
-               });
-            });
-
-            //expect(.name).to.equal("user4");
-            provider.managers.userManager.changeUserState('user4', 'absent');
-            expect(provider.managers.userManager.findValidUserByName("user4").state).to.equal("absent");
-            expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user4").user.state).to.equal("absent");
-            let users = provider.managers.userCategories.findUserCategory("cat1").userAccounts;
-            let user = users.find((user)=> {
-                if (user.name === 'user4') {
-                    return user;
-                }
-            });
-            expect(user.state).to.equal("absent");
-        } finally {
-            provider.managers.userManager.changeUserState('user4', 'present');
-            let users = provider.managers.userCategories.findUserCategory("cat1").userAccounts;
-            users.find((user)=> {
-                if (user.name === 'user4') {
-                    user.data.state = "present";
-                    return user;
-                }
-            });
-        }
-    });
 
     it("changing a user in validUser from 'absent' to 'present' should not automatically change hosts, groupCategories " +
         "and userCategories to 'present'",function(){
@@ -283,5 +201,14 @@ describe("user management should", function () {
         expect(user.state).to.equal("present");
         expect(ua.user.state).to.equal("absent");
     });
+
+    it("all a user account to be removed from a host",()=>{
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        expect(provider.managers.userManager.findUserAccountForHostByUserName(host,"user2")).to.not.be.empty;
+        provider.managers.userManager.removeUserFromHost(host,"user2");
+        expect(provider.managers.userManager.findUserAccountForHostByUserName(host,"user2")).to.be.empty;
+    });
+
+
 
 });

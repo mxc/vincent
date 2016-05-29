@@ -161,6 +161,7 @@ class HostManager extends Manager {
                     this.errors[host.name]);
             }
         }
+
         try {
             ModuleLoader.managerOrderedIterator((managerClass)=> {
                 let manager = this.provider.getManagerFromClassName(managerClass);
@@ -169,10 +170,10 @@ class HostManager extends Manager {
         } catch (e) {
             logger.logAndAddToErrors(`Error processing updateHost for managers -${e.message ? e.message : e}`,
                 this.errors[host.name]);
-            console.log(e);
         }
 
-        host.source = hostDef;
+
+        //host.source = hostDef;
         this.addHost(host);
         Array.prototype.push.apply(this.errors[host.name], host.errors);
         return host;

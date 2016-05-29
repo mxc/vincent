@@ -6,10 +6,13 @@ import logger from '../../Logger';
 import Base from '../../modules/base/Base';
 import User from '../user/User';
 import AppUser from '../../ui/AppUser';
+import _ from 'lodash';
+import HostComponent from './../base/HostComponent';
+import HostComponentContainer from '../base/HostComponentContainer';
 
 class Host extends Base {
 
-    constructor(provider, data,owner,group,permissions) {
+    constructor(provider, data, owner, group, permissions) {
         super();
         this.errors = [];
         if (!provider || !(provider instanceof Provider)) {
@@ -28,18 +31,11 @@ class Host extends Base {
                 name: data,
                 remoteAccess: new RemoteAccess(),
             };
-            this._export = {
-                name: data,
-                owner:owner,
-                group:group,
-                permissions: permissions
-            };
-            this.owner=owner;
-            this.group=group;
-            this.permissions=permissions;
-            this.source = {};
-        }else if(typeof data === 'object'){
 
+            this.owner = owner;
+            this.group = group;
+            this.permissions = permissions;
+        } else if (typeof data === 'object') {
             if (!data.name) {
                 logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
             }
@@ -47,24 +43,16 @@ class Host extends Base {
             this.data = {
                 name: data.name,
                 remoteAccess: new RemoteAccess(),
-                applications: [],
-                services: []
             };
 
-            this._export = {
-                name: data.name,
-                owner:data.owner,
-                group:data.group,
-                permissions: data.permissions
-            };
-            this.owner=data.owner;
-            this.group=data.group;
-            this.permissions=data.permissions;
+            this.owner = data.owner;
+            this.group = data.group;
+            this.permissions = data.permissions;
         }
     }
 
     get owner() {
-            return this.data.owner;
+        return this.data.owner;
     }
 
     get group() {
@@ -79,20 +67,16 @@ class Host extends Base {
     set owner(owner) {
         if (typeof owner === 'string') {
             this.data.owner = owner;
-            this._export.owner = owner;
         } else if (owner instanceof User) {
             this.data.owner = owner.name;
-            this._export.owner = owner.name;
         } else {
             logger.logAndThrow("Owner must be a username or object of type User.");
         }
     }
 
     set group(group) {
-
-        if(typeof group ==="string") {
+        if (typeof group === "string") {
             this.data.group = group;
-            this._export.group = group;
         } else {
             logger.logAndThrow("Group must be a string.");
         }
@@ -100,15 +84,10 @@ class Host extends Base {
 
     //perms must be a 9 character string (rwx){3} or a 3 digit octal. Any integer is assumes to be a octal.
     set permissions(perms) {
-        if(!perms){
+        if (!perms) {
             logger.logAndThrow("Permissions cannot be undefined.");
         }
         let dperms = this.provider._validateAndConvertPermissions(perms);
-        if (Number.isInteger(perms)) {
-             this._export.permissions = perms;
-        }else{
-            this._export.permissions = dperms.toString(8);
-        }
         this.data.permissions = dperms;
     }
 
@@ -137,32 +116,47 @@ class Host extends Base {
             throw new Error("The parameter remoteAccessObj must be of type RemoteAccess");
         }
         this.data.remoteAccess = remoteAccess;
-        this._export.remoteAccess = remoteAccess.export();
-    }
-
-
-    getIncludeName(include) {
-        return Object.keys(include)[0];
-    }
-
-    checkIncludes() {
-        if (!this._export.includes) {
-            this._export.includes = {};
-        }
-    }
-
-    findInclude(include) {
-        if (!this._export.includes) {
-            this.checkIncludes();
-            return;
-        } else {
-            return this._export.includes[include];
-        }
-
     }
 
     export() {
-        return this._export;
+        let keys = Object.keys(this.data);
+        let obj = {};
+        keys.forEach((prop)=> {
+            if (prop == 'source') {
+                return;
+            }
+            if (prop == 'permissions') {
+                obj[prop] = parseInt(this.data.permissions.toString(8));
+                return;
+            }
+            if (Array.isArray(this.data[prop]) && this.data[prop].length > 0 && this.data[prop][0] instanceof HostComponent) {
+                obj[prop] = [];
+                this.data[prop].forEach((comp)=> {
+                    obj[prop].push(comp.export());
+                });
+            } else if (this.data[prop] instanceof HostComponent) {
+                obj[prop] = this.data[prop].export();
+            } else if (this.data[prop] instanceof HostComponentContainer) {
+                obj[prop]={};
+                let hcKeys = Object.keys(this.data[prop].container);
+                hcKeys.forEach((tKey)=>{
+                    if(Array.isArray(this.data[prop].container[tKey])){
+                        obj[prop][tKey]=[];
+                        this.data[prop].container[tKey].forEach((each)=>{
+                            obj[prop][tKey].push(each.data.export());
+                        });
+                    }else {
+                        obj[prop][tKey] = this.data[prop].container[tKey].export();
+                    }
+                });
+            } else {
+                obj[prop] = this.data[prop];
+            }
+        });
+        if (this.data.remoteAccess.remoteUser == "same") {
+            delete obj["remoteAccess"];
+        }
+        return obj;
     }
 
 }

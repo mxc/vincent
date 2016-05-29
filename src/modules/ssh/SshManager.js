@@ -8,6 +8,7 @@ import HostSsh from '../ssh/HostSsh'
 import ModuleLoader from '../../utilities/ModuleLoader';
 import UserManager from '../user/UserManager';
 import GroupManager from '../group/GroupManager';
+import HostComponentContainer from '../base/HostComponentContainer';
 
 class SshManager extends Manager {
 
@@ -75,41 +76,36 @@ class SshManager extends Manager {
 
     loadHost(hosts, host, hostDef) {
         //Configure hostSsh for host if configured
-        if (hostDef.ssh) {
+        if (hostDef.config && hostDef.config.ssh) {
             try {
-                this.addSsh(host, hostDef.ssh);
+                this.addSsh(host, hostDef.config.ssh);
             } catch (e) {
                 logger.logAndAddToErrors(`Error adding ssh to host - ${e.message}`,
                     hosts.errors[host.name]);
-            }
-        } else if (hostDef.includes) {
-            let ssh = hosts.findIncludeInDef("ssh", hostDef.includes);
-            if (ssh) {
-                this.addSsh(host,ssh);
             }
         }
     }
 
     addSsh(host, config) {
+
+        if (!host.data.config){
+            host.data.config = new HostComponentContainer("config");
+        }
+
         if (typeof config === 'object') {
-            host.data.hostSsh = new HostSsh(this.provider, config);
-            host.data.hostSsh.host = host;
-            host._export.ssh = host.data.hostSsh.data.export();
+            host.data.config.add("ssh",new HostSsh(this.provider, config));
         } else {
             let configDef = this.findSSHConfig(config);
             if (!configDef) {
-                throw new Error(`Ssh config '${config}' not found.`);
+                logger.logAndThrow(`Ssh config '${config}' not found.`);
             }
-            host.data.hostSsh = new HostSsh(this.provider, configDef);
-            host.data.hostSsh.host = host;
-            host.checkIncludes();
-            host._export.includes["ssh"] = config;
+            host.data.config.add("ssh",new HostSsh(this.provider, configDef));
         }
     }
 
     getSsh(host) {
-        if (host.data.hostSsh) {
-            return host.data.hostSsh.ssh;
+        if (host.data.config) {
+            return host.data.config.get("ssh");
         }
     }
 

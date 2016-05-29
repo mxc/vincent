@@ -43,32 +43,6 @@ describe("The system", function () {
         })
     ];
 
-    var userCategories = [
-        {
-            "name": "cat1",
-            "config": [
-                {
-                    user: {
-                        name: "user1",
-                        state: "absent"
-                    },
-                    authorized_keys: [
-                        {name: "user2"},
-                        {name: "user1"}]
-                },
-                {user: {name: "user2"}}
-            ]
-        },
-        {
-            "name": "cat2",
-            "config": [
-                {user: {name: "user3", state: "present"}},
-                {user: {name: "user1"}, authorized_keys: [{name: "user2"}, {name: "user1"}]}
-            ]
-        }
-    ];
-
-
 //TODO - Need to wait for es2015 dynamic module loading to land
 // describe('Test async loading of dynamic modules', function () {
 //     it('should  work', (done)=> {

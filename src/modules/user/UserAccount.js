@@ -3,6 +3,7 @@
 import logger from './../../Logger';
 import User from './User';
 import HostComponent from './../base/HostComponent';
+import _ from 'lodash';
 
 /*
 Account user is a user with a list of authorized keys associate with this user account.
@@ -12,7 +13,6 @@ class UserAccount extends HostComponent {
     constructor(provider, data) {
         super(provider);
         this.data = {authorized_keys: []};
-        this._export = {};
         this.errors = [];
         if (data) {
             if (typeof data === "object") {
@@ -29,7 +29,6 @@ class UserAccount extends HostComponent {
                         if (data.user.state === "absent") {
                             this.data.user.data.state = "absent";
                         }
-                        this._export.user = this.data.user.exportId();
                     } else {
                         logger.logAndThrow(`The user ${data.user.name} does not exist in valid users.`);
                     }
@@ -65,17 +64,18 @@ class UserAccount extends HostComponent {
     }
 
      addAuthorizedUser(user, state) {
-        //if the user has been marked as absent and will be deleted
-        //authorized keys are superfluous.
-        if (this.state=='absent'){
-            return;
-        }
         if (user instanceof User) {
             var validUser = this.provider.managers.userManager.findValidUser(user);
             //if this is not a valid user or the user is valid
             //but marked as globally absent then don't addValidGroup keys
             if (!validUser || !validUser.key) {
                 logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined`);
+                return;
+            }
+            //detect if we are adding an authorized users to itself
+
+            if (validUser.name==this.user.name){
+                logger.logAndAddToErrors(`UserAccount ${validUser.name} cannot be added to itself as an authorized user.`,this.errors);
                 return;
             }
             //detect if user already in keys
@@ -85,13 +85,6 @@ class UserAccount extends HostComponent {
                     authorizedUser.state = "absent";
                 }
                 this.data.authorized_keys.push(authorizedUser);
-                if (!this._export.authorized_keys){
-                    this._export.authorized_keys=[];
-                }
-                this._export.authorized_keys.push({
-                    name:  authorizedUser.name,
-                    state: authorizedUser.state
-                });
             } else {
                 logger.info(`User ${user.name} is already in host users authorized keys`);
             }
@@ -133,8 +126,25 @@ class UserAccount extends HostComponent {
         return this.data.authorized_keys;
     }
 
+    set state(state){
+        if(state!=='present' && state!=='absent'){
+            throw new Error(`UserAccount state can only be present or absent not ${state}.`);
+        }
+        this.data.user.data.state=state;
+    }
+
     export() {
-        return this._export;
+        let obj ={};
+        obj.user = this.data.user.exportId();
+        if (this.data.user.state=="present") {
+            if (this.data.authorized_keys && this.data.authorized_keys.length > 0) {
+                obj.authorized_keys = [];
+                this.data.authorized_keys.forEach((user)=> {
+                    obj.authorized_keys.push(user.exportId());
+                });
+            }
+        }
+        return obj;
     }
 
     clone(){

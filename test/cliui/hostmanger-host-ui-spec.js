@@ -28,7 +28,6 @@ describe("HostManager UI should", ()=> {
             done();
         }).catch((e)=> {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            console.log("here2");
             done(e);
         });
     });

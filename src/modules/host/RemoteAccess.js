@@ -11,23 +11,23 @@ class RemoteAccess extends Base {
     constructor(remoteUser, authentication, sudoAuthentication) {
         super();
         this.errors = [];
-        this._export={};
+        this.data={};
         if (!remoteUser) {
             //same means login as user executing vincent
-            this.remoteUser = "same";
+            this.data.remoteUser = "same";
         } else if (typeof remoteUser !== 'string') {
             logger.logAndAddToErrors("Remote user must be a user name.", this.errors);
         } else {
-            this.remoteUser = remoteUser
+            this.data.remoteUser = remoteUser
         }
 
         if (!authentication) {
-            this.authentication = "publicKey";
+            this.data.authentication = "publicKey";
         } else if (authentication != "publicKey" && authentication != "password") {
             logger.logAndAddToErrors("Authentication must be either 'password' or 'publicKey'.",
                 this.errors);
         } else {
-            this.authentication = authentication;
+            this.data.authentication = authentication;
         }
 
         if (!sudoAuthentication) {
@@ -43,21 +43,32 @@ class RemoteAccess extends Base {
         if (typeof sudoAuthentication !== 'boolean') {
             logger.logAndAddToErrors("sudoAuthentication must be a boolean value.", this.errors);
         } else {
-            this.sudoAuthentication = sudoAuthentication;
+            this.data.sudoAuthentication = sudoAuthentication;
         }
-        this._export={
-            remoteUser: this.remoteUser,
-            authentication: this.authentication,
-            sudoAuthentication: this.sudoAuthentication
-        };
         if (this.errors.length>0){
             let str = `Invalid configuration settings provided for RemoteAccess object./n/r${this.errors.join("/n/r")}`;
             throw new Error(str);
         }
     }
 
+    get remoteUser(){
+        return this.data.remoteUser;
+    }
+
+    get sudoAuthentication(){
+        return this.data.sudoAuthentication;
+    }
+
+    get authentication(){
+        return this.data.authentication;
+    }
+
     export(){
-        return this._export;
+        if (this.data.remoteUser=='same'){
+            return {};
+        }else {
+            return this.data;
+        }
     }
 }
 export default RemoteAccess;
