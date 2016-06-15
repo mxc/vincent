@@ -673,10 +673,7 @@ describe("validating host configuration with sudo entry include", function () {
                     }]
             }
         };
-        console.log("calling");
         let host = provider.managers.hostManager.loadFromJson(validHost);
-        console.log("bye");
-        console.log(provider.managers.sudoManager.getHostSudoerEntries(host));
         expect(provider.managers.sudoManager.getHostSudoerEntries(host)[0].userList.users.length).to.equal(0);
         expect(provider.managers.sudoManager.getHostSudoerEntries(host)[0].userList.groups.length).to.equal(0);
     });

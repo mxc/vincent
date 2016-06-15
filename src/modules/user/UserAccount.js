@@ -65,29 +65,29 @@ class UserAccount extends HostComponent {
 
      addAuthorizedUser(user, state) {
         if (user instanceof User) {
-            var validUser = this.provider.managers.userManager.findValidUser(user);
-            //if this is not a valid user or the user is valid
-            //but marked as globally absent then don't addValidGroup keys
-            if (!validUser || !validUser.key) {
-                logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined`);
-                return;
-            }
-            //detect if we are adding an authorized users to itself
-
-            if (validUser.name==this.user.name){
-                logger.logAndAddToErrors(`UserAccount ${validUser.name} cannot be added to itself as an authorized user.`,this.errors);
-                return;
-            }
-            //detect if user already in keys
-            if (!this.provider.managers.userManager.findValidUser(user, this.data.authorized_keys)) {
-                let authorizedUser = user.clone();
-                if (state === "absent") {
-                    authorizedUser.state = "absent";
+                var validUser = this.provider.managers.userManager.findValidUser(user);
+                //if this is not a valid user or the user is valid
+                //but marked as globally absent then don't addValidGroup keys
+                if (!validUser || !validUser.key) {
+                    logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined`);
+                    return;
                 }
-                this.data.authorized_keys.push(authorizedUser);
-            } else {
-                logger.info(`User ${user.name} is already in host users authorized keys`);
-            }
+                //detect if we are adding an authorized users to itself
+
+                if (validUser.name == this.user.name) {
+                    logger.logAndAddToErrors(`UserAccount ${validUser.name} cannot be added to itself as an authorized user.`, this.errors);
+                    return;
+                }
+                //detect if user already in keys
+                if (!this.provider.managers.userManager.findValidUser(user, this.data.authorized_keys)) {
+                    let authorizedUser = user.clone();
+                    if (state === "absent") {
+                        authorizedUser.state = "absent";
+                    }
+                    this.data.authorized_keys.push(authorizedUser);
+                } else {
+                    logger.info(`User ${user.name} is already in host users authorized keys`);
+                }
         } else {
             logger.logAndThrow("The parameter user must be of type User");
         }

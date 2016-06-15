@@ -7,6 +7,7 @@ import UserUI from './ui/console/User';
 import UserAccountUI from './ui/console/UserAccount';
 import UserManagerUI from './ui/console/UserManager';
 import UserAccount from './UserAccount';
+import UserCategories from './UserCategories';
 import Provider from './../../Provider';
 import logger from './../../Logger';
 import PermissionsManager from '../base/PermissionsManager';
@@ -22,6 +23,7 @@ class UserManager extends PermissionsManager {
         }
         super();
         this.provider = provider;
+        this.userCategories = new UserCategories(provider);
         this.validUsers = [];
         this.errors = [];
         this.engines = ModuleLoader.loadEngines('user', provider);
@@ -163,6 +165,19 @@ class UserManager extends PermissionsManager {
         }
     }
 
+    loadUserCategoriesFromFile(){
+        this.userCategories.loadFromFile();
+        return this.userCategories;
+    }
+
+    loadUserCategoriesFromJson(json){
+        this.userCategories.loadFromJson(json);
+        return this.userCategories;
+    }
+
+    get categories(){
+        return this.userCategories;
+    }
 
     clear() {
         this.validUsers = [];

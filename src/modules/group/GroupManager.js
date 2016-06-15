@@ -5,6 +5,7 @@ import logger from './../../Logger';
 import Provider from './../../Provider';
 import PermissionsManager from './../base/PermissionsManager';
 import HostGroup from './HostGroup';
+import GroupCategories from './GroupCategories';
 import UserManager from './../user/UserManager';
 import User from './../user/User';
 import ModuleLoader from '../../utilities/ModuleLoader';
@@ -21,6 +22,7 @@ class GroupManager extends PermissionsManager {
         }
         super();
         this.provider = provider;
+        this.groupCategories = new GroupCategories(provider);
         this.validGroups = [];
         this.errors = [];
         this.engines = ModuleLoader.loadEngines('group', provider);
@@ -28,6 +30,10 @@ class GroupManager extends PermissionsManager {
 
     exportToEngine(engine, host, struct) {
         this.engines[engine].exportToEngine(host, struct);
+    }
+
+    get categories(){
+        return this.groupCategories;
     }
 
     addValidGroup(group) {
@@ -189,6 +195,13 @@ class GroupManager extends PermissionsManager {
         return hostGroups;
         };
 
+    loadGroupCategoriesFromJson(json){
+              return   this.groupCategories.loadFromJson(json);
+    }
+
+    loadGroupCategoriesFromFile(){
+         return this.groupCategories.loadFromFile();
+    }
 
     addHostGroupToHost(host, hostGroup) {
 

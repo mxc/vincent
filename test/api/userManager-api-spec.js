@@ -74,7 +74,7 @@ var host = {
                 "user2"
             ]
         }
-    ],
+    ]
 };
 
 describe("user management should", function () {

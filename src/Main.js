@@ -5,4 +5,4 @@
 import Vincent from './Vincent';
 
 let main = new Vincent();
-main.app.start();
+main.start();

@@ -9,6 +9,10 @@ api:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/api/*.js
 
+save:
+	clear
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/save/*.js
+
 cliui:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/cliui/*.js

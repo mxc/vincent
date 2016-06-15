@@ -11,6 +11,7 @@ import DBAuthProvider from './ui/authentication/DBAuthProvider';
 import UnixAuthProvider from './ui/authentication/UnixAuthProvider';
 import AppUser from './ui/AppUser';
 import ModuleLoader from './utilities/ModuleLoader';
+import path from 'path';
 
 
 class Vincent {
@@ -29,13 +30,15 @@ class Vincent {
 
 
     startServer() {
+        logger.info("staring server");
         var options = {
-            key: fs.readFileSync(this.provider.config.get("privatekey")),
-            cert: fs.readFileSync(this.provider.config.get("publickey"))
+            key: fs.readFileSync(path.resolve(this.args.configDir, this.provider.config.get("privatekey"))),
+            cert: fs.readFileSync(path.resolve(this.args.configDir, this.provider.config.get("publickey")))
         };
 
         tls.createServer(options, (s)=> {
             logger.info("incoming connection");
+            s.setNoDelay(true);
             s.write("Please enter your username:");
             let pCount = 0;
             let username = "";
@@ -51,7 +54,7 @@ class Vincent {
                             return;
                         }
                         s.write(input.toString());
-                        if (input.toString().slice(-1) != "\r") {
+                        if (input.toString().slice(-1) != "\n") {
                             username = username.concat(input.toString().slice(-1));
                             break;
                         } else {
@@ -69,7 +72,7 @@ class Vincent {
                             return;
                         }
                         s.write("*");
-                        if (input.toString().slice(-1) != "\r") {
+                        if (input.toString().slice(-1) != "\n") {
                             password = password.concat(input.toString().slice(-1));
                             break;
                         } else {
@@ -142,7 +145,7 @@ class Vincent {
                 case "--configdir":
                 case "-c":
                     counter++;
-                    if (argslist[counter].startsWith("-") | argslist[counter].startsWith("--")) {
+                    if (argslist[counter].startsWith("-") || argslist[counter].startsWith("--")) {
                         this.showHelp();
                         this.error = true;
                         console.log("-c or --configdir requires a path value.");
@@ -181,9 +184,9 @@ class Vincent {
 
     start() {
         if (this.args.cli) {
-            app.startConsole();//todo fix me
+            Vincent.app.startConsole();//todo fix me
         } else {
-            app.startServer();
+            Vincent.app.startServer();
         }
 
     }
@@ -191,6 +194,6 @@ class Vincent {
 
 }
 
-Vincent.app ={};
+Vincent.app = {};
 
 export default Vincent;
