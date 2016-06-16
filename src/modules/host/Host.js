@@ -107,9 +107,9 @@ class Host extends Base {
         return this.data.sudoAuthentication;
     }
 
-    set source(source) {
-        this.data.source = source;
-    }
+    // set source(source) {
+    //     this.data.source = source;
+    // }
 
     setRemoteAccess(remoteAccess) {
         if (!remoteAccess instanceof RemoteAccess) {

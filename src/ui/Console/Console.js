@@ -45,20 +45,21 @@ class Console extends Ui {
 
     initContext(context) {
 
-        //context.Host = Host;
+        //set up vincent namespace in console
+        context.v = {};
 
-        context.config = new Config();
+        context.v.config = new Config();
 
         //allow quit and exit for standalone cli mode only.
         //Killling the process in server mode would terminate the server
         if (Vincent.app.args.cli) {
-            context.quit = function () {
+            context.v.quit = function () {
                 console.log("Vincent console exited");
                 logger.info("Vincent console exited");
                 process.exit();
             };
 
-            context.exit = function () {
+            context.v.exit = function () {
                 console.log("Vincent console exited");
                 logger.info("Vincent console exited");
                 process.exit();
@@ -67,13 +68,20 @@ class Console extends Ui {
         
         //logout function available in server mode only
         if (Vincent.app.args.daemon){
-            context.logout=()=>{
+            context.v.logout=()=>{
                 this.session.socket.destroy();
+            };
+            context.v.quit=()=>{
+              this.session.socket.destroy();
+            };
+            context.v.exit=()=>{
+                this.session.socket.destory();
             }
         }
+        
 
         //Load all hosts into memory
-        context.loadAll = ()=>{
+        context.v.loadAll = ()=>{
           try {
               if (Vincent.app.provider.loadAll()) {
                   console.log("Successfully loaded data store");
@@ -86,19 +94,19 @@ class Console extends Ui {
         };
 
         //save all configurations
-        context.saveAll = () =>{
-            console.log("Not yet implemented");
+        context.v.saveAll = () =>{
+            return "Not yet implemented";
         };
 
         //load the per session context objects
         ModuleLoader.managerOrderedIterator((managerClass)=> {
             try {
                 let name = managerClass.name.charAt(0).toLocaleLowerCase() + managerClass.name.slice(1);
-                Vincent.app.provider.managers[name].loadConsoleUIForSession(context,this.session.appUser);
+                Vincent.app.provider.managers[name].loadConsoleUIForSession(context.v,this.session.appUser);
             } catch (e) {
                 logger.warn(e);
                 logger.warn("module does not offer console ui");
-                console.log(e);
+                return e;
             }
         },Vincent.app.provider);
     }

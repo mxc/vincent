@@ -68,9 +68,9 @@ describe("GroupCategories API should", function () {
         groupcategories.deleteGroupCategory("server-groups");
         expect(groupcategories.categories.length).to.equal(1);
         groupcategories.clear();
-        provider.managers.groupManager.clear();
         provider.managers.userManager.clear();
-
+        provider.managers.groupManager.clear();
+        console.log(provider.managers.userManager.validUsers);
     });
 
     it('allow for the addition and replacement of a GroupCategories', ()=> {

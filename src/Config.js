@@ -16,12 +16,21 @@ class Config {
             this.loc = path.resolve(filePath, "config.ini");
             var stat = fs.statSync(filePath);
             this.config = ini.parse(fs.readFileSync(this.loc, 'utf-8'));
-            //ensure default values for db dir and engine dir
+            //ensure default values for db dir, engine dir, owner, group, permissions
             if (!this.config.settings.dbdir){
                 this.config.settings.dbdir="db";
             }
             if (!this.config.settings.enginedir){
                 this.config.settings.enginedir="engine";
+            }
+            if (!this.config.settings.owner){
+                this.config.settings.owner="root";
+            }
+            if (!this.config.settings.group){
+                this.config.settings.group="vincent";
+            }
+            if (!this.config.settings.permissions){
+                this.config.settings.permissions="774";
             }
         } catch (e) {
             logger.warn("application directory for config.ini does not exists");

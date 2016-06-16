@@ -18,7 +18,7 @@ class UnixAuthProvider extends AuthenticationProvider{
         return new Promise((resolve)=>{
            pam.authenticate(username,password,(err)=>{
                if (err){
-                   console.log(err);
+                   //console.log(err);
                    resolve(false);
                }else {
                    resolve(true);

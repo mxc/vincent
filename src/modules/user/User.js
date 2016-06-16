@@ -41,7 +41,7 @@ class User  {
         }
 
         if (data.uid && typeof data.uid !== 'number') {
-            logger.logAndThrow("Uid must be a number");
+            logger.logAndThrow("Uid must be a number.");
         }
 
         this.data = {
@@ -50,7 +50,6 @@ class User  {
             uid: data.uid,
             state: data.state ? data.state : "present"
         };
-        this._source = data;
     }
 
     get name() {
@@ -60,14 +59,6 @@ class User  {
     get state() {
         return this.data.state;
     }
-
-    //set state(state) {
-    //    if (state !== "present" && state !== "absent") {
-    //        logger.logAndThrow(`User state is either present or absent not ${state}`);
-    //    } else {
-    //        this.data.state = state;
-    //    }
-    //}
 
     get key() {
         return this.data.key;

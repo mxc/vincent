@@ -1,7 +1,10 @@
 V.I.N.Cent
 
 For unix accounts authentication to work correctly the user which V.I.N.Cent runs as must be part of the shadow groups
-to have the required permissions to read the shadow passwords file.
+to have the required permissions to read the shadow passwords file. 
+
+On first use users,group and hosts will have owner:root and group:vincent with permissions 664. This can be changed by
+editing the configuration file 
 
 For npm install to wor you will need the pam development library installed.
 "sudo apt-get install libpam0g-dev"

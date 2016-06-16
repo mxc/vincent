@@ -12,14 +12,14 @@ import User from '../../src/modules/user/User';
 
 describe("UserManager UI should", ()=> {
 
-    //by default root user and useradmin group have read/write access to the user account store
+    //by default root user and vincent group have read/write access to the user account store
 
     let provider = new Provider();
     Vincent.app = {provider: provider};
 
     it("allow authorised users to add new Users to valid user list", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             //let hostManagerUi = new HostManagerUI(appUser);
             //let host = hostManagerUi.addHost("dogzrule.co.za");
@@ -34,7 +34,7 @@ describe("UserManager UI should", ()=> {
 
     it("allow authorised users to add new Users with user name and uid to valid user list", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             let user = userManagerUi.addUser({name: "demoUser", uid: 1000, state: "absent"});
             expect(user.name).to.equal("demoUser");
@@ -50,7 +50,7 @@ describe("UserManager UI should", ()=> {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             let user = userManagerUi.addUser("demoUser");
-            expect(user).to.be.false;
+            expect(user).to.equal("User newton does not have the required permissions for UserManager for the action write attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -59,7 +59,7 @@ describe("UserManager UI should", ()=> {
 
     it("allow authorised users to retrieve a user instance", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             let user = userManagerUi.addUser("demoUser");
             let user2 = userManagerUi.getUser("demoUser");
@@ -72,7 +72,7 @@ describe("UserManager UI should", ()=> {
 
     it("prevent unauthorised users from retrieving user instance ", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             //let hostManagerUi = new HostManagerUI(appUser);
             //let host = hostManagerUi.addHost("dogzrule.co.za");
@@ -85,7 +85,7 @@ describe("UserManager UI should", ()=> {
             let userManagerUi2 = new UserManagerUI(appUser2);
 
             let user2 = userManagerUi2.getUser("demoUser");
-            expect(user2).to.be.false;
+            expect(user2).to.equal("User einstein does not have the required permissions for UserManager for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -94,7 +94,7 @@ describe("UserManager UI should", ()=> {
 
     it("prevent unauthorised users from retrieving user instance ", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             //let hostManagerUi = new HostManagerUI(appUser);
             //let host = hostManagerUi.addHost("dogzrule.co.za");
@@ -107,7 +107,7 @@ describe("UserManager UI should", ()=> {
             let userManagerUi2 = new UserManagerUI(appUser2);
 
             let user2 = userManagerUi2.getUser("demoUser");
-            expect(user2).to.be.false;
+            expect(user2).to.equal("User einstein does not have the required permissions for UserManager for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -117,7 +117,7 @@ describe("UserManager UI should", ()=> {
 
     it("prevent unauthorised users from list user names", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
 
             userManagerUi.addUser("demoUser1");
@@ -131,7 +131,7 @@ describe("UserManager UI should", ()=> {
             let userManagerUi2 = new UserManagerUI(appUser2);
 
             let list = userManagerUi2.list();
-            expect(list.length).to.equal(0);
+            expect(list).to.equal("User einstein does not have the required permissions for UserManager for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -141,7 +141,7 @@ describe("UserManager UI should", ()=> {
 
     it("allow authorised users to list user names", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
 
             userManagerUi.addUser("demoUser1");
@@ -162,7 +162,7 @@ describe("UserManager UI should", ()=> {
 
     it("allow authorised users to save the user list", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             userManagerUi.addUser("demoUser1");
             userManagerUi.addUser("demoUser2");
@@ -177,7 +177,7 @@ describe("UserManager UI should", ()=> {
 
     it("prevent unauthorised users from saving the user list", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             userManagerUi.addUser("demoUser1");
             userManagerUi.addUser("demoUser2");
@@ -186,7 +186,8 @@ describe("UserManager UI should", ()=> {
             let appUser2 = new AppUser("einstein", ["dev"], "devops");
             let userManagerUi2 = new UserManagerUI(appUser2);
             let result = userManagerUi2.save();
-            expect(result).to.be.false;
+            expect(result).to.equal("User einstein does not have the required permissions for UserManager for the action write attribute.");
+
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -196,11 +197,11 @@ describe("UserManager UI should", ()=> {
 
     it("prevent users with duplicate username or uids from  being created", ()=> {
         try {
-            let appUser = new AppUser("newton", ["dev", "useradmin"], "devops");
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let userManagerUi = new UserManagerUI(appUser);
             userManagerUi.addUser("demoUser1");
             let user = userManagerUi.addUser("demoUser1");
-            expect(user).to.be.false;
+            expect(user).to.equal("User demoUser1 already exists.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -209,7 +210,7 @@ describe("UserManager UI should", ()=> {
 
     it("allow authorised users to add UserAccounts to host by name", ()=> {
         try {
-            let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let userManagerUi = new UserManagerUI(appUser);
             let hostManagerUi = new HostManagerUI(appUser);
@@ -226,7 +227,7 @@ describe("UserManager UI should", ()=> {
 
     it("throw an exception when authorised users tries to add an invalid user to a host", ()=> {
         try {
-            let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let userManagerUi = new UserManagerUI(appUser);
             let hostManagerUi = new HostManagerUI(appUser);
@@ -243,7 +244,7 @@ describe("UserManager UI should", ()=> {
 
     it("throw an exception when an unauthorised users tries to add a valid user ", ()=> {
         try {
-            let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
@@ -263,7 +264,7 @@ describe("UserManager UI should", ()=> {
 
     it("should allow a UserAccount to be defined by a data object",()=>{
         try {
-            let appUser = new AppUser("einstein", ["dev", "useradmin"], "audit");
+            let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({}, appUser);
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
@@ -278,5 +279,6 @@ describe("UserManager UI should", ()=> {
             Vincent.app.provider.managers.userManager.permissions = 664;
         }
     });
+    
 
 });

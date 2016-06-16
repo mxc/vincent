@@ -85,24 +85,23 @@ describe("user management should", function () {
 
     it("allow useraccount state to be changed to absent", function () {
         var host = provider.managers.hostManager.findValidHost("www.example.co.za");
-        let userAccount = provider.managers.userManager.findUserAccountForHostByUserName(host,"user1");
+        let userAccount = provider.managers.userManager.findUserAccountForHostByUserName(host, "user1");
         expect(userAccount.state).to.equal("present");
-        userAccount.state="absent";
-        let ua= provider.managers.userManager.findUserAccountForHostByUserName(host,"user1");
+        userAccount.state = "absent";
+        let ua = provider.managers.userManager.findUserAccountForHostByUserName(host, "user1");
         expect(ua.state).to.equal("absent");
     });
 
     it("throw an error if the useraccount state is changed to an invalid value", function () {
         var host = provider.managers.hostManager.findValidHost("www.example.co.za");
-        let ua= provider.managers.userManager.findUserAccountForHostByUserName(host,"user1");
+        let ua = provider.managers.userManager.findUserAccountForHostByUserName(host, "user1");
         //expect(()=>{ ua.state='present'}).to.not.throw();
         //expect(()=>{ ua.state='absent'}).to.not.throw();
-        ua.state='present';
-        expect(()=>{ ua.state='xyz'}).to.throw("UserAccount state can only be present or absent not xyz.");
+        ua.state = 'present';
+        expect(()=> {
+            ua.state = 'xyz'
+        }).to.throw("UserAccount state can only be present or absent not xyz.");
     });
-
-
-
 
 
     it("allow users not added to any hosts to be deleted", function () {
@@ -130,7 +129,7 @@ describe("user management should", function () {
         let func = ()=> {
             provider.managers.userManager.deleteUser("user1");
         };
-        expect(func).to.throw("User user1 has accounts in 1 hosts. First mark user as 'absent' before they can be deleted.");
+        expect(func).to.throw("User user1 has accounts in 1 hosts. First change user state to 'absent' before they can be deleted.");
     });
 
     it('should not allow user state to be changed via direct access', function () {
@@ -178,7 +177,7 @@ describe("user management should", function () {
         var host = provider.managers.hostManager.findValidHost("www.example.co.za");
         try {
             let user = provider.managers.userManager.findValidUser("user1");
-            provider.managers.userManager.removeUserFromHost(host,user);
+            provider.managers.userManager.removeUserFromHost(host, user);
             expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user1")).to.equal(undefined);
         } finally {
             provider.managers.userManager.addUserAccountToHost(host, new UserAccount(provider, {
@@ -191,24 +190,58 @@ describe("user management should", function () {
 
 
     it("changing a user in validUser from 'absent' to 'present' should not automatically change hosts, groupCategories " +
-        "and userCategories to 'present'",function(){
+        "and userCategories to 'present'", function () {
         var host = provider.managers.hostManager.findValidHost("www.example.co.za");
         var user = provider.managers.userManager.findValidUserByName("user2");
-        let ua = provider.managers.userManager.findUserAccountForHostByUserName(host,"user2");
+        let ua = provider.managers.userManager.findUserAccountForHostByUserName(host, "user2");
         expect(user.state).to.equal("absent");
         expect(ua.user.state).to.equal("absent");
-        provider.managers.userManager.changeUserState(user,"present");
+        provider.managers.userManager.changeUserState(user, "present");
         expect(user.state).to.equal("present");
         expect(ua.user.state).to.equal("absent");
     });
 
-    it("all a user account to be removed from a host",()=>{
+    it("allow a user account to be removed from a host", ()=> {
         var host = provider.managers.hostManager.findValidHost("www.example.co.za");
-        expect(provider.managers.userManager.findUserAccountForHostByUserName(host,"user2")).to.not.be.empty;
-        provider.managers.userManager.removeUserFromHost(host,"user2");
-        expect(provider.managers.userManager.findUserAccountForHostByUserName(host,"user2")).to.be.empty;
+        expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user2")).to.not.be.empty;
+        provider.managers.userManager.removeUserFromHost(host, "user2");
+        expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user2")).to.be.empty;
+        provider.managers.userManager.addUserAccountToHostByUserName(host,"user2");
+        
+    });
+
+    it("allow a user account to be added to a host by username", ()=> {
+        let user = new User("userX");
+        provider.managers.userManager.addValidUser(user);
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "userX")).to.be.empty;
+        provider.managers.userManager.addUserAccountToHostByUserName(host,"userX");
+        expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "userX").user).to.deep.equal(user);
     });
 
 
+    it("remove all users from hosts and groups when clear is called", ()=> {
+        let hostManager = provider.managers.hostManager;
+        let groupManager = provider.managers.groupManager;
+        let userManager = provider.managers.userManager;
+
+        userManager.clear();
+        groupManager.clear();
+        hostManager.clear();
+
+        userManager.loadFromJson(users);
+        groupManager.loadFromJson(groups);
+        hostManager.loadFromJson(host);
+
+        expect(userManager.validUsers).to.not.be.empty;
+        expect(userManager.getUserAccounts(hostManager.validHosts[0])).to.not.be.empty;
+        expect(groupManager.getHostGroups(hostManager.validHosts[0])[0].members).to.not.be.empty;
+        expect(groupManager.getHostGroups(hostManager.validHosts[0])[1].members).to.be.empty;
+        provider.managers.userManager.clear();
+        expect(userManager.validUsers).to.be.empty;
+        expect(userManager.getUserAccounts(hostManager.validHosts[0])).to.be.empty;
+        expect(groupManager.getHostGroups(hostManager.validHosts[0])[0].members).to.be.empty;
+        expect(groupManager.getHostGroups(hostManager.validHosts[0])[1].members).to.be.empty;
+    });
 
 });

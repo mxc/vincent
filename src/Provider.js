@@ -18,8 +18,8 @@ class Provider {
             this.configDir = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
             this.configDir = path.resolve(this.configDir, ".vincent");
         }
-        this.createManagers();
         this.config = new Config(path.resolve(this.configDir));
+        this.createManagers();
         this.makeDBDir();
         this.database = new Database(this);
         //todo lookup default engine from config file.
@@ -217,7 +217,7 @@ class Provider {
                     fs.renameSync(currentPath, archivePath);
                 }
             } catch (e) {
-                logger.warn(`${filename} file does not exists.`);
+                logger.warn(`${filename} file does not exist. No backup taken.`);
             }
         }
         let obj = manager.export();
@@ -341,6 +341,7 @@ class Provider {
 
     //perms may be an 3 digit decimal or a 9 character string (rwx){3}. If a number is provided it is assumed to be
     //octal.
+    
     _validateAndConvertPermissions(perms) {
 
         //if we have been pased an octal as a string
@@ -362,7 +363,7 @@ class Provider {
                 octal = octal.concat(this._permStringToInteger(regex.exec(perms)[1]));
                 octal = octal.concat(this._permStringToInteger(regex.exec(perms)[1]));
             } catch (e) {
-                console.log(e);
+                //console.log(e);
                 logger.logAndThrow(`Invalid permissions syntax for ${perms} - string format error`);
             }
             return parseInt(octal, 8); //convert it to decimal;

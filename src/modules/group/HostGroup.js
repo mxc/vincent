@@ -78,11 +78,24 @@ class HostGroup extends HostComponent {
         return this.data.group.state;
     }
 
+    set state(state){
+        if(state!=='present' && state!=='absent'){
+            throw new Error(`HostGroup state can only be present or absent not ${state}.`);
+        }
+        this.data.group.data.state=state;
+    }
+    
     addMember(user) {
-        user = this.provider.managers.userManager.findValidUser(user);
-        if (user) {
+        let username ="";
+        if(typeof user =="string"){
+            username = user
+        }else if (user instanceof User){
+            username= user.name;
+        }
+        //user = this.provider.managers.userManager.findValidUser(username);
+        if (username!="") {
             //UserManager should be in global object cache
-            var validUser = this.provider.managers.userManager.findValidUser(user);
+            var validUser = this.provider.managers.userManager.findValidUser(username);
             if (validUser && validUser.state != "absent") {
                 var t_user = this.data.members.find((muser) => {
                     if (muser.name == validUser.name) {

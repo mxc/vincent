@@ -47,12 +47,12 @@ class User extends PermissionHelper {
         });
     }
 
-    set name(name) {
+/*    set name(name) {
         return this._writeAttributeWrapper(()=> {
             data.get(this).user.name = name;
         });
     }
-
+*/
     get uid() {
         return this._readAttributeWrapper(()=> {
             return data.get(this).user.uid;

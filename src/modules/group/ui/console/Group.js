@@ -5,35 +5,46 @@
 import Vincent from '../../../../Vincent';
 import GroupElement from '../../Group';
 import logger from '../../../../Logger';
+import PermissionHelper from '../../../../ui/base/PermissionHelper';
+import AppUser from '../../../../ui/AppUser';
+import GroupManager from '../../GroupManager';
 
-const _group = Symbol['group'];
-const _appUser = Symbol["appUser"];
+var data = new WeakMap();
 
+class Group extends PermissionHelper {
 
-class Group {
-
-    /*
-    The group parameter is either a name or a data structure or an instance of GroupElement.
-    GroupElement is used internally.
-    The data structure can contain {name:<groupname>,gid:<int>}
-    when converting from GroupElement to UI Group data type
-     */
-    constructor(group,appUser){
-        this[_appUser] = appUser;
-        if(typeof group ==='string' || (group.name && !group instanceof GroupElement)) {
-            this[_group] = new GroupElement(group);
-            Vincent.app.provider.managers.groupManager.addValidGroup(this[_group]);
-        }else if (group instanceof GroupElement){
-            this[_group] = group;
+    constructor(group,appUser,manager){
+        let obj ={};
+        if (group && (typeof group === 'string' || ((group.name!=undefined) && !(group instanceof GroupElement)))) {
+            obj.group = new GroupElement(group);
+            Vincent.app.provider.managers.groupManager.addValidGroup(obj.group);
+        } else if (group instanceof GroupElement) {
+            obj.group = group;
+        } else {
+            throw new Error("The parameter group must be a group name or data object with a name and optional gid, state and member.");
         }
+        if (!appUser instanceof AppUser) {
+            throw new Error("The parameter appUser must be of type AppUser.");
+        }
+        obj.appUser = appUser;
+        if (!manager instanceof GroupManager) {
+            throw new Error("The parameter manager must be of type GroupManager.");
+        }
+        obj.permObj = manager;
+        super(obj.appUser,obj.permObj);
+        data.set(this,obj);
     }
 
     get gid(){
-        return this[_group].gid;
+        return this._readAttributeWrapper(()=> {
+            return data.get(this).group.gid;
+        });
     }
 
     get name(){
-        return this[_group].name;
+        return this._readAttributeWrapper(()=> {
+            return data.get(this).group.name;
+        });
     }
 
     set gid(value){
@@ -44,8 +55,16 @@ class Group {
         }
     }
 
-    get state(){
-        return this[_group].state;
+    get state() {
+        return this._readAttributeWrapper(()=> {
+            return data.get(this).group.state;
+        });
+    }
+
+    set state(state) {
+        return this._writeAttributeWrapper(()=> {
+            data.get(this).group.state = state;
+        });
     }
 
     inspect(){

@@ -3,33 +3,68 @@
  */
 import Vincent from '../../../../Vincent';
 import Group from "./Group";
+import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
 
-const _appUser = Symbol["appUser"];
+var data = new WeakMap();
 
-class GroupManager{
+class GroupManager extends PermissionsUIManager{
     
     
     constructor(appUser){
-        this[_appUser] = appUser;
+        super(appUser, Vincent.app.provider.managers.groupManager);
+        let obj = {};
+        obj.appUser = appUser;
+        obj.permObj = Vincent.app.provider.managers.groupManager;
+        data.set(this, obj);
     }
 
     list() {
-        return Vincent.app.provider.managers.groupManager.validGroups.map((group=> {
-            return group.name;
-        }));
+        try {
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                return data.get(this).permObj.validGroups.map((group=> {
+                    return group.name;
+                }));
+            });
+        } catch (e) {
+            return e.message;
+        }
     }
 
-    addGroup(data) {
-        if (typeof data === 'string' ||( typeof data =="object" && !data instanceof Group)) {
-            new Group(data);
-            console.log(`created group ${data.name? data.name :data}`);
-        } else {
-            console.log("Parameter must be a group name or group data object");
+    addGroup(group) {
+        try {
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                if (typeof group === 'string' ||( typeof group =="object" && !(group instanceof Group))) {
+                    return new Group(group,data.get(this).appUser,data.get(this).permObj);
+                } else {
+                    return "Parameter must be a group name or group data object";
+                }
+            });
+        } catch (e) {
+            return e.message;
+        }
+    }
+
+    getGroup(groupname) {
+        try {
+            let group = data.get(this).permObj.findValidGroup(groupname);
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, () => {
+                return new Group(group, data.get(this).appUser, data.get(this).permObj);
+            });
+        } catch (e) {
+            //console.log(e);
+            //return false;
+            return e.message;
         }
     }
 
     save(){
-        Vincent.app.provider.textDatastore.saveGroups();
+        try {
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                return data.get(this).permObj.save();
+            });
+        } catch (e) {
+            return e.message;
+        }
     }
 }
 

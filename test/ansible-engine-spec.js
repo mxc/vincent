@@ -135,8 +135,8 @@ describe("ansible engine", () => {
         let running = false;
         this.timeout(17000);
         docker.startDocker("vincentsshkeys").then(ipaddr=> {
-            console.log("Not finding IP Addy");
-            console.log(ipaddr);
+            //console.log("Not finding IP Addy");
+            //console.log(ipaddr);
             running = true;
             return new Promise(resolve=> {
                 gen.inventory = new Set([ipaddr]);

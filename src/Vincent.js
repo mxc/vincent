@@ -54,7 +54,7 @@ class Vincent {
                             return;
                         }
                         s.write(input.toString());
-                        if (input.toString().slice(-1) != "\n") {
+                        if (input.toString().slice(-1) != "\r") {
                             username = username.concat(input.toString().slice(-1));
                             break;
                         } else {
@@ -72,7 +72,7 @@ class Vincent {
                             return;
                         }
                         s.write("*");
-                        if (input.toString().slice(-1) != "\n") {
+                        if (input.toString().slice(-1) != "\r") {
                             password = password.concat(input.toString().slice(-1));
                             break;
                         } else {

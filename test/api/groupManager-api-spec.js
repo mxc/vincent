@@ -170,11 +170,33 @@ describe("GroupManager API should", function () {
 
     it("allow users to be removed from HostGroups",()=>{
         let host = provider.managers.hostManager.findValidHost("www.dogz.com");
-        let hostAccounts = provider.managers.groupManager.findHostGroupsWithUserForHost(host,"user3");
-        expect(hostAccounts.length).to.equal(2);
+        let hostGroups = provider.managers.groupManager.findHostGroupsWithUserForHost(host,"user3");
+        expect(hostGroups.length).to.equal(2);
         provider.managers.groupManager.removeUserFromHostGroups(host,"user3")
-         hostAccounts = provider.managers.groupManager.findHostGroupsWithUserForHost(host,"user3");
-        expect( hostAccounts.length).to.equal(0);
+         hostGroups = provider.managers.groupManager.findHostGroupsWithUserForHost(host,"user3");
+        expect( hostGroups.length).to.equal(0);
+    });
+
+    it("mark all hostgroups as absent when group is marked absent",()=>{
+        let host = provider.managers.hostManager.findValidHost("www.dogz.com");
+        let group = provider.managers.groupManager.findValidGroup("group2");
+        let hostGroups = provider.managers.groupManager.findAllHostGroupsForGroup("group2");
+        expect(hostGroups[0].state).to.equal("present");
+        expect(hostGroups[1].state).to.equal("present");
+        expect(group.state).to.equal("present");
+        provider.managers.groupManager.changeGroupStatus("group2","absent");
+        expect(hostGroups[0].state).to.equal("absent");
+        expect(hostGroups[1].state).to.equal("absent");
+        expect(group.state).to.equal("absent");
+    });
+
+    it("allow groups to be deleted",()=>{
+        provider.managers.groupManager.changeGroupStatus("group2","absent");
+        let hostGroups = provider.managers.groupManager.findAllHostGroupsForGroup("group2");
+        expect(hostGroups.length).to.equal(2);
+        provider.managers.groupManager.deleteGroup("group2");
+        hostGroups = provider.managers.groupManager.findAllHostGroupsForGroup("group2");
+        expect(hostGroups).to.be.undefined;
     });
 
 });

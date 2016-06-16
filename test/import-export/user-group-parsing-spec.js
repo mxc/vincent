@@ -98,8 +98,8 @@ describe("validating user configuration", function () {
     it("should return an array of valid users", function () {
         var validUsers = {
             owner: "root",
-            group: "useradmin",
-            permissions: "664",
+            group: "vincent",
+            permissions: "774",
             users: [
                 {name: 'user1', key: 'user1.pub', state: 'present', uid: undefined},
                 {name: 'user2', key: undefined, state: 'absent', uid: undefined},

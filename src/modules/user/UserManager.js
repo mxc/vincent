@@ -3,7 +3,6 @@
 import User from './User';
 import Host from '../host/Host';
 import HostUI from '../host/ui/console/Host';
-import UserUI from './ui/console/User';
 import UserAccountUI from './ui/console/UserAccount';
 import UserManagerUI from './ui/console/UserManager';
 import UserAccount from './UserAccount';
@@ -21,15 +20,12 @@ class UserManager extends PermissionsManager {
         if (!provider instanceof Provider || !provider) {
             throw new Error("Parameter provider must be an instance of provider");
         }
-        super();
+        super(provider);
         this.provider = provider;
         this.userCategories = new UserCategories(provider);
         this.validUsers = [];
         this.errors = [];
         this.engines = ModuleLoader.loadEngines('user', provider);
-        this.owner = "root"; //default owner
-        this.group = "useradmin"; //default group
-        this.permissions = 664; //default permissions
     }
 
     exportToEngine(engine, host, struct) {
@@ -165,26 +161,51 @@ class UserManager extends PermissionsManager {
         }
     }
 
-    loadUserCategoriesFromFile(){
+    loadUserCategoriesFromFile() {
         this.userCategories.loadFromFile();
         return this.userCategories;
     }
 
-    loadUserCategoriesFromJson(json){
+    loadUserCategoriesFromJson(json) {
         this.userCategories.loadFromJson(json);
         return this.userCategories;
     }
 
-    get categories(){
+    get categories() {
         return this.userCategories;
     }
 
     clear() {
-        this.validUsers = [];
+        let usernames = [];
+        this.validUsers.forEach((user)=> {
+            usernames.push(user.name);
+        });
+
+        usernames.forEach((username)=> {
+            this.changeUserState(username, "absent");
+            this.deleteUser(username);
+        });
     }
 
     getUserAccounts(host) {
         return host.data.users;
+    }
+
+    addUserAccountToHostByUserName(host, username) {
+        if (!host instanceof Host) {
+            logger.logAndThrow("Parameter host must be of type Host");
+        }
+        //update host for userAccounts
+        if (!host.data.users) {
+            host.data.users = [];
+        }
+
+        if (typeof username == 'string') {
+            let ua = new UserAccount(this.provider, {user: {name: username}});
+            this.addUserAccountToHost(host, ua);
+        } else {
+            logger.logAndThrow("The parameter usernamet must be of type string.");
+        }
     }
 
     addUserAccountToHost(host, userAccount) {
@@ -247,10 +268,10 @@ class UserManager extends PermissionsManager {
     }
 
     findUserAccountForHostByUserName(host, userName) {
-        if(!host instanceof Host){
+        if (!host instanceof Host) {
             logger.logAndThrow("Host must be an instanceof Host.");
         }
-        if(!host.data.users){
+        if (!host.data.users) {
             logger.logAndThrow(`No users defined for host ${host.name}.`);
         }
         if (host instanceof Host && typeof userName == 'string') {
@@ -296,7 +317,7 @@ class UserManager extends PermissionsManager {
             HostUI.prototype.addUserAccount = function (user) {
                 let func = function (appUserP, permObj) {
                     var userAccount = new UserAccountUI(user, this, appUserP);
-                    console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}.`);
+                    //console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}.`);
                     return userAccount;
                 };
                 func = func.bind(this);
@@ -319,8 +340,8 @@ class UserManager extends PermissionsManager {
                         }
                     });
                 } catch (e) {
-                    console.log(e);
-                    return false;
+                    //console.log(e);
+                    return e.message ? e.mesage : e;
                 }
             }
         }
@@ -334,13 +355,11 @@ class UserManager extends PermissionsManager {
                         if (userAccount) {
                             return new UserAccountUI(userAccount, data.get(this).appUser);
                         } else {
-                            console.log(`No user accounts defined for host ${this.name}`);
-                            return false;
+                            return `No user accounts defined for host ${this.name}`;
                         }
                     });
                 } catch (e) {
-                    console.log(e);
-                    return false;
+                    return e.message ? e.mesage : e;
                 }
             };
         }
@@ -394,9 +413,12 @@ class UserManager extends PermissionsManager {
         if ((typeof user === 'string') || user instanceof User) {
             let tUser = this.findValidUser(user);
             if (tUser) {
+                if (tUser.data.state == state) {
+                    return;
+                }
                 tUser.data.state = state;
                 //if use is globally marked as absent then mark user as absent in all hosts categories and groups
-                if (state === 'absent') {
+                if (state == 'absent') {
                     //user state in hosts
                     let hosts = this.provider.managers.hostManager.validHosts;
                     hosts.forEach((host)=> {
@@ -433,7 +455,7 @@ class UserManager extends PermissionsManager {
             //check if the user is currently associated with a UserAccount in any valid hosts and whose state is  "present"
             let hosts = this.findHostsWithUser(rUser, 'present');
             if (hosts.length > 0) {
-                throw new Error(`User ${username} has accounts in ${hosts.length} hosts. First mark user as 'absent' before they can be deleted.`);
+                throw new Error(`User ${username} has accounts in ${hosts.length} hosts. First change user state to 'absent' before they can be deleted.`);
             }
 
             //delete user entry from userAccount entries in host as the user has been previously marked as deleted.
@@ -456,14 +478,18 @@ class UserManager extends PermissionsManager {
                         hse.removeUserGroup(rUser);
                     });
                 }
+
+                //todo clean up userCategories?
+
+                // can safely remove user from valid users list as no references exists from validHosts
+                this.validUsers.find((user, index, array)=> {
+                    if (user.name === username) {
+                        array.splice(index, 1);
+                        return user;
+                    }
+                });
             }
-            // can safely remove user from valid users list as no references exists from validHosts
-            this.validUsers.find((user, index, array)=> {
-                if (user.name === username) {
-                    array.splice(index, 1);
-                    return user;
-                }
-            });
+
 
         } else {
             logger.warn("User parameter must be a username or instance of User.");
@@ -472,10 +498,10 @@ class UserManager extends PermissionsManager {
 
     removeUserFromHost(host, user) {
         user = this.findValidUser(user);
-        if(!user){
+        if (!user) {
             logger.logAndThrow("Parameter user must be a User object or a user name string.");
         }
-        if(!host instanceof Host){
+        if (!host instanceof Host) {
             logger.logAndThrow("Parameter host must be a Host object.");
         }
         let hostUsers = this.getUserAccounts(host);

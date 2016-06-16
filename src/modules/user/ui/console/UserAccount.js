@@ -8,35 +8,34 @@ import UserAccountElement from '../../../user/UserAccount';
 import Host from '../../../host/ui/console/Host';
 import AppUser from '../../../../ui/AppUser';
 
-const _manager = Symbol("manager");
 
 var data = new WeakMap();
 
 class UserAccount {
     constructor(userData, host, appUser) {
         if (!appUser instanceof AppUser) {
-            console.log("The appUser parameter must be of type AppUser.");
-            return {msg: "UserAccount creation failed - parameter appUser not of type AppUser"};
+            //console.log("The appUser parameter must be of type AppUser.");
+            return "UserAccount creation failed - parameter appUser not of type AppUser";
         }
 
         let obj={};
         obj.appUser = appUser;
 
         if (!(host instanceof Host)) {
-            console.log("The host parameter must be of type Host.");
-            return {msg: "UserAccount creation failed - parameter host not of type Host."};
+            //console.log("The host parameter must be of type Host.");
+            return "UserAccount creation failed - parameter host not of type Host.";
         }
         let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name);
         obj.permObj  = rHost;
 
-        if (typeof userData === "string" || typeof userData.user === "string" || userData.user instanceof User) {
+        if (typeof userData === "string" || typeof userData.user === "string" || userData instanceof User) {
             let username = '';
             if (typeof userData === "string") {
                 username = userData;
             } else if (typeof userData.user === 'string') {
                 username = userData.user;
             } else {
-                username = userData.user.name;
+                username = userData.name;
             }
             let user = Vincent.app.provider.managers.userManager.findValidUserByName(username);
             if (user && userData.authorized_keys) {
@@ -52,9 +51,9 @@ class UserAccount {
             }
         } else if (userData instanceof UserAccountElement) {
             obj.userAccount = userData;
-        }else{
-            console.log("The data parameter must be a username string or a object with a user property of type string of User.");
-            return {msg: "UserAccount creation failed"};
+        } else{
+            console.log("The data parameter must be a username string or a object with a user property of type string or User.");
+            return  "UserAccount creation failed";
         }
         Vincent.app.provider.managers.userManager.addUserAccountToHost(obj.permObj,obj.userAccount);
         data.set(this,obj);
@@ -122,7 +121,7 @@ class UserAccount {
         try {
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
         } catch (e) {
-            console.log(e);
+            //console.log(e);
             return false;
         }
     }
@@ -131,7 +130,7 @@ class UserAccount {
         try {
             return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
         } catch (e) {
-            console.log(e);
+            //console.log(e);
             return false;
         }
     }

@@ -8,6 +8,13 @@ import User from '../user/User';
 
 
 class PermissionsManager extends Manager {
+    
+    constructor(provider){
+        super();
+        this._owner = provider.config.get("owner") ? provider.config.get("owner") : "root"; //default owner
+        this._group = provider.config.get("group") ? provider.config.get("group") : "vincent"; //default group
+        this._permissions = provider.config.get("permissions")? provider.config.get("permissions"): 774; //default permissions
+    }
 
     get owner() {
         return this._owner;

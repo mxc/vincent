@@ -59,19 +59,20 @@ class Host extends PermissionsUIManager {
     }
 
     save(appUser) {
-        Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
-            Vincent.app.provider.managers.hostManager.saveHost(data.get(this).permObj);
+      return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            let result = Vincent.app.provider.managers.hostManager.saveHost(data.get(this).permObj);
+            return result;
         });
     }
 
     generatePlaybook() {
-        Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+       return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
             try {
-                Vincent.app.provider.engine.export(data.get(this).permObj).then((resolve)=> {
+              return  Vincent.app.provider.engine.export(data.get(this).permObj).then((resolve)=> {
                     console.log(`Successfully generated playbook for ${data.get(this).permObj.name}.`);
                 });
             } catch (e) {
-                console.log(`There was an error generating playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
+                return `There was an error generating playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`;
             }
         });
     }

@@ -5,7 +5,7 @@ import {createLogger}  from 'bunyan';
 
 class Logger {
     constructor() {
-        this.logger = createLogger({name: "coach", level: "debug", streams: [{path: "vincent.log"}]});
+        this.logger = createLogger({name: "vincent", level: "debug", streams: [{path: "vincent.log"}]});
     }
 
     fatal(msg) {

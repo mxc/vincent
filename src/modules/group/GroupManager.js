@@ -3,16 +3,17 @@
 import Group from './Group';
 import logger from './../../Logger';
 import Provider from './../../Provider';
-import PermissionsManager from './../base/PermissionsManager';
 import HostGroup from './HostGroup';
 import GroupCategories from './GroupCategories';
 import UserManager from './../user/UserManager';
 import User from './../user/User';
 import ModuleLoader from '../../utilities/ModuleLoader';
-import ConsoleGroupManager from './ui/console/GroupManager';
-import ConsoleGroup from './ui/console/Group';
-import ConsoleHostGroup from './ui/console/HostGroup';
+import GroupManagerUI from './ui/console/GroupManager';
+import HostUI from '../host/ui/console/Host';
+import HostGroupUI from './ui/console/HostGroup';
+import GroupUI from './ui/console/Group';
 import Host from '../host/Host';
+import PermissionsManager from '../base/PermissionsManager';
 
 class GroupManager extends PermissionsManager {
 
@@ -20,7 +21,7 @@ class GroupManager extends PermissionsManager {
         if (!provider instanceof Provider) {
             throw new Error("Parameter provider must be an instance of provider");
         }
-        super();
+        super(provider);
         this.provider = provider;
         this.groupCategories = new GroupCategories(provider);
         this.validGroups = [];
@@ -130,8 +131,140 @@ class GroupManager extends PermissionsManager {
     }
 
     clear() {
-        this.validGroups = [];
+
+        let groupnames = [];
+        this.validGroups.forEach((group)=>{
+                groupnames.push(group.name);
+        });
+
+        groupnames.forEach((groupname)=>{
+            this.changeGroupStatus(groupname,"absent");
+            this.deleteGroup(groupname);
+        })
+
     }
+
+
+    changeGroupStatus(group,status){
+        if (status !== 'absent' && status !== 'present') {
+            throw new Error(`Parameter state must be 'present' or 'absent' not ${state}`);
+        }
+
+        if ((typeof group === 'string') || group instanceof Group) {
+            let tGroup = this.findValidGroup(group);
+            if (tGroup) {
+                if(tGroup.data.state==status){
+                    return;
+                }
+                tGroup.data.state = status;
+                //if group is globally marked as absent then mark group as absent in all hostGroups
+                if (status == 'absent') {
+                    //group state in hosts
+                    let hosts = this.findHostsWithGroup(tGroup);
+                    hosts.forEach((host)=> {
+                        let hostGroups = this.getHostGroups(host);
+                        hostGroups.forEach((hg)=>{
+                            if (hg.name == tGroup.name) {
+                                hg.state = status;
+                            }
+                        });
+                    });
+                }
+            } else {
+                logger.warn(`Group ${group.name ? group.name : group} requested to be marked as ${state} is not a valid group.`);
+            }
+        } else {
+            logger.warn("Group parameter must be a groupname or instance of Group.");
+        }
+
+    }
+
+    getValidHostGroup(group) {
+        if ((typeof group == 'string') || group instanceof Group) {
+            //normalise groupname for search
+            let groupname;
+            if (group instanceof Group) {
+                groupname = group.name;
+            } else {
+                groupname = group;
+            }
+            let rGroup = this.findValidGroupByName(groupname);
+            return rGroup;
+        } else {
+            logger.warn("Group parameter must be a groupname or instance of Group.");
+        }
+    }
+
+     findAllHostGroupsForGroup(group) {
+         let rGroup = this.getValidHostGroup(group);
+         if (!rGroup) {
+             logger.warn("Group requested to be deleted is not a valid group.");
+             return;
+         }
+         let hgs = [];
+         let hosts = this.provider.managers.hostManager.validHosts;
+         hosts.forEach((host)=> {
+             let hg = this.provider.managers.groupManager.findHostGroup(host, rGroup);
+             if (hg) {
+                 hgs.push(hg);
+             }
+         });
+         return hgs;
+     }
+
+    deleteGroup(group,updateHosts=true){
+            //check if the group is currently associated with a HostGroup in any valid hosts and whose state is "present"
+            let hgs = this.findHostsWithGroup(group);
+            hgs.find((hg)=> {
+                if (hg.state == 'present') {
+                    throw new Error(`Group ${groupname} has a hostgroup in ${host.name} hosts. First change group state to 'absent' before it can be deleted.`);
+                }
+            });
+
+            //delete hostGroup entry from group entries in host as the group has been previously marked as deleted.
+            let rGroup = this.getValidHostGroup(group);
+            if (updateHosts) {
+                //remove user from hosts
+                this.findHostsWithGroup(rGroup).forEach((host)=> {
+                    this.removeGroupFromHost(host,rGroup);
+                });
+
+                //todo clean up groupCategories?
+
+                // can safely remove user from valid users list as no references exists from validHosts
+                this.validGroups.find((group, index, array)=> {
+                    if (group.name === rGroup.name) {
+                        array.splice(index, 1);
+                        return group;
+                    }
+                });
+            }
+    }
+
+    removeGroupFromHost(host,group){
+        if(!(host instanceof Host)){
+            throw new Error("Parameter host must be an instance of Host.");
+        }
+        if (group instanceof Group || group instanceof Host){
+            
+                let groupname="";
+                if (group instanceof Group){
+                        groupname = group.name;        
+                }else{
+                    groupname = group;
+                }
+            
+                this.getHostGroups(host).find((hg,index,array)=>{
+                    if (hg.group.name == groupname){
+                            array.splice(index,1);
+                            return hg;
+                    }
+                })
+        }else{
+            throw new Error("Parameter group must be an instance of Group of HostGroup.");
+        }
+    }
+
 
     loadHost(hosts, host, hostDef) {
         //group and group membership validation
@@ -271,54 +404,62 @@ class GroupManager extends PermissionsManager {
         return [UserManager];
     }
 
-
     loadConsoleUIForSession(context,appUser) {
         let self = this;
-        context.Host.prototype.addHostGroup = function (data) {
-            try {
-                let host = self.provider.managers.hostManager.findValidHost(this.name);
-                if (!host) {
-                    console.log(`Could not find ${this.name} in host managers host list`);
-                    return;
-                }
-                if (typeof data === "string") {
-                    console.log("data="+data);
-                    var _group = self.provider.managers.groupManager.findValidGroupByName(data);
-                } else if (typeof data === "object" && data.name) {
-                    var _group = self.provider.managers.groupManager.findValidGroupByName(data.name);
-                }
-                if (_group) {
-                    let groupdata = {
-                        group: _group
-                    };
-                    if (data.members) {
-                        groupdata.members = data.members;
-                    }
-                    let hostGroup = new HostGroup(self.provider, groupdata);
-                    self.addHostGroupToHost(host, hostGroup);
-                } else {
-                    console.log("group not found in valid group list");
-                    return;
-                }
-                console.log(`Group account added for ${data.name? data.name: data} to host ${this.name}`);
-            } catch (e) {
-                console.log(e);
-            }
-        };
-        context.Host.prototype.listHostGroups = function () {
-            let host = self.provider.managers.hostManager.findValidHost(this.name);
-            let hostGroups = self.getHostGroups(host);
-            if (hostGroups) {
-                return hostGroups.map((hostGroup)=> {
-                    return new ConsoleHostGroup(hostGroup);
-                });
-            }else{
-                return `No groups defined for host ${this.name}`;
-            }
-        };
 
-        context.groupManager = new ConsoleGroupManager();
-        context.Group = ConsoleGroup;
+        if (!HostUI.prototype.addHostGroup) {
+            HostUI.prototype.addHostGroup = function (data) {
+                let func = function (appUserP, permObj) {
+                    var hostGroup = new HostGroupUI(data, this, appUserP);
+                    return hostGroup;
+                };
+                func = func.bind(this);
+                return this._writeAttributeWrapper(func);
+            };
+        }
+
+        if (!HostUI.prototype.listHostGroups) {
+            HostUI.prototype.listHostGroups = function () {
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
+                let hostGroups = self.getHostGroups(host);
+                if (hostGroups) {
+                    return hostGroups.map((hostGroup)=> {
+                        return new HostGroupUI(hostGroup,this.appUser);
+                    });
+                } else {
+                    return `No groups defined for host ${this.name}`;
+                }
+            };
+        }
+
+        if (!HostUI.prototype.getHostGroup) {
+            HostUI.prototype.getHostGroup = function (group) {
+                let groupName="";
+                if(typeof group =="string"){
+                    groupName=group;
+                }else if(group instanceof GroupUI){
+                    groupName = group.name;
+                }else{
+                    return "Parameter group must be a group name or of type Group.";
+                }
+                let host = self.provider.managers.hostManager.findValidHost(this.name);
+                let hostGroups = self.getHostGroups(host);
+                if (hostGroups) {
+                    let hg = hostGroups.find((hostGroup)=> {
+                        if(hostGroup.name ==groupName){
+                            return hostGroup;
+                        }
+                    });
+                    if (hg){
+                        return new HostGroupUI(hg,this,appUser)
+                    }
+                } else {
+                    return `No groups defined for host ${this.name}`;
+                }
+            };
+        }
+
+        context.groupManager = new GroupManagerUI(appUser);
     }
     
     
