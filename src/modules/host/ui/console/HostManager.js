@@ -19,10 +19,30 @@ class HostManager {
         data.set(this,obj);
     }
 
+    get hosts(){
+        try {
+            let hosts =[];
+            let rHosts = Vincent.app.provider.managers.hostManager.validHosts;
+            rHosts.forEach((host)=>{
+                try {
+                    Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
+                        hosts.push(new Host(host, data.get(this).appUser));
+                    });
+                }catch(e){
+                    //swallow access error
+                }
+            });
+            return hosts;
+        } catch (e) {
+            console.log(e.message);
+            return false;
+        }
+    }
+
     addHost(hostname) {
         if (typeof hostname === 'string') {
             var host = new Host(hostname, data.get(this).appUser);
-            console.log(`created host ${hostname}`);
+            //console.log(`created host ${hostname}`);
             return host;
         } else {
             console.log("Parameter must be a hostname string");
@@ -67,6 +87,20 @@ class HostManager {
         return counter;
     }
 
+    load(){
+        try{
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
+                if(Vincent.app.provider.managers.hostManager.loadFromFile()){
+                    return "Hosts have been successfully loaded";    
+                }else{
+                    return "Hosts have been loaded with some errors. Please see log file for details";
+                }
+            });
+        }catch(e){
+            return e.message? e.message: e;
+        }
+    }
+
     saveHost(host) {
         try {
             if (typeof host === 'string') {
@@ -76,11 +110,10 @@ class HostManager {
             }
             return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, realhost, () => {
                 return data.get(this).permObj.saveHost(realhost);
-                console.log(`host ${realhost.name} successfully saved`);
+                //console.log(`host ${realhost.name} successfully saved`);
             });
         }catch(e){
-            console.log(e);
-            return false;
+            return e.message? e.message: e;
         }
     }
 

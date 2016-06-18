@@ -5,6 +5,7 @@
 import HostEntity from '../../Host';
 import Vincent from '../../../../Vincent';
 import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
+import UserAccount from  '../../../user/ui/console/UserAccount';
 
 var data = new WeakMap();
 
@@ -25,7 +26,7 @@ class Host extends PermissionsUIManager {
         obj.appUser = appUser;
         data.set(this, obj);
     }
-
+  
     get name() {
         return this._readAttributeWrapper(()=> {
             return data.get(this).permObj.name;
@@ -91,6 +92,22 @@ class Host extends PermissionsUIManager {
                 console.log(`There was an error running playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
             }
         });
+    }
+
+    _readAttributeWrapper(func) {
+        try {
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    _writeAttributeWrapper(func) {
+        try {
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
+        } catch (e) {
+            return false;
+        }
     }
 
 }

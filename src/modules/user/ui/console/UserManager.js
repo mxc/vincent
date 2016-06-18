@@ -78,25 +78,25 @@ class UserManager extends PermissionsUIManager {
     
     load(){
         try{
-            Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
-                         Vincent.app.provider.managers.userManager.loadFromFile();     
-                        console.log("Users have been successfully loaded");
-            });
+           return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
+               if(Vincent.app.provider.managers.userManager.loadFromFile()){
+                   return "Users have been successfully loaded";
+               }else{
+                   return "Users have been loaded with some errors. Please see log file for details";
+               }            
+           });
         }catch(e){
-            console.log(e);
-            return false;
+            return e.message? e.message: e;
         }
     }
     
     clear(){
         try{
-            Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
+            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
                 Vincent.app.provider.managers.userManager.clear();
-                console.log("Users have been cleared and removed from groups and hosts.");
+                return ("Users have been cleared and removed from groups and hosts.");
             });
         }catch(e){
-            //console.log(e);
-            //return false;
             return e.message;
         }       
     }

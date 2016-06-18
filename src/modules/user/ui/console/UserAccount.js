@@ -5,6 +5,7 @@
 import User from './User';
 import Vincent from '../../../../Vincent';
 import UserAccountElement from '../../../user/UserAccount';
+import HostElement from '../../../host/Host';
 import Host from '../../../host/ui/console/Host';
 import AppUser from '../../../../ui/AppUser';
 
@@ -13,17 +14,16 @@ var data = new WeakMap();
 
 class UserAccount {
     constructor(userData, host, appUser) {
-        if (!appUser instanceof AppUser) {
-            //console.log("The appUser parameter must be of type AppUser.");
-            return "UserAccount creation failed - parameter appUser not of type AppUser";
-        }
 
         let obj={};
+        if (!appUser instanceof AppUser) {
+            throw new Error("Parameter appUser must be of type AppUser.");
+        }
         obj.appUser = appUser;
 
-        if (!(host instanceof Host)) {
+        if (!(host instanceof Host)  && !(host instanceof HostElement)) {
             //console.log("The host parameter must be of type Host.");
-            return "UserAccount creation failed - parameter host not of type Host.";
+            throw new Error("UserAccount creation failed - parameter host not of type Host.");
         }
         let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name);
         obj.permObj  = rHost;

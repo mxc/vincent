@@ -84,12 +84,12 @@ class Console extends Ui {
         context.v.loadAll = ()=>{
           try {
               if (Vincent.app.provider.loadAll()) {
-                  console.log("Successfully loaded data store");
+                  return "Successfully loaded data.";
               } else {
-                  console.log("There were errors during data store load.");
+                  return "There were errors during data load. Please see the log file for details";
               }
           }catch(e){
-              console.log(`There were errors during data store load. ${e.message? e.message : e}`);
+              return `There were errors during data load. ${e.message? e.message : e}`;
           }
         };
 

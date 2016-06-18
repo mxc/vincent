@@ -51,6 +51,10 @@ class PermissionsUIManager extends PermissionHelper {
             data.get(this).permObj.permissions = permissions;
         });
     }
+    
+    genFuncHelper(genfunc,objdata){
+        return genfunc(objdata,data.get(this).appUser,data.get(this).permObj);
+    }
 
 }
 

@@ -315,52 +315,85 @@ class UserManager extends PermissionsManager {
         let self = this;
         if (!HostUI.prototype.addUserAccount) {
             HostUI.prototype.addUserAccount = function (user) {
-                let func = function (appUserP, permObj) {
-                    var userAccount = new UserAccountUI(user, this, appUserP);
-                    //console.log(`User account added for ${user.name ? user.name : user} to host ${this.name}.`);
-                    return userAccount;
+                let func = function () {
+                    let genFunc = function (obj, tappUser, permObj) {
+                        var userAccount = new UserAccountUI(obj, permObj, tappUser);
+                        return userAccount;
+                    };
+                    genFunc = genFunc.bind(this);
+                    return this.genFuncHelper(genFunc, user);
                 };
                 func = func.bind(this);
                 return this._writeAttributeWrapper(func);
             };
         }
 
+
+        if (!HostUI.prototype.hasOwnProperty("userAccounts")) {
+            let func = function () {
+                let wrapperFunc = function () {
+                    let host = self.provider.managers.hostManager.findValidHost(this.name);
+                    let ruserAccounts = self.provider.managers.userManager.getUserAccounts(host);
+                    return ruserAccounts.map ((ua)=> {
+                        return this.genFuncHelper(function (obj, tappUser, permObj) {
+                            return new UserAccountUI(obj, permObj, tappUser);
+                        }, ua);
+                    });
+                };
+                wrapperFunc = wrapperFunc.bind(this);
+                return this._readAttributeWrapper(wrapperFunc);
+            };
+
+            Object.defineProperty(HostUI.prototype, "userAccounts", {
+                    get: func
+                }
+            );
+        }
+
+
         if (!HostUI.prototype.listUserAccounts) {
             HostUI.prototype.listUserAccounts = function () {
-                try {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name);
-                    return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                let func = function () {
+                    try {
+                        let host = self.provider.managers.hostManager.findValidHost(this.name);
                         let userAccounts = self.getUserAccounts(host);
                         if (userAccounts) {
-                            return userAccounts.map((userAcc)=> {
-                                return new UserAccountUI(userAcc);
-                            });
+                            return this.genFuncHelper(function (obj, tappUser, permObj) {
+                                return userAccounts.map((userAcc)=> {
+                                    return new UserAccountUI(userAcc, permObj, tappUser);
+                                });
+                            }, null);
                         } else {
                             return `No user accounts defined for host ${this.name}`;
                         }
-                    });
-                } catch (e) {
-                    //console.log(e);
-                    return e.message ? e.mesage : e;
-                }
+                    } catch (e) {
+                        return e.message ? e.mesage : e;
+                    }
+                };
+                func = func.bind(this);
+                return this._readAttributeWrapper(func);
             }
         }
 
         if (!HostUI.prototype.getUserAccount) {
             HostUI.prototype.getUserAccount = function (username) {
-                try {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name);
-                    return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                let func = function () {
+                    try {
+                        let host = self.provider.managers.hostManager.findValidHost(this.name);
                         let userAccount = self.findUserAccountForHostByUserName(host, username);
                         if (userAccount) {
-                            return new UserAccountUI(userAccount, data.get(this).appUser);
+                            return this.genFuncHelper(function(obj,tappUser,permObj) {
+                                return new UserAccountUI(obj,permObj,tappUser);
+                            },userAccount);
                         } else {
                             return `No user accounts defined for host ${this.name}`;
                         }
-                    });
-                } catch (e) {
-                    return e.message ? e.mesage : e;
-                }
+                    } catch (e) {
+                        return e.message ? e.mesage : e;
+                    }
+                };
+                func = func.bind(this);
+                return this._readAttributeWrapper(func);
             };
         }
         context.userManager = new UserManagerUI(appUser);

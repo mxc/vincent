@@ -66,6 +66,20 @@ class GroupManager extends PermissionsUIManager{
             return e.message;
         }
     }
+
+    load(){
+        try{
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
+                if(Vincent.app.provider.managers.groupManager.loadFromFile()){
+                    return "Groups have been successfully loaded";
+                }else{
+                    return "Groups have been loaded with some errors. Please see log file for details";
+                }
+            });
+        }catch(e){
+            return e.message? e.message: e;
+        }
+    }
 }
 
 export default GroupManager;
