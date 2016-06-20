@@ -13,6 +13,11 @@ class AuthenticationProvider {
         throw new Error ("not yet implemented");
     }
 
+
+    changePassword(username,password){
+        throw new Error ("not yet implemented");
+    }
+    
 }
 
 export default AuthenticationProvider;

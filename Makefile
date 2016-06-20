@@ -25,4 +25,9 @@ import-export:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/import-export/*.js
 
-.ALL: main cliui current
+userauth-security:
+	clear
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/userauth-security/*.js
+
+
+.ALL: api save cliui main import-export userauth-security

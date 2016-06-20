@@ -5,4 +5,4 @@ ToDo Items in no particular order
 * Implement in app downloading of new and updated modules
 * Log results of config run to database
 * Implement test for ldap and unix auth with docker containers
-*
+* check permissions on config direcotries especially keys and refuse to start if permissions are incorrect

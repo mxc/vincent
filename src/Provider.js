@@ -31,22 +31,31 @@ class Provider {
             var stat = fs.statSync(this.getDBDir());
         } catch (e) {
             logger.info(`${this.getDBDir()} does not exists. It will be created`);
-            fs.mkdirSync(this.getDBDir());
+            fs.mkdirSync(this.getDBDir(),parseInt("700",8));
         }
 
         try {
             fs.statSync(`${this.getDBDir()}/hosts`);
         } catch (e) {
-            fs.mkdirSync(`${this.getDBDir()}/hosts`);
             logger.info(`${this.getDBDir()}/hosts does not exists. It will be created`);
+            fs.mkdirSync(`${this.getDBDir()}/hosts`,parseInt("700",8));
         }
-
+        try {
+            let stat = fs.statSync(`${this.getDBDir()}/keys`);
+            if(!stat.mode == parseInt("700",8)){
+                    fs.chmodSync(`${this.getDBDir()}/keys`,parseInt("700",8));
+            }
+        } catch (e) {
+            logger.info(`${this.getDBDir()}/keys does not exists. It will be created`);
+            fs.mkdirSync(`${this.getDBDir()}/keys`,parseInt("700",8));
+        }
         try {
             fs.statSync(`${this.getDBDir()}/includes`);
         } catch (e) {
-            fs.mkdirSync(`${this.getDBDir()}/includes`);
             logger.info(`${this.getDBDir()}/includes does not exists. It will be created`);
+            fs.mkdirSync(`${this.getDBDir()}/includes`,parseInt("700",8));
         }
+
 
     }
 
@@ -234,19 +243,19 @@ class Provider {
      */
     getDBDir() {
         let loc = path.resolve(this.configDir, this.config.get('dbdir'));
-        //check if config directory exists
+/*        //check if config directory exists
         try {
             var stat = fs.statSync(loc);
         } catch (e) {
             mkdirp(loc);
-        }
-        //ensure host directory exists
+        }*/
+/*        //ensure host directory exists
         let hostloc = path.resolve(loc, "hosts");
         try {
             stat = fs.statSync(hostloc);
         } catch (e) {
             mkdirp(hostloc);
-        }
+        }*/
         return loc;
     }
 

@@ -70,7 +70,7 @@ class Host extends PermissionsUIManager {
        return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
             try {
               return  Vincent.app.provider.engine.export(data.get(this).permObj).then((resolve)=> {
-                    console.log(`Successfully generated playbook for ${data.get(this).permObj.name}.`);
+                    return `Successfully generated playbook for ${data.get(this).permObj.name}.`;
                 });
             } catch (e) {
                 return `There was an error generating playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`;
@@ -78,18 +78,20 @@ class Host extends PermissionsUIManager {
         });
     }
 
-    runPlaybook(username, checkhostkey, privkeyPath, passwd, sudoPasswd) {
-        Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+    runPlaybookWithDefaultAuth() {
+        //username, checkhostkey, privkeyPath, passwd, sudoPasswd
+        return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
             try {
-                console.log(`${this[_host].name} playbook has been submitted. Results will be available shortly.`);
-                Vincent.app.provider.engine.runPlaybook(this[_host], checkhostkey, privkeyPath,
-                    username, passwd, sudoPasswd).then((results)=> {
-                    console.log(`Results for ${data.get(this).permObj.name}. - ${results}`);
+                Vincent.app.session.socket.write(`${data.get(this).permObj.name} playbook has been submitted. Results will be available shortly.`);
+                let user = Vincent.app.provider.config.get("sshuser");
+                let passwd = Vincent.app.provider.config.get("sshpassword");
+                Vincent.app.provider.engine.runPlaybook(data.get(this).permObj,undefined,undefined,user, passwd).then((results)=> {
+                    return `Results for ${data.get(this).permObj.name}. - ${results}`;
                 }).catch((e)=> {
-                    console.log(`There was an error running playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
+                    return `There was an error running playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`;
                 });
             } catch (e) {
-                console.log(`There was an error running playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
+                return `There was an error running playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`;
             }
         });
     }

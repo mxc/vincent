@@ -15,36 +15,34 @@ class Config {
         try {
             this.loc = path.resolve(filePath, "config.ini");
             var stat = fs.statSync(filePath);
-            this.config = ini.parse(fs.readFileSync(this.loc, 'utf-8'));
-            //ensure default values for db dir, engine dir, owner, group, permissions
-            if (!this.config.settings.dbdir){
-                this.config.settings.dbdir="db";
-            }
-            if (!this.config.settings.enginedir){
-                this.config.settings.enginedir="engine";
-            }
-            if (!this.config.settings.owner){
-                this.config.settings.owner="root";
-            }
-            if (!this.config.settings.group){
-                this.config.settings.group="vincent";
-            }
-            if (!this.config.settings.permissions){
-                this.config.settings.permissions="774";
-            }
         } catch (e) {
             logger.warn("application directory for config.ini does not exists");
             mkdirp(filePath);
-            let str =`; ansible-coach configuration file${EOL}[settings]${EOL}dbdir=db${EOL}enginedir=engine${EOL}`+
+            let str =`; vincent configuration file${EOL}[settings]${EOL}dbdir=db${EOL}enginedir=engine${EOL}`+
             `dbhost=localhost${EOL}dbuser=${EOL}dbpasswd=${EOL}dpport=5432${EOL}dbname=vincent${EOL}publickey=${EOL}`+
-            `privatekey=${EOL}authtype=unix${EOL};authtype=db${EOL};authtype=ldap${EOL}`;
+            `privatekey=${EOL}authtype=unix${EOL};authtype=db${EOL};authtype=ldap${EOL}keydir=keys${EOL}owner=root${EOL}` +
+                `group=vincent${EOL}permissions="744"${EOL}`;
             fs.writeFileSync(this.loc,str, 'utf-8');
-            this.config = {
-                settings: {
-                    dbdir: "db",
-                    enginedir: "engine"
-                }
-            }
+        }
+        this.config = ini.parse(fs.readFileSync(this.loc, 'utf-8'));
+        //ensure default values for db dir, engine dir, owner, group, permissions
+        if (!this.config.settings.dbdir){
+            this.config.settings.dbdir="db";
+        }
+        if (!this.config.settings.keydir){
+            this.config.settings.keydir="keys";
+        }
+        if (!this.config.settings.enginedir){
+            this.config.settings.enginedir="engine";
+        }
+        if (!this.config.settings.owner){
+            this.config.settings.owner="root";
+        }
+        if (!this.config.settings.group){
+            this.config.settings.group="vincent";
+        }
+        if (!this.config.settings.permissions){
+            this.config.settings.permissions="774";
         }
     }
 

@@ -1,10 +1,10 @@
 /**
  * Created by mark on 2016/04/30.
  */
-import Provider from '../src/Provider';
+import Provider from '../../src/Provider';
 import {expect} from 'chai';
-import AppUser from '../src/ui/AppUser';
-import Host from '../src/modules/host/Host';
+import AppUser from '../../src/ui/AppUser';
+import Host from '../../src/modules/host/Host';
 
 describe("Permissions handling functions", ()=> {
     "use strict";

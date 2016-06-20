@@ -18,7 +18,7 @@ class GroupManager extends PermissionsUIManager{
         data.set(this, obj);
     }
 
-    list() {
+    get list() {
         try {
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 return data.get(this).permObj.validGroups.map((group=> {

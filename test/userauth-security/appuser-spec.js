@@ -1,13 +1,17 @@
 /**
  * Created by mark on 2016/05/08.
  */
-import AppUser from '../src/ui/AppUser';
+import AppUser from '../../src/ui/AppUser';
 import {expect} from 'chai';
+import Provider from '../../src/Provider';
+import path from "path";
+import child_process from 'child_process';
+
 
 describe("AppUser should", ()=> {
 
 
-    it("properly create an AppUser object in instantiation", ()=> {
+    it("properly create an AppUser object on instantiation", ()=> {
          let user = new AppUser("einstein");
          expect(user.name).to.deep.equal("einstein");
          expect(user.groups).to.deep.equal(["einstein"]);
@@ -65,5 +69,25 @@ describe("AppUser should", ()=> {
 
     });
 
+    it("generate public private keys for user",function(done) {
+        this.timeout(10000);
+        let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+        let tpath = home + "/" + "vincenttest";
+        child_process.execSync(`rm -rf ${tpath}`);
+        let provider = new Provider(tpath);
+        let kpath = provider.getDBDir() + '/keys';
+        let user = new AppUser("einstein", ["sysadmin", "devops"], "audit", kpath);
+        expect(user.hasKeys()).to.be.flase;
+        user.generateKeys().then((result)=> {
+            expect(user.hasKeys()).to.be.true;
+            expect(user.publicKey).to.not.be.null;
+            expect(user.privateKey).to.not.be.null;
+            done();
+        }).catch((e)=> {
+            console.log(e);
+            expect(true).to.be.false;
+            done();
+        });
+    });
 
 });

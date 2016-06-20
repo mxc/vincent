@@ -49,7 +49,7 @@ class HostManager {
         }
     }
 
-    list() {
+    get list() {
         let tmpList = data.get(this).permObj.validHosts.filter((host=> {
             try {
                 return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, ()=> {

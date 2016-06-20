@@ -87,7 +87,11 @@ class Vincent {
                                 if (result) {
                                     logger.info(`login successful for user ${username}`);
                                     s.write("\n\rAuthentication Successful.");
-                                    let user = new AppUser(username, auth.getGroups());
+                                    let groups = auth.getGroups(username);
+                                    let primary = groups[0];
+                                    groups.splice(0,1);
+                                    let kpath = path.resolve(Vincent.app.provider.getDBDir(),Vincent.app.provider.config.get("keydir"));
+                                    let user = new AppUser(username,groups,primary,kpath);
                                     let console = this.startServerConsole(s, user);
                                 } else {
                                     logger.info(`login failed for user ${username}`);

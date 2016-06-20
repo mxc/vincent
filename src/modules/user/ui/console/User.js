@@ -78,6 +78,17 @@ class User extends PermissionHelper {
         });
     }
 
+    get publicKey(){
+        return this._readAttributeWrapper(()=> {
+            return data.get(this).user.key;
+        });
+    }
+
+    set publicKey(key){
+        return this._writeAttributeWrapper(()=> {
+            data.get(this).user.setKey(Vincent.app.provider,key);
+        });
+    }
 
     toString() {
         return this._readAttributeWrapper(()=> {

@@ -66,6 +66,7 @@ class Console extends Ui {
             };
         }
         
+        
         //logout function available in server mode only
         if (Vincent.app.args.daemon){
             context.v.logout=()=>{
@@ -76,7 +77,26 @@ class Console extends Ui {
             };
             context.v.exit=()=>{
                 this.session.socket.destory();
-            }
+            };
+            context.v.session={};
+            context.v.session.hasKeys=()=>{
+                return this.session.appUser.hasKeys();
+            };
+            context.v.session.generateKeys=(force)=>{
+                this.session.appUser.generateKeys(force).then((result)=>{
+                              this.session.socket.write("\n"+result+"\n");
+                });
+                return "Key generation pending ...";
+            };
+            Object.defineProperty(context.v.session,"groups",{
+                value: this.session.appUser.groups,
+            });
+            Object.defineProperty(context.v.session,"whoami",{
+                value: this.session.appUser.name,
+            });
+            Object.defineProperty(context.v.session,"publicKey",{
+                value: this.session.appUser.publicKey,
+            });
         }
         
 

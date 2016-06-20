@@ -1,16 +1,18 @@
 "use strict";
 
 import logger from './../../Logger';
-import Base from './../base/Base';
+import path from 'path';
+import fs from 'fs';
+import mkdirp from 'mkdirp';
 
-class User  {
+class User {
     /*
      Parameter can be user name or data structure:
      {
-        name: <username>,
-        stat: <"present"|"absent">,
-        uid: <int>,
-        key: <path to user's public key
+     name: <username>,
+     stat: <"present"|"absent">,
+     uid: <int>,
+     key: <path to user's public key
      }
      */
     constructor(data) {
@@ -44,12 +46,12 @@ class User  {
             logger.logAndThrow("Uid must be a number.");
         }
 
-        this.data = {
-            name: data.name,
-            key: data.key,
-            uid: data.uid,
-            state: data.state ? data.state : "present"
-        };
+            this.data = {
+                name: data.name,
+                uid: data.uid,
+                key: data.key,
+                state: data.state ? data.state : "present"
+            };
     }
 
     get name() {
@@ -60,12 +62,40 @@ class User  {
         return this.data.state;
     }
 
-    get key() {
+    get keyPath(){
         return this.data.key;
     }
 
-    set key(key) {
-        this.data.key = key;
+    get key() {
+        if (this.keyPath) {
+            try {
+                return fs.readFileSync(this.keyPath);
+            }catch(e){
+                logger.logAndThrow(`Error reading public key for user ${this.data.name} from file ${this.keyPath}.`);
+            }
+        }
+     }
+
+    setKey(provider,key) {
+        return new Promise((resolve)=> {
+            let dir = path.resolve(provider.getDBDir(),
+                provider.config.get("keydir"), this.data.name);
+            let kpath = path.resolve(dir,this.data.name + "_vincent.pub");
+            try{
+                fs.statSync(dir);
+            }catch(e){
+                let mode = parseInt("700",8);
+                mkdirp(dir,{mode:mode});
+            }
+            this.data.key = kpath;
+            fs.writeFile(kpath, key,(err)=>{
+                if(err){
+                    resolve(`There was an error saving public key for user ${this.data.name} - ${err}.`);
+                }else{
+                    resolve(`Successfully saved public key for user ${this.data.name}.`);
+                }
+            });
+        });
     }
 
     get uid() {
