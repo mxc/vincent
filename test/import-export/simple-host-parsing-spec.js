@@ -10,9 +10,9 @@ import AppUser from '../../src/ui/AppUser';
 describe("validating host configuration", function () {
 
     var validUsers = [
-        new User({name: 'user1', key: 'user1.pub', state: 'present', uid: undefined}),
+        new User({name: 'user1', key: './conf-example/db/keys/user1.pub', state: 'present', uid: undefined}),
         new User({name: 'user2', key: undefined, state: 'absent', uid: undefined}),
-        new User({name: 'user3', key: 'user3.pub', uid: 1000, state: 'present'}),
+        new User({name: 'user3', key: './conf-example/db/keys/user3.pub', uid: 1000, state: 'present'}),
         new User({name: 'user4', key: undefined, state: 'present', uid: undefined})
     ];
 
@@ -185,7 +185,7 @@ describe("validating host configuration", function () {
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{name: "user1"}, {name: "user3"}, {name: "waldo"}, {name: "user4"}]
+                    authorized_keys: [{name: "user1",state:"present"}, {name: "user3", state:"absent"}, {name: "waldo"}, {name: "user4"}]
                 },
                 {
                     user: {name: "user2"},
@@ -262,7 +262,7 @@ describe("validating host configuration", function () {
     it("should detect defined user with missing key in user's authorized_keys list", function () {
         expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("There was an error adding an authorised key to the " +
             "user user1. The user user4 is not in validUsers or does not have a " +
-            "public key defined")).not.to.equal(-1);
+            "public key defined.")).not.to.equal(-1);
     });
 
     it("should detect a UserAccount which has itself in it's authorized_keys list", function () {
@@ -336,7 +336,7 @@ describe("validating host configuration", function () {
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name: "user3", state: "present"}]
+                        authorized_keys: [{name: "user3", state: "absent"}]
                     },
                     {
                         user: {name: "user2", state: "absent"}
@@ -350,8 +350,6 @@ describe("validating host configuration", function () {
                 ]
             }
         ];
-        //console.log(provider.managers.hostManager.export()[0].users);
-        //console.log(validHosts[0].users);
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
     });
 

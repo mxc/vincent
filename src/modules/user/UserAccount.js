@@ -6,13 +6,14 @@ import HostComponent from './../base/HostComponent';
 import _ from 'lodash';
 
 /*
-Account user is a user with a list of authorized keys associate with this user account.
-*/
+ Account user is a user with a list of authorized keys associate with this user account.
+ */
 
 class UserAccount extends HostComponent {
     constructor(provider, data) {
         super(provider);
         this.data = {authorized_keys: []};
+
         this.errors = [];
         if (data) {
             if (typeof data === "object") {
@@ -34,16 +35,20 @@ class UserAccount extends HostComponent {
                     }
                 }
                 if (data.authorized_keys) {
-
-                    if (!(Array.isArray(data.authorized_keys))){
+                    if (!(Array.isArray(data.authorized_keys))) {
                         throw new Error("Authorized_keys property must be an array of objects with a name and state property.");
                     }
 
                     data.authorized_keys.forEach((authorizedUserDef)=> {
-                        if (typeof authorizedUserDef !== "object"){
+                        if (typeof authorizedUserDef !== "object") {
                             throw new Error("Authorized_keys must be an array of objects with a name and state property.");
                         }
-                        var user = this.provider.managers.userManager.findValidUserByName(authorizedUserDef.name);
+                        try {
+                            var user = this.provider.managers.userManager.findValidUserByName(authorizedUserDef.name);
+                        } catch (e) {
+                            logger.logAndAddToErrors(`Cannot add user to authorized_key - ${e.message}`, this.errors);
+                        }
+
                         if (!user) {
                             logger.logAndAddToErrors(
                                 `User with name ${authorizedUserDef.name} cannot be added as authorized user to ${data.user.name} as the user is invalid.`, this.errors);
@@ -63,31 +68,48 @@ class UserAccount extends HostComponent {
         }
     }
 
-     addAuthorizedUser(user, state) {
-        if (user instanceof User) {
-                var validUser = this.provider.managers.userManager.findValidUser(user);
-                //if this is not a valid user or the user is valid
-                //but marked as globally absent then don't addValidGroup keys
-                if (!validUser || !validUser.key) {
-                    logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined`);
-                    return;
-                }
-                //detect if we are adding an authorized users to itself
+    addAuthorizedUser(user, state) {
 
-                if (validUser.name == this.user.name) {
-                    logger.logAndAddToErrors(`UserAccount ${validUser.name} cannot be added to itself as an authorized user.`, this.errors);
-                    return;
+        //default state to present
+        if (!state) {
+            state = "present";
+        }
+
+        if (typeof state !== 'string' || (state !== 'absent' && state !== "present")) {
+            logger.logAndThrow("Parameter state must be either 'absent' or 'present'.");
+        }
+
+        if (user instanceof User) {
+            var validUser = this.provider.managers.userManager.findValidUser(user);
+            //if this is not a valid user or the user is valid
+            //but marked as globally absent then don't addValidGroup keys
+            if (!validUser || !validUser.key) {
+                logger.logAndThrow(`The user ${user.name} is not in validUsers or does not have a public key defined.`);
+            }
+            //detect if we are adding an authorized users to itself
+
+            if (validUser.name == this.user.name) {
+                logger.logAndAddToErrors(`UserAccount ${validUser.name} cannot be added to itself as an authorized user.`, this.errors);
+                return;
+            }
+            //detect if user already in keys
+            let euser = this.data.authorized_keys.find((key)=> {
+                if (key.user.name == user.name) {
+                    key.state = state; //update state
+                    return key.user;
                 }
-                //detect if user already in keys
-                if (!this.provider.managers.userManager.findValidUser(user, this.data.authorized_keys)) {
-                    let authorizedUser = user.clone();
-                    if (state === "absent") {
-                        authorizedUser.state = "absent";
-                    }
-                    this.data.authorized_keys.push(authorizedUser);
+            });
+            if (!euser) {
+                let authorizedUser = {user: user};
+                if (state == "absent") {
+                    authorizedUser.state = "absent";
                 } else {
-                    logger.info(`User ${user.name} is already in host users authorized keys`);
+                    authorizedUser.state = "present"
                 }
+                this.data.authorized_keys.push(authorizedUser);
+            } else {
+                logger.info(`User ${user.name} is already in host users authorized keys - state updated.`);
+            }
         } else {
             logger.logAndThrow("The parameter user must be of type User");
         }
@@ -126,30 +148,30 @@ class UserAccount extends HostComponent {
         return this.data.authorized_keys;
     }
 
-    set state(state){
-        if(state!=='present' && state!=='absent'){
+    set state(state) {
+        if (state !== 'present' && state !== 'absent') {
             throw new Error(`UserAccount state can only be present or absent not ${state}.`);
         }
-        this.data.user.data.state=state;
+        this.data.user.data.state = state;
     }
 
     export() {
-        let obj ={};
+        let obj = {};
         obj.user = this.data.user.exportId();
-        if (this.data.user.state=="present") {
+        if (this.data.user.state == "present") {
             if (this.data.authorized_keys && this.data.authorized_keys.length > 0) {
                 obj.authorized_keys = [];
-                this.data.authorized_keys.forEach((user)=> {
-                    obj.authorized_keys.push(user.exportId());
+                this.data.authorized_keys.forEach((key)=> {
+                    obj.authorized_keys.push({name: key.user.name, state: key.state});
                 });
             }
         }
         return obj;
     }
 
-    clone(){
-            let ua = new UserAccount(this.provider, this.data);
-            return ua;
+    clone() {
+        let ua = new UserAccount(this.provider, this.export());
+        return ua;
     }
 }
 

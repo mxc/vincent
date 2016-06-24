@@ -31,7 +31,7 @@ class AnsibleEngine extends EngineComponent {
                             name: "User authorized key state check",
                             authorized_key: {
                                 user: `${user.name}`,
-                                key: `{{ lookup('file','${authorizedUser.key}') }}`,
+                                key: `{{ lookup('file','${authorizedUser.keyPath}') }}`,
                                 manage_dir: 'yes',
                                 state: `${authorizedUser.state}`
                             },

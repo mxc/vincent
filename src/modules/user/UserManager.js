@@ -286,6 +286,7 @@ class UserManager extends PermissionsManager {
     }
 
     loadHost(hosts, host, hostDef) {
+
         if (hostDef.users) {
             hostDef.users.forEach(
                 (userDef) => {
@@ -301,7 +302,6 @@ class UserManager extends PermissionsManager {
                     }
                 });
         }
-
     }
 
 
@@ -333,8 +333,8 @@ class UserManager extends PermissionsManager {
             let func = function () {
                 let wrapperFunc = function () {
                     let host = self.provider.managers.hostManager.findValidHost(this.name);
-                    let ruserAccounts = self.provider.managers.userManager.getUserAccounts(host);
-                    return ruserAccounts.map ((ua)=> {
+                    let ruserAccounts = self.getUserAccounts(host);
+                    return ruserAccounts.map((ua)=> {
                         return this.genFuncHelper(function (obj, tappUser, permObj) {
                             return new UserAccountUI(obj, permObj, tappUser);
                         }, ua);
@@ -351,29 +351,33 @@ class UserManager extends PermissionsManager {
         }
 
 
-        if (!HostUI.prototype.listUserAccounts) {
-            HostUI.prototype.listUserAccounts = function () {
-                let func = function () {
-                    try {
-                        let host = self.provider.managers.hostManager.findValidHost(this.name);
-                        let userAccounts = self.getUserAccounts(host);
-                        if (userAccounts) {
-                            return this.genFuncHelper(function (obj, tappUser, permObj) {
-                                return userAccounts.map((userAcc)=> {
-                                    return new UserAccountUI(userAcc, permObj, tappUser);
-                                });
-                            }, null);
-                        } else {
-                            return `No user accounts defined for host ${this.name}`;
-                        }
-                    } catch (e) {
-                        return e.message ? e.mesage : e;
-                    }
-                };
-                func = func.bind(this);
-                return this._readAttributeWrapper(func);
-            }
-        }
+        // if (!HostUI.prototype.hasOwnPropety(listUserAccounts)) {
+        //     let func = function () {
+        //         let wrapperFunc = function () {
+        //             try {
+        //                 let host = self.provider.managers.hostManager.findValidHost(this.name);
+        //                 let userAccounts = self.getUserAccounts(host);
+        //                 if (userAccounts) {
+        //                     return this.genFuncHelper(function (obj, tappUser, permObj) {
+        //                         return userAccounts.map((userAcc)=> {
+        //                             return new UserAccountUI(userAcc, permObj, tappUser);
+        //                         });
+        //                     }, null);
+        //                 } else {
+        //                     return `No user accounts defined for host ${this.name}`;
+        //                 }
+        //             } catch (e) {
+        //                 return e.message ? e.mesage : e;
+        //             }
+        //         };
+        //         wrapperFunc = wrapperFunc.bind(this);
+        //         return this._readAttributeWrapper(WrapperFunc);
+        //     };
+        //
+        //     Object.defineProperty(HostUI.prototype, "listUserAccount", {
+        //         get: func
+        //     });
+        // }
 
         if (!HostUI.prototype.getUserAccount) {
             HostUI.prototype.getUserAccount = function (username) {
@@ -382,9 +386,9 @@ class UserManager extends PermissionsManager {
                         let host = self.provider.managers.hostManager.findValidHost(this.name);
                         let userAccount = self.findUserAccountForHostByUserName(host, username);
                         if (userAccount) {
-                            return this.genFuncHelper(function(obj,tappUser,permObj) {
-                                return new UserAccountUI(obj,permObj,tappUser);
-                            },userAccount);
+                            return this.genFuncHelper(function (obj, tappUser, permObj) {
+                                return new UserAccountUI(obj, permObj, tappUser);
+                            }, userAccount);
                         } else {
                             return `No user accounts defined for host ${this.name}`;
                         }
@@ -439,6 +443,36 @@ class UserManager extends PermissionsManager {
         }
     }
 
+    findUserAccountsWithAuthorizedKey(user,state){
+        if (state !== 'present' && state !== 'absent' && state !== undefined) {
+            throw new Error(`Parameter state must either be 'present','absent' or undefined not ${state}`);
+        }
+        if (typeof user !== "string" && !(user instanceof User)) {
+            throw new Error("Parameter user must be a username or instance of User.");
+        }
+        user = this.findValidUser(user);
+        let useraccounts = [];
+        if (user) {
+            let hosts = this.provider.managers.hostManager.validHosts.forEach((host)=> {
+                let uas = this.getUserAccounts(host);
+                uas.forEach((ua)=>{
+                     let tua =    ua.authorized_keys.find((key)=>{
+                                    if (key.user.name==user.name){
+                                            if (key.state==state){
+                                                return ua;
+                                            }
+                                    }
+                        });
+                    if (tua){
+                        return userAccounts.push(tua);
+                    }
+                });
+            });
+        }
+        return useraccounts;
+    }
+
+
     changeUserState(user, state) {
         if (state !== 'absent' && state !== 'present') {
             throw new Error(`Parameter state must be 'present' or 'absent' not ${state}`);
@@ -452,14 +486,21 @@ class UserManager extends PermissionsManager {
                 tUser.data.state = state;
                 //if use is globally marked as absent then mark user as absent in all hosts categories and groups
                 if (state == 'absent') {
-                    //user state in hosts
-                    let hosts = this.provider.managers.hostManager.validHosts;
-                    hosts.forEach((host)=> {
-                        let userAccount = this.findUserAccountForUser(host, tUser);
-                        if (userAccount) {
-                            userAccount.user.data.state = state;
-                        }
+                    //update all useraccounts to be absent
+                    let hosts = this.findHostsWithUser(tUser);
+                    hosts.forEach((host)=>{
+                        let ua = this.findUserAccountForUser(host,tUser);
+                            ua.state="absent";
                     });
+                    //update all authorized_keys to "absent"
+                    let uas = this.findUserAccountsWithAuthorizedKey(tUser,"present");
+                    uas.forEach((ua)=>{
+                            ua.authorized_keys.find((key)=>{
+                                if (key.user.name ==tUser.name){
+                                    key.state="absent";
+                                }
+                        });
+                    })
                 }
             } else {
                 logger.warn(`User ${user.name ? user.name : user} requested to be marked as ${state} is not a valid user.`);
@@ -488,14 +529,23 @@ class UserManager extends PermissionsManager {
             //check if the user is currently associated with a UserAccount in any valid hosts and whose state is  "present"
             let hosts = this.findHostsWithUser(rUser, 'present');
             if (hosts.length > 0) {
-                throw new Error(`User ${username} has accounts in ${hosts.length} hosts. First change user state to 'absent' before they can be deleted.`);
+                throw new Error(`User ${username} has accounts in ${hosts.length} hosts. First change user state to 'absent' before the user can be deleted.`);
             }
+            let uas = this.findUserAccountsWithAuthorizedKey(rUser,"present");
+            if(uas.length>0){
+                throw new Error(`User ${username} has authorized_keys marked as present. First change authorized_keys state to 'absent' before the user can be deleted.`);
+            }
+            //let keys = this.findUserAccountsWithAuthroizedKey(rUser,'present');
 
             //delete user entry from userAccount entries in host as the user has been previously marked as deleted.
             if (updateHosts) {
                 //remove user from hosts
-                this.findHostsWithUser(rUser, 'absent').forEach((host)=> {
-                    this.removeUserFromHost(host, user);
+                // this.findHostsWithUser(rUser, 'absent').forEach((host)=> {
+                //     this.removeUserFromHost(host, user);
+                // });
+                let hosts = this.provider.managers.hostManager.validHosts;
+                hosts.forEach((host)=>{
+                   this.removeUserFromHost(host,rUser,true);
                 });
                 //remove user from host groups
                 let hgs = this.provider.managers.groupManager.findHostGroupsWithUser(rUser);
@@ -529,7 +579,7 @@ class UserManager extends PermissionsManager {
         }
     }
 
-    removeUserFromHost(host, user) {
+    removeUserFromHost(host, user,global=false) {
         user = this.findValidUser(user);
         if (!user) {
             logger.logAndThrow("Parameter user must be a User object or a user name string.");
@@ -538,10 +588,18 @@ class UserManager extends PermissionsManager {
             logger.logAndThrow("Parameter host must be a Host object.");
         }
         let hostUsers = this.getUserAccounts(host);
-        hostUsers.find((hostUser, index, array)=> {
+        hostUsers.forEach((hostUser, index, array)=> {
             if (hostUser.user.name === user.name) {
                 array.splice(index, 1);
-                return hostUser;
+                //return hostUser;
+            }
+            //if the user is being removes from validUsers then we need to clean up authorized_keys too.
+            if(global) {
+                hostUser.authorized_keys.forEach((key, kindex, karray)=> {
+                    if (key.user.name == user.name) {
+                        karray.splice(index, 1);
+                    }
+                });
             }
             //remove user from groups
             this.provider.managers.groupManager.removeUserFromHostGroups(host, user);

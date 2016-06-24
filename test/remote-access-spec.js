@@ -84,20 +84,20 @@ describe("HostManager configuration without remote access definition", ()=> {
     let host = provider.managers.hostManager.findValidHost("www.example.com");
 
     it("should set remote access user to 'same'", ()=> {
-        expect(host.remoteAccess.remoteUser).to.equal("same");
+        expect(host.remoteAccess).to.equal(undefined);
     });
-
-    it("should set remote access authentication to 'publicKey'", ()=> {
-        expect(host.remoteAccess.authentication).to.equal("publicKey");
-    });
-
-    it("should set remote access sudo authentication to false", ()=> {
-        expect(host.remoteAccess.sudoAuthentication).to.equal(false);
-    });
-
-    it("should not add definition to model export", ()=> {
-        expect(host.export().remoteAccess).to.equal(undefined);
-    })
+    //
+    // it("should set remote access authentication to 'publicKey'", ()=> {
+    //     expect(host.remoteAccess.authentication).to.equal(undefined);
+    // });
+    //
+    // it("should set remote access sudo authentication to false", ()=> {
+    //     expect(host.remoteAccess.sudoAuthentication).to.equal(undefined);
+    // });
+    //
+    // it("should not add definition to model export", ()=> {
+    //     expect(host.export().remoteAccess).to.equal(undefined);
+    // })
 });
 
 
@@ -175,10 +175,10 @@ describe("HostManager configuration with remote access definition", ()=> {
             ]
         }];
 
- let provider = new Provider();
-   // provider.init();    //inject mocks
+    let provider = new Provider();
+    // provider.init();    //inject mocks
     //inject mocks
-    let appUser = new AppUser("einstien",["sysadmin"]);
+    let appUser = new AppUser("einstien", ["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
@@ -193,14 +193,13 @@ describe("HostManager configuration with remote access definition", ()=> {
     });
 
     it("should set remote access sudo authentication to false", ()=> {
-        expect(host.remoteAccess.sudoAuthentication).to.equal(false);
+        expect(host.remoteAccess.sudoAuthentication).to.equal(undefined);
     });
 
-    it("should not add definition to model export", ()=> {
-        expect(host.export().remoteAccess.data).to.deep.equal({
+    it("should add definition to model export", ()=> {
+        expect(host.export().remoteAccess).to.deep.equal({
             remoteUser: "mark",
-            authentication: "publicKey",
-            sudoAuthentication: false
+            authentication: "publicKey"
         });
     })
 });
@@ -241,7 +240,7 @@ describe("HostManager configuration with invalid remote access definition", ()=>
             permissions: 770,
             remoteAccess: {
                 remoteUser: "peter",
-                authentication: "passwd",
+                authentication: "passwrd",
                 sudoAuthentication: "unknown"
             },
             users: [
@@ -288,11 +287,15 @@ describe("HostManager configuration with invalid remote access definition", ()=>
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
     it("should log errors", ()=> {
+        expect(provider.managers.hostManager.errors["www.example.com"][5]).to.equal("Error adding remote access user - Invalid " +
+            "configuration settings provided for RemoteAccess object./n/r" +
+            "Error: Authentication must be either 'password' or 'publicKey'./n/r" +
+            "Error: sudoAuthentication must be a boolean value. Current value is unknown - Boolean value must be 'true/yes' or 'false/no'."
+        );
         expect(provider.managers.hostManager.errors["www.example.com"].indexOf("Error adding remote access user - Invalid " +
             "configuration settings provided for RemoteAccess object./n/r" +
-            "Authentication must be either 'password' or 'publicKey'./n/r" +
-            "Error: Boolean value must be 'true/yes' or 'false/no'/n/r" +
-            "sudoAuthentication must be a boolean value."
+            "Error: Authentication must be either 'password' or 'publicKey'./n/r" +
+            "Error: sudoAuthentication must be a boolean value. Current value is unknown - Boolean value must be 'true/yes' or 'false/no'."
         )).not.to.equal(-1);
     });
 

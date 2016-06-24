@@ -59,13 +59,13 @@ describe("UserCategories parsing should", function () {
                     }
                 ]
             }];
-        provider.managers.userManager.addValidUser(new User({name:"user1",key:"xxxx"}));
-        provider.managers.userManager.addValidUser(new User({name:"user2",key:"yyyy"}));
+        provider.managers.userManager.addValidUser(new User({name:"user1",key:"./conf-example/db/keys/user1.pub"}));
+        provider.managers.userManager.addValidUser(new User({name:"user2",key:"./conf-example/db/keys/user2.pub"}));
 
         let usercategories = provider.managers.userManager.loadUserCategoriesFromJson(usercats);
         expect(usercategories.categories.length).to.equal(2);
         expect(usercategories.categories[0].userAccounts.length).to.equal(2);
-        expect(usercategories.categories[1].userAccounts[0].authorized_keys[0].name).to.equal("user1");
+        expect(usercategories.categories[1].userAccounts[0].authorized_keys[0].user.name).to.equal("user1");
     });
 
     it('export UserCategories', ()=> {

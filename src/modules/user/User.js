@@ -69,9 +69,11 @@ class User {
     get key() {
         if (this.keyPath) {
             try {
-                return fs.readFileSync(this.keyPath);
+                let p = path.resolve(this.keyPath);
+                let key =  fs.readFileSync(p);
+                return key.toString();
             }catch(e){
-                logger.logAndThrow(`Error reading public key for user ${this.data.name} from file ${this.keyPath}.`);
+                logger.logAndThrow(`Error reading public key for user ${this.data.name} from file ${this.keyPath} - ${e.message}`);
             }
         }
      }

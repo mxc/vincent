@@ -23,7 +23,7 @@ class UserManager extends PermissionsUIManager {
         try {
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 return data.get(this).permObj.validUsers.map((user=> {
-                    return user.name;
+                    return new User(user,data.get(this).appUser, data.get(this).permObj);
                 }));
             });
         } catch (e) {

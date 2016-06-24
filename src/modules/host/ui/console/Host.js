@@ -26,7 +26,74 @@ class Host extends PermissionsUIManager {
         obj.appUser = appUser;
         data.set(this, obj);
     }
-  
+
+    get remoteUser(){
+        return this._readAttributeWrapper(()=> {
+            let ra = data.get(this).permObj.remoteAccess;
+            if(!ra){
+                return "currentUser";
+            }else {
+                return data.get(this).permObj.remoteAccess.remoteUser;
+            }
+        });
+    }
+
+    set remoteUser(remoteUser){
+        this._writeAttributeWrapper(()=> {
+            let ra = data.get(this).permObj.remoteAccess;
+            if (!ra){
+                data.get(this).permObj.remoteAccess= new RemoteAccess(remoteUser);
+            }else {
+                data.get(this).permObj.remoteAccess.remoteUser = remoteUser;
+            }
+        });
+    }
+
+    get remoteAuth(){
+        return this._readAttributeWrapper(()=> {
+            let ra = data.get(this).permObj.remoteAccess;
+            if(!ra){
+                return "publicKey";
+            }else {
+                return data.get(this).permObj.remoteAccess.authentication;
+            }
+        });
+    }
+
+    set remoteAuth(remoteAuth){
+        this._writeAttributeWrapper(()=> {
+            let ra = data.get(this).permObj.remoteAccess;
+            if (!ra){
+                data.get(this).permObj.remoteAccess= new RemoteAccess("same",remoteAuth);
+            }else {
+                data.get(this).permObj.remoteAccess.authentication = remoteAuth;
+            }
+        });
+    }
+
+    get remoteSudoAuth(){
+        return this._readAttributeWrapper(()=> {
+            let ra = data.get(this).permObj.remoteAccess;
+            if(!ra){
+                return false;
+            }else {
+                return data.get(this).permObj.remoteAccess.sudoAuthentication;
+            }
+        });
+    }
+
+    set remoteSudoAuth(remoteSudoAuth){
+        this._writeAttributeWrapper(()=> {
+            let ra = data.get(this).permObj.remoteAccess;
+            if (!ra){
+                data.get(this).permObj.remoteAccess= new RemoteAccess("same","publicKey".remoteSudoAuth);
+            }else {
+                data.get(this).permObj.remoteAccess.sudoAuthentication = remoteSudoAuth;
+            }
+        });
+    }
+
+
     get name() {
         return this._readAttributeWrapper(()=> {
             return data.get(this).permObj.name;
@@ -100,7 +167,7 @@ class Host extends PermissionsUIManager {
         try {
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
         } catch (e) {
-            return false;
+            return e.message;
         }
     }
 
@@ -108,7 +175,7 @@ class Host extends PermissionsUIManager {
         try {
             return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
         } catch (e) {
-            return false;
+            return e.message;
         }
     }
 

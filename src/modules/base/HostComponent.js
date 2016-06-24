@@ -15,13 +15,13 @@ class HostComponent {
         }
     }
 
-    get host(){
-        return this._host;
-    }
-
-    isInclude(){
-        return this.includeLabel ? true: false;
-    }
+    // get host(){
+    //     return this._host;
+    // }
+    //
+    // isInclude(){
+    //     return this.includeLabel ? true: false;
+    // }
 
 }
 

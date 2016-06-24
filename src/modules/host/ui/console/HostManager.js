@@ -120,7 +120,7 @@ class HostManager {
     generatePlaybooks() {
         let counter = 0;
         let promises = [];
-        this.list().forEach((host)=> {
+        this.list.forEach((host)=> {
             try {
                 promises.push(host.generatePlaybook().then((result)=> {
                     counter++;

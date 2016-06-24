@@ -20,9 +20,7 @@ class HostManager extends Manager {
         super();
         this.provider = provider;
         this.validHosts = [];
-        this.errors = {
-            permObj: []
-        };
+        this.errors = { manager:[] };
     }
 
     exportToEngine(engine, host, struct) {
@@ -111,14 +109,14 @@ class HostManager extends Manager {
     }
 
     loadHosts(hosts) {
-        //filter and clean up cloned hosts
+        //load hosts
         hosts.forEach((hostDef) => {
             try {
                 let host = this.loadFromJson(hostDef);
             }
             catch (e) {
                 logger.logAndAddToErrors(`Error loading host - ${e.message}`,
-                    this.errors.permObj);
+                    this.errors.manager);
             }
         });
         return this.validHosts;
@@ -134,7 +132,8 @@ class HostManager extends Manager {
             name: hostDef.name,
             owner: hostDef.owner,
             group: hostDef.group,
-            permissions: hostDef.permissions
+            permissions: hostDef.permissions,
+            remoteAccess: hostDef.remoteAccess
         };
 
 
@@ -142,24 +141,11 @@ class HostManager extends Manager {
 
         //create host instance
         try {
+
             host = new Host(this.provider, hostData);
             this.errors[host.name] = [];
         } catch (e) {
             logger.logAndThrow(`Could not create host ${hostDef.name ? hostDef.name : ""} - ${e.message}`);
-        }
-
-        //TODO refactor remote access manager
-        //configure remoteAccess settings for host.
-        if (hostDef.remoteAccess) {
-            try {
-                let remoteAccessDef = hostDef.remoteAccess;
-                let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
-                    remoteAccessDef.authentication, remoteAccessDef.sudoAuthentication);
-                host.setRemoteAccess(remoteAccess);
-            } catch (e) {
-                logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
-                    this.errors[host.name]);
-            }
         }
 
         try {
@@ -174,8 +160,8 @@ class HostManager extends Manager {
 
 
         //host.source = hostDef;
-        this.addHost(host);
-        Array.prototype.push.apply(this.errors[host.name], host.errors);
+            this.addHost(host);
+            Array.prototype.push.apply(this.errors[host.name], host.errors);
         return host;
     }
 

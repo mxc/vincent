@@ -421,25 +421,25 @@ class GroupManager extends PermissionsManager {
             };
         }
 
-        if (!HostUI.prototype.listHostGroups) {
-            HostUI.prototype.listHostGroups = function () {
-                let host = self.provider.managers.hostManager.findValidHost(this.name);
-                let hostGroups = self.getHostGroups(host);
-                let func = function() {
-                    if (hostGroups) {
-                        return hostGroups.map((hostGroup)=> {
-                            return this.genFuncHelper(function (obj, tappUser, permObj) {
-                                return new HostGroupUI(obj, permObj, tappUser);
-                            }, hostGroup);
-                        });
-                    } else {
-                        return `No groups defined for host ${this.name}`;
-                    }
-                };
-                func = func.bind(this);
-                return this._readAttributeWrapper(func);
-            };
-        }
+        // if (!HostUI.prototype.listHostGroups) {
+        //     HostUI.prototype.listHostGroups = function () {
+        //         let host = self.provider.managers.hostManager.findValidHost(this.name);
+        //         let hostGroups = self.getHostGroups(host);
+        //         let func = function() {
+        //             if (hostGroups) {
+        //                 return hostGroups.map((hostGroup)=> {
+        //                     return this.genFuncHelper(function (obj, tappUser, permObj) {
+        //                         return new HostGroupUI(obj, permObj, tappUser);
+        //                     }, hostGroup);
+        //                 });
+        //             } else {
+        //                 return `No groups defined for host ${this.name}`;
+        //             }
+        //         };
+        //         func = func.bind(this);
+        //         return this._readAttributeWrapper(func);
+        //     };
+        // }
 
         if (!HostUI.prototype.hasOwnProperty("hostGroups")) {
             let func = function () {

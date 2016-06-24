@@ -67,11 +67,9 @@ class UserAccount {
 
     get authorized_keys() {
         return this._readAttributeWrapper(()=> {
-            if (Vincent.app.provider.checkPermissions(data.get(this).appUser, data.get(this).permObj, "w")) {
-                return data.get(this).userAccount.user.authorized_keys;
-            } else {
-                return Object.freeze(data.get(this).userAccount.user.authorized_keys);
-            }
+            return data.get(this).userAccount.authorized_keys.map((user)=> {
+                        return new User(user,data.get(this).appUser,data.get(this).permObj);
+            });
         });
     }
 
@@ -91,29 +89,32 @@ class UserAccount {
 
     addAuthorizedUser(user) {
         return this._writeAttributeWrapper(()=> {
-            if (typeof user === "string") {
-                var _user = Vincent.app.provider.userManager.findValidUserByName(user);
-            } else if (user instanceof User) {
-                var _user = Vincent.app.provider.userManager.findValidGroupByName(user.name);
-            }
-            if (_user) {
-                data.get(this).userAccount.user.addAuthorizedUser(_user);
-                return data.get(this).userAccount.user.authorized_keys;
-            } else {
-                console.log("User was not found in valid users list.");
-                return false;
+            try {
+                if (typeof user === "string") {
+                    var _user = Vincent.app.provider.managers.userManager.findValidUserByName(user);
+                } else if (user instanceof User) {
+                    _user = Vincent.app.provider.managers.userManager.findValidUserByName(user.name);
+                }
+                if (_user) {
+                    data.get(this).userAccount.addAuthorizedUser(_user);
+                    return this.authorized_keys;
+                } else {
+                    return "User was not found in valid users list.";
+                }
+            }catch(e){
+                console.log(e);
             }
         });
     }
 
     toString() {
-        return `{ user: ${ data.get(this).userAccount.user.name},authorized_keys:${ data.get(this).userAccount.user.authorized_keys} }`;
+        return `{ user: ${ data.get(this).userAccount.user.name},authorized_keys:${ data.get(this).userAccount.authorized_keys} }`;
     }
 
     inspect() {
         return {
             user:  data.get(this).userAccount.user.name,
-            authorized_keys:  data.get(this).userAccount.user.authorized_keys
+            authorized_keys:  data.get(this).userAccount.authorized_keys
         }
     }
 

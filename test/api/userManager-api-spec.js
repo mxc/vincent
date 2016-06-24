@@ -129,7 +129,7 @@ describe("user management should", function () {
         let func = ()=> {
             provider.managers.userManager.deleteUser("user1");
         };
-        expect(func).to.throw("User user1 has accounts in 1 hosts. First change user state to 'absent' before they can be deleted.");
+        expect(func).to.throw("User user1 has accounts in 1 hosts. First change user state to 'absent' before the user can be deleted.");
     });
 
     it('should not allow user state to be changed via direct access', function () {

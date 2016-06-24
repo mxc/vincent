@@ -39,7 +39,7 @@ describe('When a new host is initialised for the ansible engine it', ()=> {
             );
             provider.managers.userManager.addUserAccountToHost(host,ansibleUserAccount);
             provider.managers.sshManager.addSsh(host,"strict");
-            host.setRemoteAccess(new RemoteAccess("ansibleAdmin", "password", true));
+            host.remoteAccess = new RemoteAccess("ansibleAdmin", "password", true);
             //provider.manager.addValidGroup(host);
             provider.managers.hostManager.provisionHostForEngine(host);
             done();

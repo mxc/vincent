@@ -28,8 +28,7 @@ class Host extends Base {
                 logger.logAndThrow(`${data} is an invalid host name`);
             }
             this.data = {
-                name: data,
-                remoteAccess: new RemoteAccess(),
+                name: data
             };
 
             this.owner = owner;
@@ -41,13 +40,25 @@ class Host extends Base {
             }
 
             this.data = {
-                name: data.name,
-                remoteAccess: new RemoteAccess(),
+                name: data.name
             };
 
             this.owner = data.owner;
             this.group = data.group;
             this.permissions = data.permissions;
+        }
+
+        //configure remoteAccess settings for host.
+        if (data.remoteAccess) {
+            try {
+                let remoteAccessDef = data.remoteAccess;
+                let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
+                    remoteAccessDef.authentication, remoteAccessDef.sudoAuthentication);
+                this.data.remoteAccess = remoteAccess;
+            } catch (e) {
+                logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
+                    this.errors);
+            }
         }
     }
 
@@ -107,11 +118,7 @@ class Host extends Base {
         return this.data.sudoAuthentication;
     }
 
-    // set source(source) {
-    //     this.data.source = source;
-    // }
-
-    setRemoteAccess(remoteAccess) {
+    set remoteAccess(remoteAccess) {
         if (!remoteAccess instanceof RemoteAccess) {
             throw new Error("The parameter remoteAccessObj must be of type RemoteAccess");
         }
@@ -122,9 +129,7 @@ class Host extends Base {
         let keys = Object.keys(this.data);
         let obj = {};
         keys.forEach((prop)=> {
-            if (prop == 'source') {
-                return;
-            }
+
             if (prop == 'permissions') {
                 obj[prop] = parseInt(this.data.permissions.toString(8));
                 return;
@@ -137,23 +142,25 @@ class Host extends Base {
             } else if (this.data[prop] instanceof HostComponent) {
                 obj[prop] = this.data[prop].export();
             } else if (this.data[prop] instanceof HostComponentContainer) {
-                obj[prop]={};
+                obj[prop] = {};
                 let hcKeys = Object.keys(this.data[prop].container);
-                hcKeys.forEach((tKey)=>{
-                    if(Array.isArray(this.data[prop].container[tKey])){
-                        obj[prop][tKey]=[];
-                        this.data[prop].container[tKey].forEach((each)=>{
+                hcKeys.forEach((tKey)=> {
+                    if (Array.isArray(this.data[prop].container[tKey])) {
+                        obj[prop][tKey] = [];
+                        this.data[prop].container[tKey].forEach((each)=> {
                             obj[prop][tKey].push(each.data.export());
                         });
-                    }else {
+                    } else {
                         obj[prop][tKey] = this.data[prop].container[tKey].export();
                     }
                 });
+            } else if (this.data[prop] instanceof RemoteAccess) {
+                obj[prop] = this.data[prop].export();
             } else {
                 obj[prop] = this.data[prop];
             }
         });
-        if (this.data.remoteAccess.remoteUser == "same") {
+        if (this.data.remoteAccess && this.data.remoteAccess.remoteUser == "same") {
             delete obj["remoteAccess"];
         }
         return obj;

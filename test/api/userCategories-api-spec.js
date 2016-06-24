@@ -56,8 +56,8 @@ describe("UserCategories API should", function () {
                     }
                 ]
             }];
-        provider.managers.userManager.addValidUser(new User({name: "user1", key: "xxxx"}));
-        provider.managers.userManager.addValidUser(new User({name: "user2", key: "yyyy"}));
+        provider.managers.userManager.addValidUser(new User({name: "user1", key: "./conf-example/db/keys/user1.pub"}));
+        provider.managers.userManager.addValidUser(new User({name: "user2", key: "./conf-example/db/keys/user2.pub"}));
 
         let usercategories = provider.managers.userManager.loadUserCategoriesFromJson(usercats);
         expect(usercategories.categories.length).to.equal(2);
@@ -112,8 +112,8 @@ describe("UserCategories API should", function () {
                     }
                 ]
             }];
-        provider.managers.userManager.addValidUser(new User({name: "user1", key: "xxxx"}));
-        provider.managers.userManager.addValidUser(new User({name: "user2", key: "yyyy"}));
+        provider.managers.userManager.addValidUser(new User({name: "user1", key: "./conf-example/db/keys/user1.pub"}));
+        provider.managers.userManager.addValidUser(new User({name: "user2", key: "./conf-example/db/keys/user2.pub"}));
 
         let usercategories = provider.managers.userManager.loadUserCategoriesFromJson(usercats);
         expect(usercategories.categories.length).to.equal(2);

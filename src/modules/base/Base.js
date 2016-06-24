@@ -19,10 +19,7 @@ class Base {
         return '{ "name":' + this.data.name + ',' + '"state:"' + this.data.state + '}';
     }
 
-    get source(){
-        return this._source;
-    }
-    
+
 }
 
 export default Base;
