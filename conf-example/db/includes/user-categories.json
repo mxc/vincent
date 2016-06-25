@@ -1,0 +1,72 @@
+
+
+[
+  {
+    "name": "staff-user-category",
+    "config": [
+      {
+        "user": {
+          "name": "staff1",
+          "state": "present"
+        },
+        "authorized_keys": [
+          {"name": "user1", "state": "present"},
+          {"name": "staff1", "state": "present"}
+        ]
+      },
+      {
+        "user": {
+          "name": "staff2",
+          "state": "absent"
+        }
+      }
+    ]
+  },
+  {
+    "name": "app-services-user-category",
+    "config": [
+      {
+        "user": {
+          "name": "www-data",
+          "state": "present"
+        },
+        "authorized_keys": [
+          {"name": "user1", "state": "present"}
+        ]
+      },
+      {
+        "user": {
+          "name": "postgres",
+          "state": "present"
+        }
+      }
+    ]
+  },
+  {
+    "name": "devs-user-category",
+    "config": [
+      {
+        "user": {
+          "name": "dev1",
+          "state": "present"
+        },
+        "authorized_keys": [
+          {"name": "dev1", "state": "present"},
+          {"name": "user2", "state": "present"}
+        ]
+      },
+      {
+        "user": {
+          "name": "dev2",
+          "state": "absent"
+        },
+        "authorized_keys": [
+          {"name": "user1", "state": "present"},
+          {"name": "user2", "state": "present"}
+        ]
+      }
+    ]
+  }
+]
+
+

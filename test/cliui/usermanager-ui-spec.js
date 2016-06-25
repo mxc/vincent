@@ -232,7 +232,7 @@ describe("UserManager UI should", ()=> {
             let userManagerUi = new UserManagerUI(appUser);
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            expect(host.addUserAccount('newton')).to.equal("The user newton is not a valid user.");
+            expect(()=>{ host.addUserAccount('newton') }).to.throw("The user newton is not a valid user.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -252,8 +252,7 @@ describe("UserManager UI should", ()=> {
             //change permissions so user has no access to host
             host.group = "ops";
             host.owner = "newton";
-            console.log("------------");
-            expect(host.addUserAccount('pascal')).to.equal("User einstein does not have the required permissions for www.coffeecup.co.za for the action write attribute.");
+            expect(()=>{ host.addUserAccount('pascal')} ).to.throw("User einstein does not have the required permissions for www.coffeecup.co.za for the action write attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];

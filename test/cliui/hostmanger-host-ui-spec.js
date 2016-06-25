@@ -118,11 +118,12 @@ describe("HostManager UI should", ()=> {
             let hostManagerUi = new HostManagerUI(appUser);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             let host2 = hostManagerUi.addHost("locatzsux.co.za");
-            host2.owner="einstein";
             host2.group="einstein";
-            Vincent.app.provider.managers.hostManager.saveHost = ()=> {
-                return true
-            };
+            host2.permissions="700";
+            host2.owner="einstein";
+            //Vincent.app.provider.managers.hostManager.saveHost = ()=> {
+            //    return true
+            //};
             let result = hostManagerUi.saveHosts();
             expect(result).to.equal(1);
         } finally {
@@ -172,7 +173,7 @@ describe("Host UI should", ()=> {
     });
 
 
-    it("allow authorised users to load engine definitions", ()=> {
+    it("allow authorised users to load engine definitions", (done)=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
             let hostManagerUi = new HostManagerUI(appUser);
@@ -180,10 +181,16 @@ describe("Host UI should", ()=> {
             //mock out export function
             Vincent.app.provider.engine.export = ()=> {
                 return new Promise((resolve)=>{
-                    return 'Successfully generated playbook for dogzrule.co.za.'
+                    resolve('success');
                 });
             };
-            expect(host.generatePlaybook()).to.equal("Successfully generated playbook for dogzrule.co.za.");
+            host.generatePlaybook().then((result)=>{
+                expect(result).to.equal("Successfully generated playbook for dogzrule.co.za.");
+                done();
+            }).catch((e)=>{
+                expect(e).to.be.undefined;
+                done();
+            });
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -197,12 +204,11 @@ describe("Host UI should", ()=> {
             let host2 = hostManagerUi.addHost("catzsux.co.za");
             host2.group = "einstein";
             host2.owner = "einstein";
-            expect(()=>{ host2.owner }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(()=>{ host2.group }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(()=>{ host2.permissions }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(()=>{ host2.name }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-
-
+            host2.permissins="700";
+            expect(host2.owner).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(host2.group).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(host2.permissions).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(host2.name).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -233,22 +239,20 @@ describe("Host UI should", ()=> {
             host2.permissions = 700;
             let func = ()=> {
                 host2.owner = "newton";
-            }
+            };
             expect(func).to.throw("User newton does not have the required permissions for catzsux.co.za for the action write attribute.");
             func = ()=> {
                 host2.group = "newton";
-            }
+            };
             expect(func).to.throw("User newton does not have the required permissions for catzsux.co.za for the action write attribute.");
             func = ()=> {
                 host2.permissions = 770;
-            }
+            };
             expect(func).to.throw("User newton does not have the required permissions for catzsux.co.za for the action write attribute.");
             func = ()=> {
                 host2.name = "lolcatzsuxmore.co.za";
-            }
-            expect(func).to.throw("User newton does not have the required permissions for catzsux.co.za for the action write attribute.");
-
-
+            };
+            expect(func).to.throw("Cannot set property name of [object Object] which has only a getter");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -279,7 +283,7 @@ describe("Host UI should", ()=> {
             let func = ()=> {
                 host2.name = "changenamenotallowed.co.za";
             };
-            expect(func).to.throw("Cannot set property name of #<Host> which has only a getter");
+            expect(func).to.throw("Cannot set property name of [object Object] which has only a getter");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }

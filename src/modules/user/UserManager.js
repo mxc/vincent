@@ -334,6 +334,9 @@ class UserManager extends PermissionsManager {
                 let wrapperFunc = function () {
                     let host = self.provider.managers.hostManager.findValidHost(this.name);
                     let ruserAccounts = self.getUserAccounts(host);
+                    if (!ruserAccounts){
+                        return [];
+                    }
                     return ruserAccounts.map((ua)=> {
                         return this.genFuncHelper(function (obj, tappUser, permObj) {
                             return new UserAccountUI(obj, permObj, tappUser);

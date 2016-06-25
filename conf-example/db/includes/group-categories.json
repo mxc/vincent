@@ -1,0 +1,39 @@
+[
+  {
+    "name": "desktop-groups",
+    "config": [
+      {
+        "group": {
+          "name": "ansible-full"
+        },
+        "members": [
+          "staff1",
+          "staff2"
+        ]
+      },
+      {
+        "group": {
+          "name": "backup"
+        },
+        "members": [
+          "backup"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "server-groups",
+    "config": [
+      {
+        "group": {
+          "name": "www-data"
+        },
+        "members": [
+          "www-data"
+        ]
+      }
+    ]
+  }
+]
+
+

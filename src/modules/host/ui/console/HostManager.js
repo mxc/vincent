@@ -16,19 +16,19 @@ class HostManager {
         let obj = {};
         obj.appUser = appUser;
         obj.permObj = Vincent.app.provider.managers.hostManager;
-        data.set(this,obj);
+        data.set(this, obj);
     }
 
-    get hosts(){
+    get hosts() {
         try {
-            let hosts =[];
+            let hosts = [];
             let rHosts = Vincent.app.provider.managers.hostManager.validHosts;
-            rHosts.forEach((host)=>{
+            rHosts.forEach((host)=> {
                 try {
                     Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
                         hosts.push(new Host(host, data.get(this).appUser));
                     });
-                }catch(e){
+                } catch (e) {
                     //swallow access error
                 }
             });
@@ -80,24 +80,25 @@ class HostManager {
         console.log("saving hosts");
         let counter = 0;
         data.get(this).permObj.validHosts.forEach((host)=> {
-            if (this.saveHost(host)) {
+            let result = this.saveHost(host);
+            if (typeof result ==='boolean') {
                 counter++;
             }
         });
         return counter;
     }
 
-    load(){
-        try{
-            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser,data.get(this).permObj,()=>{
-                if(Vincent.app.provider.managers.hostManager.loadFromFile()){
-                    return "Hosts have been successfully loaded";    
-                }else{
+    load() {
+        try {
+            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+                if (Vincent.app.provider.managers.hostManager.loadFromFile()) {
+                    return "Hosts have been successfully loaded";
+                } else {
                     return "Hosts have been loaded with some errors. Please see log file for details";
                 }
             });
-        }catch(e){
-            return e.message? e.message: e;
+        } catch (e) {
+            return e.message ? e.message : e;
         }
     }
 
@@ -106,16 +107,16 @@ class HostManager {
             if (typeof host === 'string') {
                 var realhost = data.get(this).permObj.findValidHost(host);
             } else {
-                realhost = host;
+                realhost = data.get(this).permObj.findValidHost(host.name);
             }
             return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, realhost, () => {
                 return data.get(this).permObj.saveHost(realhost);
-                //console.log(`host ${realhost.name} successfully saved`);
             });
-        }catch(e){
-            return e.message? e.message: e;
+        } catch (e) {
+            return e.message ? e.message : e;
         }
     }
+
 
     generatePlaybooks() {
         let counter = 0;

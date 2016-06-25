@@ -8,5 +8,3 @@ dist
 build
 lib
 conf-example-bk
-!conf-example/db
-conf-example

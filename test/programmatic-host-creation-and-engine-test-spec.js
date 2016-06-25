@@ -62,7 +62,7 @@ describe("The system", function () {
     beforeEach(()=> {
         ansiblegen.clean();
         provider.clear();
-        let markU = new User({name: "mark", uid: 1000, key: '/home/mark/.ssh/newton/id_rsa.pub'});
+        let markU = new User({name: "mark", uid: 1000, key: './conf-example/db/keys/user1.pub'});
         provider.managers.userManager.addValidUser(markU);
         let demoU = new User({name: "demo", uid: 1001});
         provider.managers.userManager.addValidUser(demoU);

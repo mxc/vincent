@@ -49,17 +49,17 @@ describe("AppUser should", ()=> {
         func = ()=>{
             user.name="newton";
         };
-        expect(func).to.throw("Cannot assign to read only property 'name' of #<AppUser>");
+        expect(func).to.throw("Cannot assign to read only property 'name' of object '#<AppUser>'");
 
         func = ()=>{
             user.primaryGroup = "newPirmary";
         };
-        expect(func).to.throw("Cannot assign to read only property 'primaryGroup' of #<AppUser>");
+        expect(func).to.throw("Cannot assign to read only property 'primaryGroup' of object '#<AppUser>'");
 
         func = ()=>{
             user.groups = ["alpha"];
         };
-        expect(func).to.throw("Cannot assign to read only property 'groups' of #<AppUser>");
+        expect(func).to.throw("Cannot assign to read only property 'groups' of object '#<AppUser>'");
 
         func = ()=>{
             user.groups.push("alpah");

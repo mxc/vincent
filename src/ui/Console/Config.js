@@ -72,16 +72,13 @@ class Config {
     }
 
     inspect() {
-        return {
-            configdir: this.configdir,
-            dbdir: this.dbdir,
-            enginedir: this.enginedir,
-            dbhost: this.dbhost,
-            dbname: this.dbname,
-            dbuser: this.dbuser,
-            dbport: this.dbport
-
+        let obj = {};
+        for(var prop in this[_config]){
+              if(this[_config].hasOwnProperty(prop)){
+                     obj[prop]=this[_config][prop]
+              }
         }
+        return obj;
     }
 }
 

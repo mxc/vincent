@@ -60,13 +60,13 @@ class AppUser {
                     logger.warn(`Keys for ${this.name} are being forcibly overwritten.`);
                     try{
                         fs.unlinkSync(`${kpath}/${this.name}_vincent`);
-                    }catch(e){};
+                    }catch(e){}
                     try{
                         fs.unlinkSync(`${kpath}/${this.name}_vincent.pub`);
-                    }catch(e){};
+                    }catch(e){}
                     try {
                         fs.unlinkSync(`${kpath}`);
-                    }catch(e){};
+                    }catch(e){}
                 }
                 try {
                     let exists = fs.statSync(kpath);
@@ -99,7 +99,7 @@ class AppUser {
             let exists = fs.statSync(tpath);
             return fs.readFileSync(tpath);
         } catch (e) {
-            throw new Error(`Private key does not exists for ${this.user}.`);
+            return `Private key does not exists for ${this.user}.`;
         }
     }
 
@@ -109,7 +109,7 @@ class AppUser {
             let exists = fs.statSync(tpath);
             return fs.readFileSync(tpath).toString();
         } catch (e) {
-            throw new Error(`Public key does not exists for ${this.user}.`);
+            return `Public key does not exist for ${this.user}.`;
         }
     }
 

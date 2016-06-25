@@ -446,6 +446,9 @@ class GroupManager extends PermissionsManager {
                 let wrapperFunc = function () {
                     let host = self.provider.managers.hostManager.findValidHost(this.name);
                     let rhostgroups = self.provider.managers.groupManager.getHostGroups(host);
+                    if(!rhostgroups){
+                        return [];
+                    }
                     return rhostgroups.map ((hg,index)=> {
                         return this.genFuncHelper(function (obj, tappUser, permObj) {
                             return new HostGroupUI(obj, permObj, tappUser);
