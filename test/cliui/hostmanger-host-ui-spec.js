@@ -68,8 +68,8 @@ describe("HostManager UI should", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
-            let host = hostManagerUi.addHost("dogzrule.co.za");
-            let tmpHost = hostManagerUi.getHost("dogzrule.co.za");
+            let host = hostManagerUi.addHost("dogzrule.co.za","web");
+            let tmpHost = hostManagerUi.getHost("dogzrule.co.za","web");
             expect(tmpHost).to.deep.equal(host);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
@@ -100,12 +100,12 @@ describe("HostManager UI should", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
-            let host = hostManagerUi.addHost("dogzrule.co.za");
+            let host = hostManagerUi.addHost("dogzrule.co.za","web");
             Vincent.app.provider.managers.hostManager.saveHost = ()=> {
                 return true
             };
-            let result = hostManagerUi.saveHost("dogzrule.co.za");
-            expect(result).to.be.true;
+            let result = hostManagerUi.saveHost("dogzrule.co.za","web");
+            expect(result).to.be.equal("true");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -141,7 +141,8 @@ describe("HostManager UI should", ()=> {
             host2.group = "einstein";
             host2.owner = "einstein";
             let results = hostManagerUi.list;
-            expect(results.length).to.equal(1);
+            expect(results.keys().next().value).to.equal("default");
+            expect(results.get("default")[0].name).to.deep.equal("dogzrule.co.za");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }

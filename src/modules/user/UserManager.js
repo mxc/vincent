@@ -325,8 +325,8 @@ class UserManager extends PermissionsManager {
                 let func = function () {
                     try {
                         let genFunc = function (obj, tappUser, permObj) {
-                            var userAccount = new UserAccountUI(obj, permObj, tappUser);
-                            return userAccount;
+                                var userAccount = new UserAccountUI(obj, permObj, tappUser);
+                                return userAccount;
                         };
                         genFunc = genFunc.bind(this);
                         return this.genFuncHelper(genFunc, user);
@@ -346,7 +346,7 @@ class UserManager extends PermissionsManager {
         if (!HostUI.prototype.hasOwnProperty("userAccounts")) {
             let func = function () {
                 let wrapperFunc = function () {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup)[0];
+                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
                     let ruserAccounts = self.getUserAccounts(host);
                     if (!ruserAccounts){
                         return [];
@@ -400,7 +400,7 @@ class UserManager extends PermissionsManager {
             HostUI.prototype.getUserAccount = function (username) {
                 let func = function () {
                     try {
-                        let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup)[0];
+                        let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
                         let userAccount = self.findUserAccountForHostByUserName(host, username);
                         if (userAccount) {
                             return this.genFuncHelper(function (obj, tappUser, permObj) {

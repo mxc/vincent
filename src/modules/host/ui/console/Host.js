@@ -7,20 +7,28 @@ import Vincent from '../../../../Vincent';
 import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
 import UserAccount from  '../../../user/ui/console/UserAccount';
 import logger from '../../../../Logger';
+import RemoteAccess from '../../RemoteAccess';
 
 var data = new WeakMap();
 
 class Host extends PermissionsUIManager {
 
-    constructor(host, session) {
+    constructor(host,session,configGroup) {
+        if (!(host instanceof HostEntity) && typeof host !=="string"){
+            throw new Error("The host parameter must be a host name, or a ui/Host instance.");
+        }
+
+        if(!configGroup){
+            configGroup="default";
+        }
+
         //if parameter is of type HostElement (real Host) then we assume it is already
         //added to valid host and this is a reconstruction.
+
         if (typeof host === 'string') {
             host = new HostEntity(Vincent.app.provider, host, session.appUser.name,
-                session.appUser.primaryGroup, 760);
+                session.appUser.primaryGroup, 760,configGroup);
             Vincent.app.provider.managers.hostManager.addHost(host);
-        } else if (!host instanceof Host) {
-            throw new Error("Host constructor requires a host name or ip address as a string parameter");
         }
         super(session.appUser, host);
         var obj = {};

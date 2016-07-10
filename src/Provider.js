@@ -8,6 +8,7 @@ import fs from 'fs';
 import Manager from './modules/base/Manager';
 import mkdirp from 'mkdirp';
 import AppUser from './ui/AppUser';
+import dateFormat from 'dateformat';
 
 class Provider {
 
@@ -35,11 +36,19 @@ class Provider {
         }
 
         try {
-            fs.statSync(`${this.getDBDir()}/hosts`);
+            fs.statSync(`${this.getDBDir()}/configs`);
         } catch (e) {
-            logger.info(`${this.getDBDir()}/hosts does not exists. It will be created`);
-            fs.mkdirSync(`${this.getDBDir()}/hosts`,parseInt("700",8));
+            logger.info(`${this.getDBDir()}/configs does not exists. It will be created`);
+            fs.mkdirSync(`${this.getDBDir()}/configs`,parseInt("700",8));
         }
+
+        try {
+            fs.statSync(`${this.getDBDir()}/archive`);
+        } catch (e) {
+            logger.info(`${this.getDBDir()}/archive does not exists. It will be created`);
+            fs.mkdirSync(`${this.getDBDir()}/archive`,parseInt("700",8));
+        }
+
         try {
             let stat = fs.statSync(`${this.getDBDir()}/keys`);
             if(!stat.mode == parseInt("700",8)){
@@ -49,6 +58,7 @@ class Provider {
             logger.info(`${this.getDBDir()}/keys does not exists. It will be created`);
             fs.mkdirSync(`${this.getDBDir()}/keys`,parseInt("700",8));
         }
+
         try {
             fs.statSync(`${this.getDBDir()}/includes`);
         } catch (e) {
@@ -111,9 +121,9 @@ class Provider {
 
         //move host file
         try {
-            let filename = this.dbDir + "/hosts";
+            let filename = this.dbDir + "/configs";
             let exists = fs.statSync(filename);
-            let archivePath = historyDir + "/hosts";
+            let archivePath = historyDir + "/configs";
             fs.renameSync(filename, archivePath);
         } catch (e) {
             logger.info(`No hosts folder to backup`);
@@ -167,8 +177,8 @@ class Provider {
      * @returns {*}
      */
     makeArchiveDir() {
-        let archive = dateformat(new Date, "yyyy-mm-dd-HH:MM:ss");
-        let archiveDir = path.resolve(this.dbDir, archive);
+        let archive = dateFormat(new Date(), "yyyy-mm-dd-HH:MM:ss");
+        let archiveDir = path.resolve(this.getDBDir(),"archive", archive);
 
         try {
             var stat = fs.statSync(archiveDir);
@@ -176,7 +186,7 @@ class Provider {
             logger.info(`${archiveDir} does not exists. It will be created.`);
             fs.mkdirSync(archiveDir);
         }
-
+        /*
         try {
             fs.statSync(`${archiveDir}/configs`);
         } catch (e) {
@@ -194,9 +204,9 @@ class Provider {
         try {
             fs.statSync(`${archiveDir}/includes`);
         } catch (e) {
-            fs.statSync(`${archiveDir}/includes`);
+            fs.mkdirSync(`${archiveDir}/includes`);
             logger.info(`${archiveDir}/includes does not exists. It will be created.`);
-        }
+        }*/
         return archiveDir;
     }
 
@@ -238,17 +248,30 @@ class Provider {
 
     saveToFile(filename, manager, backup) {
         let archivePath = "no backup required.";
-        let currentPath = path.resolve(this.getDBDir() + "/" + filename);
+        let currentPath = path.resolve(this.getDBDir(), filename);
+        console.log(currentPath);
         if (backup) {
             try {
                 var stat = fs.statSync(currentPath);
                 //let archivePath = "";
                 if (stat && stat.isFile()) {
-                    archivePath = this.makeArchiveDir() + filename;
-                    fs.renameSync(currentPath, archivePath);
+                    archivePath =this.makeArchiveDir();
+                    let fullArchivePath = path.resolve(archivePath,filename);
+                    let comps = path.dirname(filename).split("/");
+                    let tpath = archivePath;
+                    comps.forEach((comp)=>{
+                        tpath+="/"+comp;
+                        try {
+                            fs.statSync(tpath);
+                        }catch(e){
+                            logger.info(`${tpath} does not exist, creating path.`);
+                            fs.mkdirSync(tpath);
+                        }
+                    });
+                    fs.renameSync(currentPath, fullArchivePath);
                 }
             } catch (e) {
-                logger.warn(`${filename} file does not exist. No backup taken.`);
+                 logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
             }
         }
         let obj = manager.export();

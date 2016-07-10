@@ -25,7 +25,7 @@ class UserAccount {
             //console.log("The host parameter must be of type Host.");
             throw new Error("UserAccount creation failed - parameter host not of type Host.");
         }
-        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup)[0];
+        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
         obj.permObj  = rHost;
 
         if (typeof userData === "string" || typeof userData.user === "string" || userData instanceof User) {

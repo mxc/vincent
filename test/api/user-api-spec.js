@@ -44,9 +44,7 @@ describe("user objects should", function () {
         expect(user.uid).to.equal(1000);
         expect(()=>{
            let key = user.key;
-        }).to.throw("Error reading public key for user user1 from file ./conf-example/db/keys/user1/deleted.pub - " +
-            "ENOENT: no such file or directory, open '/home/mark/WebstormProjects/ansible-coach/conf-example/" +
-            "db/keys/user1/deleted.pub'");
+        }).to.throw(/Error reading public key for user user1 from file .\/conf-example\/db\/keys\/user1\/deleted.pub /);
     });
 
     it("allow a user's public key to be set after creation", function (done) {

@@ -157,7 +157,7 @@ class Console extends Ui {
 
         //save all configurations
         context.v.saveAll = () => {
-            return "Not yet implemented";
+            Vincent.app.provider.saveAll();
         };
 
         //load the per session context objects
