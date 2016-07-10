@@ -69,6 +69,7 @@ describe("HostSudoEntry API should", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -162,7 +163,7 @@ describe("HostSudoEntry API should", function () {
     provider.managers.hostManager.loadHosts(hosts);
 
     it("allow HostSudoEntry object to be created with a defined data structure", function () {
-        let host = provider.managers.hostManager.findValidHost("www.example.com");
+        let host = provider.managers.hostManager.findValidHost("www.example.com","default");
         let data =  {
             "name": "test",
             "userList": [
@@ -181,7 +182,7 @@ describe("HostSudoEntry API should", function () {
                 "cmdList": ["/usr/local/backup.sh"],
                 "runAs": "ALL:ALL"
             }
-        }
+        };
         let hse = new HostSudoEntry(provider,host,data);
         expect(hse.users.length).to.equal(1);
         expect(hse.groups.length).to.equal(1);

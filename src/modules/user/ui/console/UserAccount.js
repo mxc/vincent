@@ -25,7 +25,7 @@ class UserAccount {
             //console.log("The host parameter must be of type Host.");
             throw new Error("UserAccount creation failed - parameter host not of type Host.");
         }
-        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name);
+        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup)[0];
         obj.permObj  = rHost;
 
         if (typeof userData === "string" || typeof userData.user === "string" || userData instanceof User) {
@@ -102,7 +102,7 @@ class UserAccount {
                     return "User was not found in valid users list.";
                 }
             }catch(e){
-                console.log(e);
+                return e.message? e.message:e;
             }
         });
     }

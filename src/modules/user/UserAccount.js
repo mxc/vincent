@@ -61,6 +61,7 @@ class UserAccount extends HostComponent {
                         }
                     });
                 }
+                super.load(data);
             } else {
                 logger.logAndThrow("The data parameter for UserAccount must be an data object.");
             }
@@ -166,6 +167,7 @@ class UserAccount extends HostComponent {
                 });
             }
         }
+        super.export(obj);
         return obj;
     }
 

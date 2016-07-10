@@ -10,6 +10,7 @@ class HostSsh extends HostComponent {
     constructor(provider,config) {
         super(provider);
         this.data=new Ssh(config);
+        super.load(config);
         this.errors = this.data.errors;
     }
 
@@ -18,7 +19,9 @@ class HostSsh extends HostComponent {
     }
 
     export(){
-            return this.data.export();
+        let  obj = this.data.export();
+        super.export(obj);
+        return obj;
     }
 
 }

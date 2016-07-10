@@ -9,7 +9,7 @@ import User from './../user/User';
 
 class RemoteAccess extends Base {
 
-    constructor(remoteUser, authentication, sudoAuthentication) {
+    constructor(remoteUser, authentication, becomeUser) {
         super();
         this.errors = [];
         this.data = {};
@@ -27,7 +27,7 @@ class RemoteAccess extends Base {
         }
 
         try {
-            this.sudoAuthentication = sudoAuthentication;
+            this.becomeUser = becomeUser;
         } catch (e) {
             this.errors.push(e);
         }
@@ -42,8 +42,8 @@ class RemoteAccess extends Base {
         return this.data.remoteUser;
     }
 
-    get sudoAuthentication() {
-        return this.data.sudoAuthentication;
+    get becomeUser() {
+        return this.data.becomeUser;
     }
 
     get authentication() {
@@ -74,17 +74,16 @@ class RemoteAccess extends Base {
         }
     }
 
-    set sudoAuthentication(sudoAuthentication) {
-        if (!sudoAuthentication) {
-            sudoAuthentication = false;
-        } else if (typeof sudoAuthentication === 'string') {
-            try {
-                sudoAuthentication = this.getBooleanValue(sudoAuthentication);
-            } catch (e) {
-                logger.logAndThrow(`sudoAuthentication must be a boolean value. Current value is ${sudoAuthentication} - ${e.message}.`);
-            }
+    set becomeUser(becomeUser) {
+        if (!becomeUser) {
+            return;
+        } else if (typeof becomeUser === 'string') {
+            this.data.becomeUser = becomeUser;
+        }else if (becomeUser instanceof User){
+                    this.data.becomeUser = user.name;
         } else {
-            this.data.sudoAuthentication = sudoAuthentication;
+            logger.logAndThrow(`becomeUser must be a username or a User instance. Current value is ` +
+                    `${becomeUser}.`);
         }
     }
 

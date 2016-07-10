@@ -213,7 +213,7 @@ describe("UserManager UI should", ()=> {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let userManagerUi = new UserManagerUI(appUser);
-            let hostManagerUi = new HostManagerUI(appUser);
+            let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
             let user = userManagerUi.addUser({name: "newton", uid: 1000, state: "present"});
             let userAccount = host.addUserAccount('newton');
@@ -230,9 +230,9 @@ describe("UserManager UI should", ()=> {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
             let userManagerUi = new UserManagerUI(appUser);
-            let hostManagerUi = new HostManagerUI(appUser);
+            let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            expect(()=>{ host.addUserAccount('newton') }).to.throw("The user newton is not a valid user.");
+            expect(host.addUserAccount('newton')).to.equal("The user newton is not a valid user.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -245,7 +245,7 @@ describe("UserManager UI should", ()=> {
         try {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},appUser);
-            let hostManagerUi = new HostManagerUI(appUser);
+            let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
             let userManagerUi = new UserManagerUI(appUser);
             let user = userManagerUi.addUser({name: "pascal", uid: 1001, state: "present"});
@@ -264,7 +264,7 @@ describe("UserManager UI should", ()=> {
         try {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             Vincent.app.provider.managers.userManager.loadConsoleUIForSession({}, appUser);
-            let hostManagerUi = new HostManagerUI(appUser);
+            let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
             let userManagerUi = new UserManagerUI(appUser);
             let user = userManagerUi.addUser({name: "pascal", uid: 1001, state: "present"});

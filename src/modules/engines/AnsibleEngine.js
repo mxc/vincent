@@ -12,7 +12,7 @@ import Manager from '../base/Manager';
 import HostManager from '../host/HostManager';
 import path from 'path';
 import {EOL} from 'os';
-
+import mkdirp from 'mkdirp';
 
 class AnsibleEngine extends Engine {
 
@@ -24,7 +24,6 @@ class AnsibleEngine extends Engine {
         this.playbookDir = path.resolve(provider.getEngineDir(), "playbooks");
         this.errors = [];
     }
-
 
     clean() {
         return new Promise((resolve, reject)=> {
@@ -69,22 +68,21 @@ class AnsibleEngine extends Engine {
     }
 
     export(host) {
+        if(!host instanceof Host){
+            logger.logAndThrow("The parameter host must be an instance of Host.");
+        }
         return new Promise((resolve, reject)=> {
-            this.mkPlayBookDir()
+            this.mkPlayBookDir(host.configGroup)
                 .then((result)=> {
                     if (host) {
                         host = this.provider.managers.hostManager.findValidHost(host);
                         if (host) {
                             this.loadEngineDefinition(host);
                             return this.writePlaybook(host);
+                        }else{
+                            logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
                         }
                     }
-                    /*else {
-                     this.provider.managers.hostManager.validHosts.forEach((chost)=> {
-                     this.loadEngineDefinition(chost);
-                     });
-                     this.writePlaybooks().then((filename)=>{ return filename; } );
-                     }*/
                 }).then((results)=> {
                     return this.writeInventory();
                 })
@@ -96,13 +94,14 @@ class AnsibleEngine extends Engine {
         });
     }
 
-    mkPlayBookDir() {
+    mkPlayBookDir(configGroup) {
         let func = (resolve)=> {
-            fs.stat(this.playbookDir, (err)=> {
+            let tpath = path.resolve(this.playbookDir,configGroup);
+            fs.stat(tpath, (err)=> {
                 if (err) {
-                    fs.mkdir(this.playbookDir, (err) => {
+                    mkdirp(tpath, (err) => {
                         if (err) {
-                            logger.logAndAddToErrors(`Error attempting to create playbook directory - {$err}`, this.errors);
+                            logger.logAndAddToErrors(`Error attempting to create playbook directory ${tpath} - {$err}.`, this.errors);
                             throw err;
                         } else {
                             resolve("Created playbooks directory.");
@@ -119,13 +118,17 @@ class AnsibleEngine extends Engine {
 
     writePlaybooks() {
         let promises = [];
-        for (let hostname in this.playbooks) {
-            let host = this.provider.managers.hostManager.findValidHost(hostname);
-            if (host) {
-                try {
-                    promises.push(this.writePlaybook(host));
-                } catch (e) {
-                    logger.info(`Skipping playbook creation for host ${hostname} due to inadequate permissions`);
+        for (let host in this.playbooks) {
+            for (let configGroup in this.playbooks[host]) {
+                let host = this.provider.managers.hostManager.findValidHost(hostname,configGroup);
+                if (host) {
+                    try {
+                        promises.push(this.writePlaybook(host));
+                    } catch (e) {
+                        logger.info(`Skipping playbook creation for host ${hostname} due to inadequate permissions`);
+                    }
+                }else{
+                    logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
                 }
             }
         }
@@ -137,15 +140,22 @@ class AnsibleEngine extends Engine {
      Write out the yml playbook file using javascript ansible object
      */
     writePlaybook(host) {
+        if(!host instanceof Host){
+            logger.logAndThrow("Parameter host must be an instance of Host.");
+        }
         return new Promise((resolve, reject)=> {
             host = this.provider.managers.hostManager.findValidHost(host);
+            if (!host){
+                logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
+            }
             let hostname = host.name;
+            let configGroup = host.configGroup;
             try {
-                fs.writeFile(this.playbookDir + `/${hostname}.yml`,
-                    this.playbooks[hostname].yml,
+                let tpath = path.resolve(this.playbookDir,host.configGroup,`${hostname}.yml`);
+                fs.writeFile(tpath, this.playbooks[hostname][configGroup].yml,
                     (err)=> {
                         if (err) {
-                            logger.logAndAddToErrors(`Error attempting to create playbook for ${hostname}`,
+                            logger.logAndAddToErrors(`Error attempting to create playbook for ${hostname} for ${configGroup}.`,
                                 this.errors);
                             reject(err);
                         } else {
@@ -180,7 +190,7 @@ class AnsibleEngine extends Engine {
                 var filename = this.playbookDir + `/inventory`;
                 fs.writeFile(filename, inventory, (err)=> {
                     if (err) {
-                        logger.logAndThrow("Error creating inventory file for ansible");
+                        logger.logAndThrow("Error creating inventory file for ansible.");
                     }
                     resolve(filename);
                 });
@@ -196,6 +206,9 @@ class AnsibleEngine extends Engine {
      values as defined by ansible modules to be used to generate the yml file on export with writePlaybook().
      */
     loadEngineDefinition(host) {
+        if (!host instanceof Host) {
+            logger.logAndThrow("Parameter host must be an instance of Host.");
+        }
         host = this.provider.managers.hostManager.findValidHost(host);
         this.inventory.add(host.name);
         //needs to be an array to generate correct yml for ansible
@@ -209,19 +222,30 @@ class AnsibleEngine extends Engine {
                 this.provider.managers[manager].exportToEngine("ansible", host, tasks);
             }
         }
-        this.playbooks[host.name] = {};
-        this.playbooks[host.name].yml = yaml.safeDump(playbook); //cache the generated yml for playbook.
-        this.playbooks[host.name].object = playbook; //cache the generated object for playbook.
-        return this.playbooks[host.name].yml;
+        if (!this.playbooks[host.name]) {
+            this.playbooks[host.name] = {};
+        }
+        if(!this.playbooks[host.name][host.configGroup]){
+            this.playbooks[host.name][host.configGroup]=[];
+        }
+
+        this.playbooks[host.name][host.configGroup].yml = yaml.safeDump(playbook); //cache the generated yml for playbook.
+        //this.playbooks[host.name].object = playbook; //cache the generated object for playbook.
+        return this.playbooks[host.name][host.configGroup].yml;
     }
 
     /*
      Method to retrieve host details using ansible target properties
      */
     getInfo(host, checkhostkey, privkey, username, passwd, sudoPasswd) {
-
+        if (!host instanceof Host){
+            logger.logAndThrow("Parameter host must be an instance of Host.");
+        }
         return new Promise((resolve, reject)=> {
                 host = this.provider.managers.hostManager.findValidHost(host);
+                if(host.length!==1){
+                    logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
+                }
                 let cmd = 'ansible';
                 let args = this.getArgs(privkey, username, passwd);
                 let opts = this.getOpts(checkhostkey);
@@ -308,11 +332,13 @@ class AnsibleEngine extends Engine {
      * @returns {Promise}
      */
     runPlaybook(host, checkhostkey, privkeyPath, username, passwd, sudoPasswd) {
-
+        if(!host instanceof Host){
+            logger.logAndThrow("Parameter host must be an instanceof Host.");
+        }
         let cmd = 'ansible-playbook';
         let args = this.getArgs(privkeyPath, username, passwd);
         let opts = this.getOpts(checkhostkey);
-        args.push(`${host.name}.yml`);
+        args.push(`${host.configGroup}/${host.name}.yml`);
         return new Promise((resolve)=> {
             host = this.provider.managers.hostManager.findValidHost(host);
             let proc = child_process.spawn(cmd, args, opts);

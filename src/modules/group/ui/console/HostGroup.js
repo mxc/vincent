@@ -26,7 +26,7 @@ class HostGroup {
             throw new Error("HostGroup creation failed - parameter host not of type console Host or Host.");
         }
 
-        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name);
+        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup)[0];
         obj.permObj = rHost;
         if (typeof hostGroupData === "string" || typeof hostGroupData.group === "string" || hostGroupData instanceof Group) {
             let groupname = '';
@@ -76,17 +76,17 @@ class HostGroup {
         });
     }
 
-    set members(members) {
-        return this._writeAttributeWrapper(()=> {
-            if (Array.isArray(members)) {
-                if (members.length > 0 && typeof members[0] === 'string') {
-                    data.get(this).hostGroup.members = members;
-                } else {
-                    data.get(this).hostGroup.members.empty();
-                }
-            }
-        });
-    }
+    //set members(members) {
+    //    return this._writeAttributeWrapper(()=> {
+    //        if (Array.isArray(members)) {
+    //            if (members.length > 0 && typeof members[0] === 'string') {
+    //                data.get(this).hostGroup.members = members;
+    //            } else {
+    //                data.get(this).hostGroup.members.empty();
+    //            }
+    //        }
+    //    });
+    //}
 
     addMember(member) {
         return this._writeAttributeWrapper(()=> {

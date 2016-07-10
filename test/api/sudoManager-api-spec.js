@@ -69,6 +69,7 @@ describe("SudoerManager API should", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -267,7 +268,7 @@ describe("SudoerManager API should", function () {
     });
 
     it("remove user from SudoEntries when removeUserGroupFromHostSUDOEntries is called",()=> {
-        let host = provider.managers.hostManager.findValidHost("www.test.com");
+        let host = provider.managers.hostManager.findValidHost("www.test.com","default");
         let user = provider.managers.userManager.findValidUser("user2");
         provider.managers.sudoManager.removeUserGroupFromHostSudoEntries(host,user);
         let hses = provider.managers.sudoManager.getHostSudoerEntries(host);
@@ -285,7 +286,7 @@ describe("SudoerManager API should", function () {
     });
 
     it("remove groups from SudoEntries when removeUserGroupFromHostSUDOEntries is called",()=> {
-        let host = provider.managers.hostManager.findValidHost("www.test.com");
+        let host = provider.managers.hostManager.findValidHost("www.test.com","default");
         let group = provider.managers.groupManager.findValidGroup("group1");
         provider.managers.sudoManager.removeUserGroupFromHostSudoEntries(host,group);
         let hses = provider.managers.sudoManager.getHostSudoerEntries(host);

@@ -242,11 +242,19 @@ class UserManager extends PermissionsManager {
     }
 
     findUserAccountForHost(host, userAccount) {
-        if (!userAccount instanceof UserAccount) {
-            throw new Error("Parameter userAccount must be of type UserAccount.");
+        if (!host instanceof Host){
+            throw new Error("Parameter host must be of type Host.");
+        }
+
+        if (!(userAccount instanceof UserAccount) && (typeof userAccount !=="string")) {
+            throw new Error("Parameter userAccount must be of type UserAccount or a username string.");
         }
         return host.data.users.find((huser)=> {
-            if (huser.name == userAccount.user.name) {
+            if(typeof userAccount==="string"){
+                if (huser.name == userAccount) {
+                    return huser;
+                }
+            }else if (huser.name == userAccount.user.name) {
                 return huser;
             }
         });
@@ -286,7 +294,6 @@ class UserManager extends PermissionsManager {
     }
 
     loadHost(hosts, host, hostDef) {
-
         if (hostDef.users) {
             hostDef.users.forEach(
                 (userDef) => {
@@ -294,11 +301,11 @@ class UserManager extends PermissionsManager {
                         let userAccount = new UserAccount(host.provider, userDef);
                         this.addUserAccountToHost(host, userAccount);
                         Array.prototype.push.apply(
-                            hosts.errors[host.name],
+                            hosts.errors[host.name].get(host.configGroup),
                             userAccount.errors);
                     } catch (e) {
                         logger.logAndAddToErrors(`Error adding host user - ${e.message}`,
-                            hosts.errors[host.name]);
+                            hosts.errors[host.name].get(host.configGroup));
                     }
                 });
         }
@@ -310,18 +317,25 @@ class UserManager extends PermissionsManager {
      * @param context
      * @param appUser
      */
-    loadConsoleUIForSession(context, appUser) {
+    loadConsoleUIForSession(context, session) {
 
         let self = this;
         if (!HostUI.prototype.addUserAccount) {
             HostUI.prototype.addUserAccount = function (user) {
                 let func = function () {
-                    let genFunc = function (obj, tappUser, permObj) {
-                        var userAccount = new UserAccountUI(obj, permObj, tappUser);
-                        return userAccount;
-                    };
-                    genFunc = genFunc.bind(this);
-                    return this.genFuncHelper(genFunc, user);
+                    try {
+                        let genFunc = function (obj, tappUser, permObj) {
+                            var userAccount = new UserAccountUI(obj, permObj, tappUser);
+                            return userAccount;
+                        };
+                        genFunc = genFunc.bind(this);
+                        return this.genFuncHelper(genFunc, user);
+                    }catch(e){
+                        if(!e){
+                            return "error";
+                        }
+                        return e.message? e.message: e;
+                    }
                 };
                 func = func.bind(this);
                 return this._writeAttributeWrapper(func);
@@ -332,7 +346,7 @@ class UserManager extends PermissionsManager {
         if (!HostUI.prototype.hasOwnProperty("userAccounts")) {
             let func = function () {
                 let wrapperFunc = function () {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name);
+                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup)[0];
                     let ruserAccounts = self.getUserAccounts(host);
                     if (!ruserAccounts){
                         return [];
@@ -386,7 +400,7 @@ class UserManager extends PermissionsManager {
             HostUI.prototype.getUserAccount = function (username) {
                 let func = function () {
                     try {
-                        let host = self.provider.managers.hostManager.findValidHost(this.name);
+                        let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup)[0];
                         let userAccount = self.findUserAccountForHostByUserName(host, username);
                         if (userAccount) {
                             return this.genFuncHelper(function (obj, tappUser, permObj) {
@@ -403,7 +417,7 @@ class UserManager extends PermissionsManager {
                 return this._readAttributeWrapper(func);
             };
         }
-        context.userManager = new UserManagerUI(appUser);
+        context.userManager = new UserManagerUI(session.appUser);
     }
 
 

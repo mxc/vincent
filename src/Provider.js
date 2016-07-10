@@ -146,6 +146,21 @@ class Provider {
         });
     }
 
+    createConfigGroup(configGroup){
+        let tpath = path.join(this.getDBDir() + "/configs",configGroup);
+        try {
+            var stat = fs.statSync(tpath);
+        } catch (e) {
+            logger.info(`${tpath} does not exists. It will be created.`);
+            fs.mkdirSync(tpath);
+        }
+    }
+
+    getConfigGroups(){
+        return fs.readdirSync(this.getDBDir()  + "/configs").filter((entry)=>{
+            return fs.statSync(path.join(this.getDBDir()  + "/configs",entry)).isDirectory();
+        });
+    }
 
     /**
      * Utility function for the save function of Manager objects.
@@ -158,22 +173,29 @@ class Provider {
         try {
             var stat = fs.statSync(archiveDir);
         } catch (e) {
-            logger.info(`${archiveDir} does not exists. It will be created`);
+            logger.info(`${archiveDir} does not exists. It will be created.`);
             fs.mkdirSync(archiveDir);
         }
 
         try {
-            fs.statSync(`${archiveDir}/hosts`);
+            fs.statSync(`${archiveDir}/configs`);
         } catch (e) {
-            fs.mkdirSync(`${archiveDir}/hosts`);
-            logger.info(`${archiveDir}/hosts does not exists. It will be created`);
+            fs.mkdirSync(`${archiveDir}/configs`);
+            logger.info(`${archiveDir}/roles does not exists. It will be created.`);
+        }
+
+        try {
+            fs.statSync(`${archiveDir}/configs/default`);
+        } catch (e) {
+            fs.mkdirSync(`${archiveDir}/configs/default`);
+            logger.info(`${archiveDir}/configs/default does not exists. It will be created.`);
         }
 
         try {
             fs.statSync(`${archiveDir}/includes`);
         } catch (e) {
             fs.statSync(`${archiveDir}/includes`);
-            logger.info(`${archiveDir}/includes does not exists. It will be created`);
+            logger.info(`${archiveDir}/includes does not exists. It will be created.`);
         }
         return archiveDir;
     }

@@ -50,6 +50,7 @@ class HostGroup extends HostComponent {
                         }
                     });
                 }
+                super.load(data);
             } else {
                 logger.logAndThrow("The data parameter for HostGroup must be an data object or undefined.");
             }
@@ -165,6 +166,7 @@ class HostGroup extends HostComponent {
                 obj.members.push(member.name);
             });
         }
+        super.export(obj);
         return obj;
     }
 

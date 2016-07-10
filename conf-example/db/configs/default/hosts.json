@@ -4,6 +4,7 @@
     "owner":"einstein",
     "group": "sysadmin",
     "permissions":770,
+    "configGroup":"default",
     "remoteAccess": {
       "remoteUser": "same",
       "authentication": "password",
@@ -60,7 +61,7 @@
         ]
       }
     ],
-    "config":{
+    "configGroup":{
 		"ssh": {
 			"permitRoot": "no",
 	      		"validUsersOnly": "true",
@@ -73,6 +74,7 @@
     "owner":"einstein",
     "group": "sysadmin",
     "permissions":770,
+    "configGroup":"default",
     "remoteAccess": {
       "remoteUser": "ansible"
     },
@@ -119,6 +121,7 @@
     "owner":"einstein",
     "group": "sysadmin",
     "permissions":770,
+    "configGroup":"default",
     "remoteAccess": {
       "remoteUser": "ansible",
       "authentication": "password",
@@ -162,7 +165,7 @@
         ]
       }
     ],
-    "config":{
+    "configGroup":{
 	"ssh": {
       		"permitRoot": "without-password",
       		"validUsersOnly": "true",

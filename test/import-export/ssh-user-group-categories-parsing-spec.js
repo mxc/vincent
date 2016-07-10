@@ -42,6 +42,7 @@ describe("validating ssh custom config", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -85,6 +86,7 @@ describe("validating ssh custom config", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup:"default",
                 users: [
                     {
                         user: {
@@ -122,7 +124,7 @@ describe("validating ssh custom config", function () {
                 }
             }
         ];
-        let host = provider.managers.hostManager.findValidHost("web01.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("web01.example.co.za","default");
         expect(host.export()).to.deep.equal(validHosts[0]);
 
     });
@@ -189,6 +191,7 @@ describe("validating ssh include config", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -227,6 +230,7 @@ describe("validating ssh include config", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup:"default",
                 users: [
                     {
                         user: {
@@ -265,7 +269,7 @@ describe("validating ssh include config", function () {
             }
         ];
         //find host added on test suite start
-        let host = provider.managers.hostManager.findValidHost("web01.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("web01.example.co.za","default");
         provider.managers.sshManager.addSsh(host,"strict");
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
         let ssh = provider.managers.sshManager.getSsh(host);

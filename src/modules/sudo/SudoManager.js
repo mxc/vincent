@@ -75,19 +75,21 @@ class SudoManager extends Manager {
     }
 
     loadHost(hosts, host, hostDef) {
-
         if (hostDef.config && hostDef.config.sudoerEntries) {
             hostDef.config.sudoerEntries.forEach((sudoEntryData)=> {
                 try {
                     this.addHostSudoEntry(host, sudoEntryData);
                 } catch (e) {
-                    hosts.errors[host.name].push(e.message);
+                    hosts.errors[host.name].get(host.configGroup).push(e.message);
                 }
             });
         }
     }
 
     addHostSudoEntry(host, sudoData) {
+        if(!host instanceof Host){
+            logger.logAndThrow(`Paramter host must be an instance of Host.`);
+        }
         let entry;
         if (typeof sudoData == "string") {
             entry = this.findSudoEntry(sudoData);
@@ -143,7 +145,7 @@ class SudoManager extends Manager {
     findHostsWithSudoEntriesForGroup(group) {
         group = this.provider.managers.groupManager.findValidGroup(group);
         return this.provider.managers.hostManager.validHosts.filter((host)=> {
-            let hses = this.provider.managers.sudoManager.getHostSudoerEntries(host);
+            let hses = this.getHostSudoerEntries(host);
             if (hses.find((hse)=> {
                     if (hse.sudoEntry.containsGroup(group)) {
                         return hse;
@@ -171,6 +173,8 @@ class SudoManager extends Manager {
     getHostSudoerEntries(host) {
         if (host.data.config) {
             return host.data.config.get("sudoerEntries");
+        }else{
+            return [];
         }
     }
 
@@ -178,7 +182,7 @@ class SudoManager extends Manager {
         return [UserManager, GroupManager];
     }
 
-    loadConsoleUIForSession(context, appUser) {
+    loadConsoleUIForSession(context, session) {
         //no op
     }
 

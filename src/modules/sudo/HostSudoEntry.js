@@ -18,7 +18,7 @@ class HostSudoEntry extends HostComponent {
             logger.logAndThrow("The data parameter for SudoEntry must have a commandSpec array property.");
         }
 
-         let entry = {};
+        let entry = {};
         if (data instanceof SudoEntry) {
             entry = data;
         } else {
@@ -42,6 +42,7 @@ class HostSudoEntry extends HostComponent {
             }
         });
         this.data = entry;
+        super.load(data);
     }
 
 
@@ -52,15 +53,16 @@ class HostSudoEntry extends HostComponent {
     get userList() {
         return this.data.userList;
     }
-    get users(){
+
+    get users() {
         return this.data.userList.users;
     }
 
-    get groups(){
+    get groups() {
         return this.data.userList.groups;
     }
 
-    get commandSpec(){
+    get commandSpec() {
         return this.data.commandSpec;
     }
 
@@ -68,8 +70,10 @@ class HostSudoEntry extends HostComponent {
         this.data = {};
     }
 
-    export(){
-        this.data.export();
+    export() {
+        let obj = this.data.export();
+        super.export(obj);
+        return obj;
     }
 }
 

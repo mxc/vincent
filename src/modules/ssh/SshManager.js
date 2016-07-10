@@ -5,6 +5,7 @@ import logger from '../../Logger';
 import Provider from '../../Provider';
 import Manager from '../base/Manager';
 import HostSsh from '../ssh/HostSsh'
+import Host from '../host/Host';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import UserManager from '../user/UserManager';
 import GroupManager from '../group/GroupManager';
@@ -17,7 +18,6 @@ class SshManager extends Manager {
             logger.logAndThrow("Parameter data provider must be of type provider");
         }
         super();
-        this._state = "not loaded";
         this.data = {};
         this.data.configs = {};
         this.provider = provider;
@@ -81,12 +81,16 @@ class SshManager extends Manager {
                 this.addSsh(host, hostDef.config.ssh);
             } catch (e) {
                 logger.logAndAddToErrors(`Error adding ssh to host - ${e.message}`,
-                    hosts.errors[host.name]);
+                    hosts.errors[host.name].get(host.config));
             }
         }
     }
 
     addSsh(host, config) {
+
+        if(!host instanceof Host){
+            logger.logAndThrow(`Parameter host must be an instance of Host.`);
+        }
 
         if (!host.data.config){
             host.data.config = new HostComponentContainer("config");
@@ -113,7 +117,7 @@ class SshManager extends Manager {
         return [UserManager,GroupManager];
     }
 
-    loadConsoleUIForSession(context,appUser) {
+    loadConsoleUIForSession(context,session) {
         //no op
     }
 

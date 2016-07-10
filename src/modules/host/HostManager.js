@@ -9,6 +9,7 @@ import fs from 'fs';
 import ConsoleHostManager from './ui/console/HostManager';
 import path from "path";
 import ModuleLoader from '../../utilities/ModuleLoader';
+import _ from 'lodash';
 
 
 class HostManager extends Manager {
@@ -19,8 +20,8 @@ class HostManager extends Manager {
         }
         super();
         this.provider = provider;
-        this.validHosts = [];
-        this.errors = { manager:[] };
+        this.validHosts =[];
+        this.errors = {manager: []};
     }
 
     exportToEngine(engine, host, struct) {
@@ -30,7 +31,7 @@ class HostManager extends Manager {
     addHost(host) {
         if (host instanceof Host) {
             if (this.validHosts.find((cHost)=> {
-                    if (cHost.name === host.name) {
+                    if (cHost.name === host.name && cHost.configGroup===host.configGroup) {
                         return cHost;
                     }
                 })) {
@@ -45,45 +46,57 @@ class HostManager extends Manager {
     }
 
 
-    findValidHost(vhost) {
+    findValidHost(vhost,configGroup) {
         //accommodate Host object or hostname string
         if (typeof vhost === 'string') {
             var hostname = vhost;
-        } else if (vhost.name) {
+        } else if (vhost instanceof Host) {
             hostname = vhost.name;
+            configGroup = vhost.configGroup;
         } else {
             logger.logAndThrow("The host parameter must be of type Host or a host name and must be in validHosts");
         }
 
-        return this.validHosts.find((host)=> {
-            if (host.name === hostname) {
-                return host;
-            }
-        });
+        if (configGroup){
+            return this.validHosts.find((host)=>{
+                if(host.name===hostname && host.configGroup===configGroup){
+                    return host;
+                }
+            });
+        } else {
+            return this.validHosts.filter((host)=> {
+                return host.name === hostname;
+            });
+        }
     }
 
     loadFromFile() {
+        let configGroups = this.provider.getConfigGroups();
+        if (!configGroups) {
+            return;
+        }
         let result = true;
-        this.errors.length = 0;
-        let dbDir = this.provider.getDBDir();
-        //hosts configuration
-        let loc = "hosts";
-        let hostConfigs = fs.readdirSync(`${dbDir}/${loc}`);
-        hostConfigs.forEach((config)=> {
-            try {
-                let json = this.provider.loadFromFile(`${loc}/${config}`);
-                if (json) {
-                    //is this a file with many hosts or a single host?
-                    if (Array.isArray(json)) {
-                        this.loadHosts(json);
-                    } else {
-                        this.loadFromJson(json);
+        configGroups.forEach((configGroup)=> {
+            this.errors.length = 0;
+            let dbDir = this.provider.getDBDir();
+            //hosts configuration
+            let hostConfigs = fs.readdirSync(`${dbDir}/configs/${configGroup}`);
+            hostConfigs.forEach((host)=> {
+                try {
+                    let json = this.provider.loadFromFile(`configs/${configGroup}/${host}`);
+                    if (json) {
+                        //is this a file with many hosts or a single host?
+                        if (Array.isArray(json)) {
+                            this.loadHosts(json);
+                        } else {
+                            this.loadFromJson(json);
+                        }
                     }
+                } catch (e) {
+                    logger.error(`Error loading file for ${host} in ${configGroup}. Discarding.`);
+                    result = false;
                 }
-            } catch (e) {
-                logger.error(`Error loading file for ${config}. Discarding.`);
-                result = false;
-            }
+            });
         });
         return result;
     }
@@ -133,17 +146,17 @@ class HostManager extends Manager {
             owner: hostDef.owner,
             group: hostDef.group,
             permissions: hostDef.permissions,
-            remoteAccess: hostDef.remoteAccess
+            remoteAccess: hostDef.remoteAccess,
+            configGroup: hostDef.configGroup
         };
-
 
         let host = {};
 
         //create host instance
         try {
-
             host = new Host(this.provider, hostData);
-            this.errors[host.name] = [];
+            this.errors[host.name] = new Map();
+            this.errors[host.name].set(host.configGroup,[]);
         } catch (e) {
             logger.logAndThrow(`Could not create host ${hostDef.name ? hostDef.name : ""} - ${e.message}`);
         }
@@ -154,14 +167,12 @@ class HostManager extends Manager {
                 manager.loadHost(this, host, hostDef);
             }, this.provider);
         } catch (e) {
-            logger.logAndAddToErrors(`Error processing updateHost for managers -${e.message ? e.message : e}`,
-                this.errors[host.name]);
+            logger.logAndAddToErrors(`Error processing loadHost for managers -${e.message ? e.message : e}`,
+                this.errors[host.name].get(host.configGroup));
         }
 
-
-        //host.source = hostDef;
-            this.addHost(host);
-            Array.prototype.push.apply(this.errors[host.name], host.errors);
+        this.addHost(host);
+        Array.prototype.push.apply(this.errors[host.name].get(host.configGroup), host.errors);
         return host;
     }
 
@@ -186,12 +197,20 @@ class HostManager extends Manager {
         }
     }
 
-    loadConsoleUIForSession(context, appUser) {
-        context.hostManager = new ConsoleHostManager(appUser);
+    loadConsoleUIForSession(context, session) {
+        context.hostManager = new ConsoleHostManager(session);
     }
-    
+
     static getDependencies() {
         return [];
+    }
+
+    getConfigs() {
+        return this.provider.getConfigGroups();
+    }
+
+    createConfig(config) {
+        provider.createConfigGroup(config);
     }
 
     saveAll() {
@@ -199,16 +218,17 @@ class HostManager extends Manager {
     }
 
     saveHost(host, backup = true) {
+        let config = host.configGroup;
         if (!host instanceof Host) {
             logger.logAndThrow("Host parameter must be of type host");
         }
         //check if hosts folder exists and create if not
         try {
-            fs.statSync(this.provider.getDBDir() + "/hosts");
+            fs.statSync(this.provider.getDBDir() + `/configs/${config}`);
         } catch (e) {
-            mkdirp(this.provider.getDBDir() + "/hosts");
+            mkdirp(this.provider.getDBDir() + `/configs/${config}`);
         }
-        return this.provider.saveToFile(`hosts/${host.name}.json`, host, backup);
+        return this.provider.saveToFile(`configs/${config}/${host.name}.json`, host, backup);
     }
 
 }

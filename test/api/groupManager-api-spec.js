@@ -46,6 +46,7 @@ describe("GroupManager API should", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -78,6 +79,7 @@ describe("GroupManager API should", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user4"},
@@ -169,7 +171,7 @@ describe("GroupManager API should", function () {
     });
 
     it("allow users to be removed from HostGroups",()=>{
-        let host = provider.managers.hostManager.findValidHost("www.dogz.com");
+        let host = provider.managers.hostManager.findValidHost("www.dogz.com","default");
         let hostGroups = provider.managers.groupManager.findHostGroupsWithUserForHost(host,"user3");
         expect(hostGroups.length).to.equal(2);
         provider.managers.groupManager.removeUserFromHostGroups(host,"user3")
@@ -178,7 +180,7 @@ describe("GroupManager API should", function () {
     });
 
     it("mark all hostgroups as absent when group is marked absent",()=>{
-        let host = provider.managers.hostManager.findValidHost("www.dogz.com");
+        let host = provider.managers.hostManager.findValidHost("www.dogz.com","default");
         let group = provider.managers.groupManager.findValidGroup("group2");
         let hostGroups = provider.managers.groupManager.findAllHostGroupsForGroup("group2");
         expect(hostGroups[0].state).to.equal("present");

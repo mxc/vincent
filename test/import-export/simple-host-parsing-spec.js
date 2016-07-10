@@ -7,6 +7,7 @@ import {expect} from 'chai';
 import Docker from './../support/Docker';
 import AppUser from '../../src/ui/AppUser';
 
+
 describe("validating host configuration", function () {
 
     var validUsers = [
@@ -40,6 +41,7 @@ describe("validating host configuration", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"},
@@ -79,6 +81,7 @@ describe("validating host configuration", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"}
@@ -95,6 +98,7 @@ describe("validating host configuration", function () {
             name: "missing.owner.com",
             group: "sysadmin",
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"}
@@ -111,6 +115,7 @@ describe("validating host configuration", function () {
             name: "missing.group.com",
             owner: "einstein",
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"}
@@ -127,6 +132,7 @@ describe("validating host configuration", function () {
             name: "missing.permissions.com",
             owner: "einstein",
             group: "sysadmin",
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"}
@@ -145,6 +151,7 @@ describe("validating host configuration", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "waldo"},
@@ -182,14 +189,26 @@ describe("validating host configuration", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"},
-                    authorized_keys: [{name: "user1",state:"present"}, {name: "user3", state:"absent"}, {name: "waldo"}, {name: "user4"}]
+                    authorized_keys: [
+                        {name: "user1", state: "present"},
+                        {name: "user3", state: "absent"},
+                        {name: "waldo"},
+                        {name: "user4"}
+                    ],
+                    become: true,
+                    becomeUser: "newton"
                 },
                 {
                     user: {name: "user2"},
-                    authorized_keys: [{name: "user1"}, {name: "user4"}]
+                    authorized_keys: [
+                        {name: "user1"},
+                        {name: "user4"}
+                    ],
+                    become: true
                 }
             ],
             groups: [
@@ -197,23 +216,33 @@ describe("validating host configuration", function () {
                     group: {name: "group10"},
                     members: [
                         "user2"
-                    ]
+                    ],
+                    become: true,
+                    becomeUser: "newton"
                 },
                 {
                     group: {name: "group3"},
                     members: [
                         "waldo",
                         "user2"
-                    ]
+                    ],
+                    become: true
+                },
+                {
+                    group: {name: "group2"},
+                    members: [
+                        "user2"
+                    ],
+                    become: true,
+                    becomeUser: "newton"
                 }
-
             ]
         }
     ];
 
     let provider = new Provider();
     //inject mocks
-    let appUser = new AppUser("einstein",["sysadmin"]);
+    let appUser = new AppUser("einstein", ["sysadmin"]);
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
@@ -234,40 +263,62 @@ describe("validating host configuration", function () {
 
 
     it("should detect hosts without a permissions property", function () {
-        expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host missing.permissions.com - Permissions cannot be undefined.")).not.to.equal(-1);
+        let host = provider.managers.hostManager.findValidHost("missing.permissions.com", "default");
+        expect(host.permissions).to.equal(parseInt("660", 8));
     });
 
 
     it("should detect undefined users", function () {
-        expect(provider.managers.hostManager.errors["www.test.com"].indexOf("Error adding host user - The user waldo does not exist " +
+        expect(provider.managers.hostManager.errors["www.test.com"].get("default").indexOf("Error adding host user - The user waldo does not exist " +
             "in valid users.")).not.to.equal(-1);
     });
 
     it("should detect group members that are undefined for host", function () {
-        expect(provider.managers.hostManager.errors["www.test.com"].indexOf("There was an error adding members to the " +
+        expect(provider.managers.hostManager.errors["www.test.com"].get("default").indexOf("There was an error adding members to the " +
             "group group2. Cannot add member to group. Parameter user with name user2 is not a valid user or user " +
             "is absent.")).not.to.equal(-1);
     });
 
     it("should detect undefined groups", function () {
-        expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("Error adding host group - The group group10 does " +
+        expect(provider.managers.hostManager.errors["www.abc.co.za"].get("default").indexOf("Error adding host group - The group group10 does " +
             "not exist in valid groups.")).not.to.equal(-1);
     });
 
     it("should detect undefined user in users authorized_keys list", function () {
-        expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("User with name waldo cannot be added as authorized " +
+        expect(provider.managers.hostManager.errors["www.abc.co.za"].get("default").indexOf("User with name waldo cannot be added as authorized " +
             "user to user1 as the user is invalid.")).not.to.equal(-1);
     });
 
     it("should detect defined user with missing key in user's authorized_keys list", function () {
-        expect(provider.managers.hostManager.errors["www.abc.co.za"].indexOf("There was an error adding an authorised key to the " +
+        expect(provider.managers.hostManager.errors["www.abc.co.za"].get("default").indexOf("There was an error adding an authorised key to the " +
             "user user1. The user user4 is not in validUsers or does not have a " +
             "public key defined.")).not.to.equal(-1);
     });
 
     it("should detect a UserAccount which has itself in it's authorized_keys list", function () {
-        expect(provider.managers.hostManager.errors["www.example.com"].indexOf("UserAccount user1 cannot be added to itself as an authorized user.")).not.to.equal(-1);
+        expect(provider.managers.hostManager.errors["www.example.com"].get("default").indexOf("UserAccount user1 cannot be added to itself as an authorized user.")).not.to.equal(-1);
     });
+
+    it("should load become and becomeUser settings correctly for user", ()=> {
+        let host = provider.managers.hostManager.findValidHost("www.abc.co.za", "default");
+        let ua = provider.managers.userManager.findUserAccountForHost(host, "user1");
+        expect(ua.become).to.equal.true;
+        expect(ua.becomeUser).to.equal("newton");
+        ua = provider.managers.userManager.findUserAccountForHost(host, "user2");
+        expect(ua.become).to.equal.true;
+        expect(ua.becomeUser).to.be.undefined;
+    });
+
+    it("should load become and becomeUser settings correctly for group", ()=> {
+        let host = provider.managers.hostManager.findValidHost("www.abc.co.za", "default");
+        let hg = provider.managers.groupManager.findHostGroup(host, "group2");
+        expect(hg.become).to.equal.true;
+        expect(hg.becomeUser).to.equal("newton");
+        hg = provider.managers.groupManager.findHostGroup(host, "group3");
+        expect(hg.become).to.equal.true;
+        expect(hg.becomeUser).to.be.undefined;
+    });
+
 
     it("should return an array of valid hosts", function () {
         var validHosts = [
@@ -276,6 +327,7 @@ describe("validating host configuration", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup: "default",
                 users: [
                     {
                         user: {name: "user1", state: "present"}
@@ -304,10 +356,26 @@ describe("validating host configuration", function () {
                 ]
             },
             {
+                "name": "missing.permissions.com",
+                "owner": "einstein",
+                "group": "sysadmin",
+                "permissions": 660,
+                "configGroup": "default",
+                "users": [
+                    {
+                        "user": {
+                            "name": "user1",
+                            "state": "present"
+                        }
+                    }
+                ]
+            },
+            {
                 name: "www.test.com",
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup: "default",
                 users: [
                     {
                         user: {name: "user2", state: "absent"}
@@ -333,20 +401,28 @@ describe("validating host configuration", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup: "default",
                 users: [
                     {
                         user: {name: "user1", state: "present"},
-                        authorized_keys: [{name: "user3", state: "absent"}]
+                        authorized_keys: [{name: "user3", state: "absent"}],
+                        become: true,
+                        becomeUser: "newton"
                     },
                     {
-                        user: {name: "user2", state: "absent"}
+                        user: {name: "user2", state: "absent"},
+                        become: true
                     }
                 ],
                 groups: [
                     {
-                        group: {name: "group3", state: "present"}
+                        group: {name: "group3", state: "present"},
+                        become: true
+                    }, {
+                        group: {name: "group2", state: "present"},
+                        become: true,
+                        becomeUser: "newton"
                     }
-
                 ]
             }
         ];
@@ -361,17 +437,17 @@ describe("validating host configuration", function () {
         let host = {};
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;
-            host = new Host(provider, ipaddr,'einstein','sysadmin',770);
+            host = new Host(provider, ipaddr, 'einstein', 'sysadmin', 770, "default");
             provider.managers.hostManager.addHost(host);
             let data = {user: provider.managers.userManager.validUsers[0]};
             let userAccount = new UserAccount(provider, data);
             provider.managers.userManager.addUserAccountToHost(host, userAccount);
-            gen.loadEngineDefinition(host,appUser);
-            return ipaddr;
-        }).then(ipaddr=> {
-            return gen.export(ipaddr,appUser);
+            gen.loadEngineDefinition(host, appUser);
+            return host;
+        }).then(host=> {
+            return gen.export(host, appUser);
         }).then((result)=> {
-            return gen.runPlaybook(host,false,null, 'vincent', 'pass');
+            return gen.runPlaybook(host, false, null, 'vincent', 'pass');
         }).then(result=> {
             expect(result.includes('ok=2    changed=1')).to.be.true;
         }).then(result => {

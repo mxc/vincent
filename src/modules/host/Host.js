@@ -12,7 +12,7 @@ import HostComponentContainer from '../base/HostComponentContainer';
 
 class Host extends Base {
 
-    constructor(provider, data, owner, group, permissions) {
+    constructor(provider, data, owner, group, permissions,configGroup) {
         super();
         this.errors = [];
         if (!provider || !(provider instanceof Provider)) {
@@ -30,10 +30,13 @@ class Host extends Base {
             this.data = {
                 name: data
             };
-
+            //if(!owner  || !group){
+            //    logger.logAndThrow(`${data} requires a valid owner and group.`);
+            //}
             this.owner = owner;
             this.group = group;
-            this.permissions = permissions;
+            this.permissions = permissions? permissions: "660";
+            this.configGroup=configGroup? configGroup:"default";
         } else if (typeof data === 'object') {
             if (!data.name) {
                 logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
@@ -42,10 +45,13 @@ class Host extends Base {
             this.data = {
                 name: data.name
             };
-
+            //if(!data.owner  || !data.group){
+            //    logger.logAndThrow(`${data.name} requires a valid owner and group.`);
+            //}
             this.owner = data.owner;
             this.group = data.group;
-            this.permissions = data.permissions;
+            this.permissions = data.permissions ? data.permissions:"660";
+            this.configGroup = data.configGroup ? data.configGroup:"default";
         }
 
         //configure remoteAccess settings for host.
@@ -53,7 +59,7 @@ class Host extends Base {
             try {
                 let remoteAccessDef = data.remoteAccess;
                 let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
-                    remoteAccessDef.authentication, remoteAccessDef.sudoAuthentication);
+                    remoteAccessDef.authentication, remoteAccessDef.becomeUser);
                 this.data.remoteAccess = remoteAccess;
             } catch (e) {
                 logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
@@ -102,6 +108,14 @@ class Host extends Base {
         this.data.permissions = dperms;
     }
 
+    get configGroup(){
+        return this.data.configGroup;
+    }
+
+    set configGroup(configGroup){
+        this.data.configGroup =  configGroup;
+    }
+
     get name() {
         return this.data.name;
     }
@@ -129,7 +143,6 @@ class Host extends Base {
         let keys = Object.keys(this.data);
         let obj = {};
         keys.forEach((prop)=> {
-
             if (prop == 'permissions') {
                 obj[prop] = parseInt(this.data.permissions.toString(8));
                 return;

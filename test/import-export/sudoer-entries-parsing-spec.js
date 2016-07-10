@@ -43,6 +43,7 @@ describe("validating host configuration with sudoer entry config", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -116,6 +117,7 @@ describe("validating host configuration with sudoer entry config", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup:"default",
                 users: [
                     {
                         user: {name: "user1", state: "present"}
@@ -172,7 +174,7 @@ describe("validating host configuration with sudoer entry config", function () {
     });
 
     it('should produce the correct line for insertion into sudoer file', function () {
-        let host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         expect(provider.managers.sudoManager.getHostSudoerEntries(host)[0].data.entry).to.deep.equal('user1,%group1 ALL = (ALL:ALL) NOPASSWD: /bin/vi');
     });
 
@@ -211,6 +213,7 @@ describe("validating host configuration with sudo entry and invalid users", func
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"}
@@ -285,6 +288,7 @@ describe("validating host configuration with sudo entry and invalid users", func
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup:"default",
                 users: [
                     {
                         user: {name: "user1", state: "present"}
@@ -409,6 +413,7 @@ describe("validating host configuration with sudo entry include", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -450,6 +455,7 @@ describe("validating host configuration with sudo entry include", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -540,6 +546,7 @@ describe("validating host configuration with sudo entry include", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
+                configGroup:"default",
                 users: [
                     {
                         user: {name: "user1", state: "present"}
@@ -609,7 +616,7 @@ describe("validating host configuration with sudo entry include", function () {
                         }]
                 }
             }];
-        let host = provider.managers.hostManager.findValidHost("www.example.com");
+        let host = provider.managers.hostManager.findValidHost("www.example.com","default");
         provider.managers.sudoManager.addHostSudoEntry(host, "dev");
         provider.managers.sudoManager.addHostSudoEntry(host, "ops");
         expect(()=> {
@@ -626,6 +633,7 @@ describe("validating host configuration with sudo entry include", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1", state: "present"}

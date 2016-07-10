@@ -37,13 +37,15 @@ class Vincent {
         };
 
         tls.createServer(options, (s)=> {
+            var state=0;
             logger.info("incoming connection");
             s.setNoDelay(true);
             s.write("Please enter your username:");
             let pCount = 0;
             let username = "";
             let password = "";
-            s.on("data", (data)=> {
+            var rconsole="";
+            let func = (data)=> {
                 let input = data;
                 switch (pCount) {
                     case 0:
@@ -86,23 +88,27 @@ class Vincent {
                             (result)=> {
                                 if (result) {
                                     logger.info(`login successful for user ${username}`);
-                                    s.write("\n\rAuthentication Successful.");
+                                    s.write("\r\nAuthentication Successful.");
                                     let groups = auth.getGroups(username);
                                     let primary = groups[0];
-                                    groups.splice(0,1);
-                                    let kpath = path.resolve(Vincent.app.provider.getDBDir(),Vincent.app.provider.config.get("keydir"));
-                                    let user = new AppUser(username,groups,primary,kpath);
-                                    let console = this.startServerConsole(s, user);
+                                    groups.splice(0, 1);
+                                    let kpath = path.resolve(Vincent.app.provider.getDBDir(), Vincent.app.provider.config.get("keydir"));
+                                    let user = new AppUser(username, groups, primary, kpath);
+                                    //remove ourselves from the listener list
+                                    s.removeAllListeners("data");
+                                    rconsole = this.startServerConsole(s, user);
                                 } else {
                                     logger.info(`login failed for user ${username}`);
-                                    s.write("\n\rAuthentication failure. Closing connection.");
+                                    s.write("\r\nAuthentication failure. Closing connection.");
                                     s.destroy();
                                 }
 
-                            }
-                        );
+                            });
+                        break;
+                    default:
                 }
-            });
+            };
+            s.on("data", func);
         }).listen(1979);
     }
 

@@ -47,6 +47,7 @@ describe("ansible engine", () => {
             owner: 'einstein',
             group: 'sysadmin',
             permissions: 770,
+            configGroup: "default",
             users: [
                 {
                     user: {name: "userA", state: "present"},
@@ -99,7 +100,7 @@ describe("ansible engine", () => {
 
 
     it("should generate a playbook for the host", (done) => {
-        let host = provider.managers.hostManager.findValidHost("www.example.com");
+        let host = provider.managers.hostManager.findValidHost("www.example.com","default");
         gen.loadEngineDefinition(host,appUser);
         gen.export(host,appUser).then((result)=> {
             expect(result).to.equal("success");
@@ -115,7 +116,7 @@ describe("ansible engine", () => {
     });
 
     it("should generate playbook files for host", function (done) {
-        let host = provider.managers.hostManager.findValidHost("www.example.com");
+        let host = provider.managers.hostManager.findValidHost("www.example.com","default");
         gen.loadEngineDefinition(host,appUser);
         gen.clean().then(result=> {
             gen.export(host,appUser).then((result)=> {

@@ -103,6 +103,16 @@ class AppUser {
         }
     }
 
+    get privateKeyPath(){
+        let tpath = data.get(this) + "/" + this.name +"/"+this.name+"_vincent";
+        try {
+            let exists = fs.statSync(tpath);
+            return tpath;
+        } catch (e) {
+            return `Private key does not exists for ${this.user}.`;
+        }
+    }
+
     get publicKey() {
         let tpath = data.get(this) + "/" + this.name +"/"+this.name+"_vincent.pub";
         try {

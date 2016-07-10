@@ -29,7 +29,7 @@ class Manager {
         throw new Error ("Method clear must be overridden in child object");
     }
 
-    loadConsoleUIForSession(context,appUser){
+    loadConsoleUIForSession(context,session){
         throw new Error ("Method loadConsoleUI must be overridden in child object");
     }
 

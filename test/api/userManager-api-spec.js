@@ -41,6 +41,7 @@ var host = {
     owner: "einstein",
     group: "sysadmin",
     permissions: 770,
+    configGroup:"default",
     users: [
         {
             user: {name: "user1"},
@@ -84,7 +85,7 @@ describe("user management should", function () {
     provider.managers.hostManager.loadFromJson(host);
 
     it("allow useraccount state to be changed to absent", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         let userAccount = provider.managers.userManager.findUserAccountForHostByUserName(host, "user1");
         expect(userAccount.state).to.equal("present");
         userAccount.state = "absent";
@@ -93,7 +94,7 @@ describe("user management should", function () {
     });
 
     it("throw an error if the useraccount state is changed to an invalid value", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         let ua = provider.managers.userManager.findUserAccountForHostByUserName(host, "user1");
         //expect(()=>{ ua.state='present'}).to.not.throw();
         //expect(()=>{ ua.state='absent'}).to.not.throw();
@@ -117,14 +118,14 @@ describe("user management should", function () {
     });
 
     it("find userAccount for host by user name", function () {
-        let host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user1").name).to.equal("user1");
     });
 
     it("prevent users who have userAccounts in validHosts with state 'present'" +
         " from being deleted from validUsers", function () {
         expect(provider.managers.userManager.findValidUserByName("user1").state).to.equal("present");
-        let host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        let host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user1").user.name).to.equal("user1");
         let func = ()=> {
             provider.managers.userManager.deleteUser("user1");
@@ -142,7 +143,7 @@ describe("user management should", function () {
 
 
     it("changing user state to 'absent' in validUsers should update all userAccounts in hosts to 'absent", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         try {
             expect(provider.managers.userManager.findValidUserByName("user1").state).to.equal("present");
             expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user1").name).to.equal("user1");
@@ -156,10 +157,10 @@ describe("user management should", function () {
     });
 
     it("allow users that have been added to any hosts to be marked 'absent' and then removed from validUsers", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         try {
             expect(provider.managers.userManager.findValidUserByName("user1").state).to.equal("present");
-            let host = provider.managers.hostManager.findValidHost("www.example.co.za");
+            let host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
             expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user1").user.name).to.equal("user1");
             provider.managers.userManager.changeUserState('user1', 'absent');
             provider.managers.userManager.deleteUser("user1");
@@ -174,7 +175,7 @@ describe("user management should", function () {
     });
 
     it("allow users to be removed from a host and remain in validUser list", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         try {
             let user = provider.managers.userManager.findValidUser("user1");
             provider.managers.userManager.removeUserFromHost(host, user);
@@ -191,7 +192,7 @@ describe("user management should", function () {
 
     it("changing a user in validUser from 'absent' to 'present' should not automatically change hosts, groupCategories " +
         "and userCategories to 'present'", function () {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         var user = provider.managers.userManager.findValidUserByName("user2");
         let ua = provider.managers.userManager.findUserAccountForHostByUserName(host, "user2");
         expect(user.state).to.equal("absent");
@@ -202,7 +203,7 @@ describe("user management should", function () {
     });
 
     it("allow a user account to be removed from a host", ()=> {
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user2")).to.not.be.empty;
         provider.managers.userManager.removeUserFromHost(host, "user2");
         expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "user2")).to.be.empty;
@@ -213,7 +214,7 @@ describe("user management should", function () {
     it("allow a user account to be added to a host by username", ()=> {
         let user = new User("userX");
         provider.managers.userManager.addValidUser(user);
-        var host = provider.managers.hostManager.findValidHost("www.example.co.za");
+        var host = provider.managers.hostManager.findValidHost("www.example.co.za","default");
         expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "userX")).to.be.empty;
         provider.managers.userManager.addUserAccountToHostByUserName(host,"userX");
         expect(provider.managers.userManager.findUserAccountForHostByUserName(host, "userX").user).to.deep.equal(user);

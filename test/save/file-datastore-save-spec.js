@@ -46,6 +46,7 @@ describe("File DB save tests", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -99,20 +100,25 @@ describe("File DB save tests", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "waldo"},
-                    authorized_keys: [{name: "user1"}]
+                    authorized_keys: [{name: "user1"}],
+                    become: true
                 },
                 {
                     user: {name: "user2", state: "present"},
-                    authorized_keys: [{name: "user1"}]
+                    authorized_keys: [{name: "user1"}],
+                    become: true
                 },
                 {
-                    user: {name: "user3"}
+                    user: {name: "user3"},
+                    become: true
                 },
                 {
-                    user: {name: "user4", state: "absent"}
+                    user: {name: "user4", state: "absent"},
+                    become: true
                 }
             ],
             groups: [
@@ -120,7 +126,9 @@ describe("File DB save tests", function () {
                     group: {name: "group2"},
                     members: [
                         "user2"
-                    ]
+                    ],
+                    become: true,
+                    becomeUser:"newton"
                 },
                 {
                     group: {name: "group3"},
@@ -136,6 +144,7 @@ describe("File DB save tests", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            configGroup:"default",
             users: [
                 {
                     user: {name: "user1"},
@@ -284,10 +293,17 @@ describe("File DB save tests", function () {
     });
 
     it('should save valid hosts', ()=> {
-        let host = provider.managers.hostManager.findValidHost("www.abc.co.za");
+        let host = provider.managers.hostManager.findValidHost("www.abc.co.za","default");
         let backupPath = provider.managers.hostManager.saveHost(host);
         expect(backupPath).to.equal("no backup required.");
-        var result = fs.statSync(`${provider.getDBDir()}/hosts/${host.name}.json`);
+        var result = fs.statSync(`${provider.getDBDir()}/configs/default/${host.name}.json`);
+        //verify new file
+        expect(result.isFile()).to.be.true;
+
+        host = provider.managers.hostManager.findValidHost("www.test.com","default");
+        backupPath = provider.managers.hostManager.saveHost(host);
+        expect(backupPath).to.equal("no backup required.");
+        result = fs.statSync(`${provider.getDBDir()}/configs/default/${host.name}.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
     });
