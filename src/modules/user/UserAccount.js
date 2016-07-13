@@ -3,13 +3,14 @@
 import logger from './../../Logger';
 import User from './User';
 import HostComponent from './../base/HostComponent';
-import _ from 'lodash';
+
 
 /*
  Account user is a user with a list of authorized keys associate with this user account.
  */
 
 class UserAccount extends HostComponent {
+    
     constructor(provider, data) {
         super(provider);
         this.data = {authorized_keys: []};

@@ -9,11 +9,12 @@ import Host from '../../../host/ui/console/Host';
 import Group from  './Group';
 import User from '../../../user/ui/console/User';
 import AppUser from '../../../../ui/AppUser';
+import TaskObject from '../../../../ui/base/TaskObject';
 
 var data = new WeakMap();
 
 
-class HostGroup {
+class HostGroup extends TaskObject {
 
     constructor(hostGroupData, host, appUser) {
         let obj = {};
@@ -26,7 +27,7 @@ class HostGroup {
             throw new Error("HostGroup creation failed - parameter host not of type console Host or Host.");
         }
 
-        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup)[0];
+        let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
         obj.permObj = rHost;
         if (typeof hostGroupData === "string" || typeof hostGroupData.group === "string" || hostGroupData instanceof Group) {
             let groupname = '';
@@ -57,6 +58,7 @@ class HostGroup {
         }catch(e){
             //swallow error - hostgroup already part of host.
         }
+        super(obj.hostGroup);
         data.set(this, obj);
     }
 
@@ -135,6 +137,23 @@ class HostGroup {
             return false;
         }
     }
+    
+    get becomeUser(){
+        return data.get(this).hostGroup.becomeUser;
+    }
+
+    set becomeUser(becomeUser){
+        data.get(this).hostGroup.becomeUser = becomeUser;
+    }
+
+    get become(){
+        return data.get(this).hostGroup.become;
+    }
+
+    set become(become){
+        data.get(this).hostGroup.become = become;
+    }
+
 }
 
 export default HostGroup;

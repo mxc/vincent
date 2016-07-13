@@ -32,41 +32,46 @@ class Provider {
             var stat = fs.statSync(this.getDBDir());
         } catch (e) {
             logger.info(`${this.getDBDir()} does not exists. It will be created`);
-            fs.mkdirSync(this.getDBDir(),parseInt("700",8));
+            fs.mkdirSync(this.getDBDir(), parseInt("700", 8));
         }
 
         try {
             fs.statSync(`${this.getDBDir()}/configs`);
         } catch (e) {
             logger.info(`${this.getDBDir()}/configs does not exists. It will be created`);
-            fs.mkdirSync(`${this.getDBDir()}/configs`,parseInt("700",8));
+            fs.mkdirSync(`${this.getDBDir()}/configs`, parseInt("700", 8));
         }
 
         try {
             fs.statSync(`${this.getDBDir()}/archive`);
         } catch (e) {
             logger.info(`${this.getDBDir()}/archive does not exists. It will be created`);
-            fs.mkdirSync(`${this.getDBDir()}/archive`,parseInt("700",8));
+            fs.mkdirSync(`${this.getDBDir()}/archive`, parseInt("700", 8));
         }
 
         try {
             let stat = fs.statSync(`${this.getDBDir()}/keys`);
-            if(!stat.mode == parseInt("700",8)){
-                    fs.chmodSync(`${this.getDBDir()}/keys`,parseInt("700",8));
+            if (!stat.mode == parseInt("700", 8)) {
+                fs.chmodSync(`${this.getDBDir()}/keys`, parseInt("700", 8));
             }
         } catch (e) {
             logger.info(`${this.getDBDir()}/keys does not exists. It will be created`);
-            fs.mkdirSync(`${this.getDBDir()}/keys`,parseInt("700",8));
+            fs.mkdirSync(`${this.getDBDir()}/keys`, parseInt("700", 8));
         }
 
         try {
             fs.statSync(`${this.getDBDir()}/includes`);
         } catch (e) {
             logger.info(`${this.getDBDir()}/includes does not exists. It will be created`);
-            fs.mkdirSync(`${this.getDBDir()}/includes`,parseInt("700",8));
+            fs.mkdirSync(`${this.getDBDir()}/includes`, parseInt("700", 8));
         }
+    }
 
-
+    removeFile(filename){
+        let currentPath = path.resolve(this.getDBDir(), filename);
+        fs.unlink(currentPath,()=>{
+            logger.info(`Deleted ${currentPath}.`);
+        });
     }
 
     /**
@@ -116,48 +121,119 @@ class Provider {
      * Persist all data files.
      */
     saveAll() {
-
         let historyDir = this.makeArchiveDir();
-
+        let results =[];
         //move host file
         try {
-            let filename = this.dbDir + "/configs";
+            let filename = this.getDBDir() + "/configs";
             let exists = fs.statSync(filename);
             let archivePath = historyDir + "/configs";
             fs.renameSync(filename, archivePath);
+            results.push("Successfully archived configs folder.");
         } catch (e) {
-            logger.info(`No hosts folder to backup`);
+            results.push("The configs folder does not exist.");
+            logger.info(`The configs folder does not exist.`);
         }
 
         //move users file
         try {
-            let filename = this.dbDir + "/users.json";
+            let filename = this.getDBDir() + "/users.json";
             let exists = fs.statSync(filename);
             let archivePath = historyDir + "/users.json";
             fs.renameSync(filename, archivePath);
+            results.push("Successfully archived user.json file.");
         } catch (e) {
-            logger.info(`No users.json folder to backup`);
+            results.push("The file users.json does not exist.");
+            logger.info(`The file users.json does not exist.`);
         }
 
         //move groups file
         try {
-            let filename = this.dbDir + "/groups.json";
+            let filename = this.getDBDir() + "/groups.json";
             let exists = fs.statSync(filename);
             let archivePath = historyDir + "/groups.json";
             fs.renameSync(filename, archivePath);
+            results.push("Successfully archived groups.json file.");
         } catch (e) {
-            logger.info(`No groups.json folder to backup`);
+            results.push("The file groups.json does not exist.");
+            logger.info(`The file groups.json does not exist.`);
         }
 
-        this.saveUsers(false);
-        this.saveGroups(false);
-        this.provider.managers.hostManager.validHosts.forEach((host)=> {
-            this.saveHost(host, false);
+        if(this.saveToFile(`groups.json`,this.managers.groupManager, false)){
+            results.push("Successfully saved groups.json.");
+        }else{
+            results.push("Failed to save groups.json");
+        }
+        if(this.saveToFile(`users.json`,this.managers.userManager, false)){
+            results.push("Successfully saved users.json.");       
+        }else{
+            results.push("Failed to save users.json");        
+        }
+        
+        this.managers.hostManager.validHosts.forEach((host)=> {
+            if(this.saveToFile(`configs/${host.configGroup}/${host.name}.json`,host, false)){
+                results.push(`Successfully saved ${host.name} in ${host.configGroup}.`);
+            }else{
+                results.push(`Failed to save ${host.name} in ${host.configGroup}.`);
+            }
         });
+        return results;
     }
 
-    createConfigGroup(configGroup){
-        let tpath = path.join(this.getDBDir() + "/configs",configGroup);
+/*    saveGroups(backup) {
+        let currentPath = path.resolve(this.getDBDir(), "groups.json");
+        if (backup) {
+            try {
+                var stat = fs.statSync(currentPath);
+                if (stat && stat.isFile()) {
+                    var archivePath = this.makeArchiveDir();
+                    let fullArchivePath = path.resolve(archivePath, "users.json");
+                    try {
+                        fs.statSync(fullArchivePath);
+                    } catch (e) {
+                        logger.info(`${fullArchivePath} does not exist, creating path.`);
+                        fs.mkdirSync(fullArchivePath);
+                    }
+                    fs.renameSync(currentPath, fullArchivePath);
+                }
+            } catch (e) {
+                logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
+            }
+        }
+        let obj = this.managers.groupManager.export();
+        var json = JSON.stringify(obj, null, 2);
+        fs.writeFileSync(currentPath, json);
+        return archivePath;
+    }
+
+    saveUsers(backup) {
+        let currentPath = path.resolve(this.getDBDir(), "users.json");
+        if (backup) {
+            try {
+                var stat = fs.statSync(currentPath);
+                if (stat && stat.isFile()) {
+                    var archivePath = this.makeArchiveDir();
+                    let fullArchivePath = path.resolve(archivePath, "users.json");
+                    try {
+                        fs.statSync(fullArchivePath);
+                    } catch (e) {
+                        logger.info(`${fullArchivePath} does not exist, creating path.`);
+                        fs.mkdirSync(fullArchivePath);
+                    }
+                    fs.renameSync(currentPath, fullArchivePath);
+                }
+            } catch (e) {
+                logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
+            }
+        }
+        let obj = this.managers.userManager.export();
+        var json = JSON.stringify(obj, null, 2);
+        fs.writeFileSync(currentPath, json);
+        return archivePath;
+    }*/
+
+    createConfigGroup(configGroup) {
+        let tpath = path.join(this.getDBDir() + "/configs", configGroup);
         try {
             var stat = fs.statSync(tpath);
         } catch (e) {
@@ -166,9 +242,9 @@ class Provider {
         }
     }
 
-    getConfigGroups(){
-        return fs.readdirSync(this.getDBDir()  + "/configs").filter((entry)=>{
-            return fs.statSync(path.join(this.getDBDir()  + "/configs",entry)).isDirectory();
+    getConfigGroups() {
+        return fs.readdirSync(this.getDBDir() + "/configs").filter((entry)=> {
+            return fs.statSync(path.join(this.getDBDir() + "/configs", entry)).isDirectory();
         });
     }
 
@@ -178,7 +254,7 @@ class Provider {
      */
     makeArchiveDir() {
         let archive = dateFormat(new Date(), "yyyy-mm-dd-HH:MM:ss");
-        let archiveDir = path.resolve(this.getDBDir(),"archive", archive);
+        let archiveDir = path.resolve(this.getDBDir(), "archive", archive);
 
         try {
             var stat = fs.statSync(archiveDir);
@@ -187,26 +263,26 @@ class Provider {
             fs.mkdirSync(archiveDir);
         }
         /*
-        try {
-            fs.statSync(`${archiveDir}/configs`);
-        } catch (e) {
-            fs.mkdirSync(`${archiveDir}/configs`);
-            logger.info(`${archiveDir}/roles does not exists. It will be created.`);
-        }
+         try {
+         fs.statSync(`${archiveDir}/configs`);
+         } catch (e) {
+         fs.mkdirSync(`${archiveDir}/configs`);
+         logger.info(`${archiveDir}/roles does not exists. It will be created.`);
+         }
 
-        try {
-            fs.statSync(`${archiveDir}/configs/default`);
-        } catch (e) {
-            fs.mkdirSync(`${archiveDir}/configs/default`);
-            logger.info(`${archiveDir}/configs/default does not exists. It will be created.`);
-        }
+         try {
+         fs.statSync(`${archiveDir}/configs/default`);
+         } catch (e) {
+         fs.mkdirSync(`${archiveDir}/configs/default`);
+         logger.info(`${archiveDir}/configs/default does not exists. It will be created.`);
+         }
 
-        try {
-            fs.statSync(`${archiveDir}/includes`);
-        } catch (e) {
-            fs.mkdirSync(`${archiveDir}/includes`);
-            logger.info(`${archiveDir}/includes does not exists. It will be created.`);
-        }*/
+         try {
+         fs.statSync(`${archiveDir}/includes`);
+         } catch (e) {
+         fs.mkdirSync(`${archiveDir}/includes`);
+         logger.info(`${archiveDir}/includes does not exists. It will be created.`);
+         }*/
         return archiveDir;
     }
 
@@ -247,40 +323,45 @@ class Provider {
     }
 
     saveToFile(filename, manager, backup) {
-        let archivePath = "no backup required.";
-        let currentPath = path.resolve(this.getDBDir(), filename);
-        console.log(currentPath);
-        if (backup) {
-            try {
-                var stat = fs.statSync(currentPath);
-                //let archivePath = "";
-                if (stat && stat.isFile()) {
-                    archivePath =this.makeArchiveDir();
-                    let fullArchivePath = path.resolve(archivePath,filename);
-                    let comps = path.dirname(filename).split("/");
-                    let tpath = archivePath;
-                    comps.forEach((comp)=>{
-                        tpath+="/"+comp;
-                        try {
-                            fs.statSync(tpath);
-                        }catch(e){
-                            logger.info(`${tpath} does not exist, creating path.`);
-                            fs.mkdirSync(tpath);
-                        }
-                    });
-                    fs.renameSync(currentPath, fullArchivePath);
+        try {
+            let currentPath = path.resolve(this.getDBDir(), filename);
+            if (backup) {
+                try {
+                    var stat = fs.statSync(currentPath);
+                    //let archivePath = "";
+                    if (stat && stat.isFile()) {
+                        let archivePath = this.makeArchiveDir();
+                        let fullArchivePath = path.resolve(archivePath, filename);
+                        this._checkDirectoriesExists(fullArchivePath);
+                        fs.renameSync(currentPath, fullArchivePath);
+                    }
+                } catch (e) {
+                    logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
                 }
-            } catch (e) {
-                 logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
             }
+            let obj = manager.export();
+            var json = JSON.stringify(obj, null, 2);
+            this._checkDirectoriesExists(currentPath);
+            fs.writeFileSync(currentPath, json);
+            return true;
+        }catch(e){
+            return false;
         }
-        let obj = manager.export();
-        var json = JSON.stringify(obj, null, 2);
-        fs.writeFileSync(currentPath, json);
-        return archivePath;
     }
 
-
+    _checkDirectoriesExists(filename){
+        let comps = path.dirname(filename).split("/");
+        let tpath = "";
+        comps.forEach((comp)=> {
+            tpath += "/" + comp;
+            try {
+                fs.statSync(tpath);
+            } catch (e) {
+                logger.info(`${tpath} does not exist, creating path.`);
+                fs.mkdirSync(tpath);
+            }
+        });
+    }
 
     /**
      * Convenience function to return the configure datastore directory
@@ -288,19 +369,19 @@ class Provider {
      */
     getDBDir() {
         let loc = path.resolve(this.configDir, this.config.get('dbdir'));
-/*        //check if config directory exists
-        try {
-            var stat = fs.statSync(loc);
-        } catch (e) {
-            mkdirp(loc);
-        }*/
-/*        //ensure host directory exists
-        let hostloc = path.resolve(loc, "hosts");
-        try {
-            stat = fs.statSync(hostloc);
-        } catch (e) {
-            mkdirp(hostloc);
-        }*/
+        /*        //check if config directory exists
+         try {
+         var stat = fs.statSync(loc);
+         } catch (e) {
+         mkdirp(loc);
+         }*/
+        /*        //ensure host directory exists
+         let hostloc = path.resolve(loc, "hosts");
+         try {
+         stat = fs.statSync(hostloc);
+         } catch (e) {
+         mkdirp(hostloc);
+         }*/
         return loc;
     }
 
@@ -395,7 +476,7 @@ class Provider {
 
     //perms may be an 3 digit decimal or a 9 character string (rwx){3}. If a number is provided it is assumed to be
     //octal.
-    
+
     _validateAndConvertPermissions(perms) {
 
         //if we have been pased an octal as a string
@@ -523,7 +604,6 @@ class Provider {
             logger.logAndThrowSecruityPermission(appUser, permObj, "execute attribute");
         }
     }
-
 
 }
 

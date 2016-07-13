@@ -139,6 +139,8 @@ class Console extends Ui {
         });
 
         context.v.session.hasPassword=(hostname)=> {
+            console.log(this.session.passwords[hostname]);
+            console.log(this.session.passwords);
             return this.session.passwords[hostname]? true: false;
         };
 
@@ -157,7 +159,8 @@ class Console extends Ui {
 
         //save all configurations
         context.v.saveAll = () => {
-            Vincent.app.provider.saveAll();
+            let results = Vincent.app.provider.saveAll();
+            return results.join("\n\r");
         };
 
         //load the per session context objects

@@ -129,7 +129,7 @@ class HostGroup extends HostComponent {
                 }
             });
             if (!t_user) {
-                logger.logAndAddToErrors(`${user.name} is not a member of group ${this.data.name}.`, this.errors);
+                logger.logAndAddToErrors(`${user.name? user.name: user} is not a member of group ${this.data.group.name}.`, this.errors);
             }
         } else {
             logger.logAndThrow("Parameter user is not of type User or a username string.");

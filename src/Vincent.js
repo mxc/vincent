@@ -191,7 +191,6 @@ class Vincent {
         console.log("-u or --username: username for authentication");
     }
 
-
     start() {
         if (this.args.cli) {
             Vincent.app.startConsole();//todo fix me

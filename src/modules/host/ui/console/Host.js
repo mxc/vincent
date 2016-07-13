@@ -76,7 +76,7 @@ class Host extends PermissionsUIManager {
             let ra = data.get(this).permObj.remoteAccess;
             try {
                 if (!ra) {
-                    data.get(this).permObj.remoteAccess = new RemoteAccess("same", remoteAuth);
+                    data.get(this).permObj.remoteAccess = new RemoteAccess("currentUser", remoteAuth);
                 } else {
                     data.get(this).permObj.remoteAccess.authentication = remoteAuth;
                 }
@@ -102,7 +102,7 @@ class Host extends PermissionsUIManager {
             let ra = data.get(this).permObj.remoteAccess;
             try {
                 if (!ra) {
-                    data.get(this).permObj.remoteAccess = new RemoteAccess("same", "publicKey",becomeUser);
+                    data.get(this).permObj.remoteAccess = new RemoteAccess("currentUser", "publicKey",becomeUser);
                 } else {
                     data.get(this).permObj.remoteAccess.becomeUser = becomeUser;
                 }
@@ -115,6 +115,12 @@ class Host extends PermissionsUIManager {
     get name() {
         return this._readAttributeWrapper(()=> {
             return data.get(this).permObj.name;
+        });
+    }
+
+    set name(name){
+        return this._writeAttributeWrapper(()=>{
+            data.get(this).permObj.name = name;
         });
     }
 
@@ -136,11 +142,11 @@ class Host extends PermissionsUIManager {
         });
     }
 
-    //set config(config) {
-    //    this._writeAttributeWrapper(()=> {
-    //        data.get(this).permObj.config = config;
-    //    });
-    //}
+    set configGroup(configGroup){
+        return this._writeAttributeWrapper(()=>{
+           data.get(this).permObj.configGroup = configGroup;
+        });
+    }
 
     get group() {
         return this._readAttributeWrapper(()=> {
@@ -170,7 +176,11 @@ class Host extends PermissionsUIManager {
         try {
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 return {
-                    name: data.get(this).permObj.name
+                    name: data.get(this).permObj.name,
+                    configGroup: data.get(this).permObj.name,
+                    owner: data.get(this).permObj.owner,
+                    group: data.get(this).permObj.group,
+                    permissions: data.get(this).permObj.permissions.toString(8),
                 };
             });
         } catch (e) {

@@ -26,7 +26,7 @@ class HostComponent {
 
     set becomeUser(becomeUser) {
         if (!becomeUser) {
-            return;
+            this.data.becomeUser=null;
         } else if (typeof becomeUser === 'string') {
             this.data.becomeUser = becomeUser;
         }else if (becomeUser instanceof User){

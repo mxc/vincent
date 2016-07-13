@@ -17,11 +17,18 @@ class AnsibleEngine extends EngineComponent {
                 let ansibleGroup = {
                     name: "Group state check",
                     group: `name=${group.name} state=${group.state}`,
-                    become: 'yes'
                 };
                 if (group.gid) {
                     ansibleGroup.group += ` gid={$group.gid}`;
                 }
+                if(group.become){
+                    ansibleGroup.become="true";
+                    if(group.becomeUser){
+                        ansibleGroup.becomeUser= group.becomeUser;
+                    }else if(host.becomeUser){
+                        ansibleGroup.becomeUser=host.becomeUser;
+                    }
+                }                
                 tasks.push(ansibleGroup);
             });
         }

@@ -36,7 +36,7 @@ class HostManager extends Manager {
                     }
                 })) {
                 //todo Merge hosts?
-                throw new Error("Host already exists in model");
+                throw new Error(`Host ${host.name} already exists in configGroup ${host.configGroup}`);
             } else {
                 this.validHosts.push(host);
             }
@@ -224,7 +224,13 @@ class HostManager extends Manager {
         }
         //check if hosts folder exists and create if not
         try {
-            fs.statSync(this.provider.getDBDir() + `/configs/${config}`);
+            if(host.deleted.name!=undefined || host.deleted.configGroup!=undefined){
+                logger.info(`Removing deleted host file ${host.deleted.name} from configGroup ${host.deleted.configGroup}`);
+                this.provider.removeFile(`configs/${host.deleted.configGroup}/${host.deleted.name}.json`);
+                host.deleted.name=undefined;
+                host.deleted.configGroup=undefined;
+                fs.statSync(this.provider.getDBDir() + `/configs/${config}`);
+            }
         } catch (e) {
             mkdirp(this.provider.getDBDir() + `/configs/${config}`);
         }

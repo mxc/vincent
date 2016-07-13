@@ -8,13 +8,13 @@ import UserAccountElement from '../../../user/UserAccount';
 import HostElement from '../../../host/Host';
 import Host from '../../../host/ui/console/Host';
 import AppUser from '../../../../ui/AppUser';
-
+import TaskObject from '../../../../ui/base/TaskObject';
 
 var data = new WeakMap();
 
-class UserAccount {
+class UserAccount extends TaskObject {
+    
     constructor(userData, host, appUser) {
-
         let obj={};
         if (!appUser instanceof AppUser) {
             throw new Error("Parameter appUser must be of type AppUser.");
@@ -49,19 +49,26 @@ class UserAccount {
                 console.log(`The user ${userData} is not a valid user.`);
                 throw new Error(`The user ${userData} is not a valid user.`)
             }
+            Vincent.app.provider.managers.userManager.addUserAccountToHost(obj.permObj, obj.userAccount);
         } else if (userData instanceof UserAccountElement) {
             obj.userAccount = userData;
         } else{
             console.log("The data parameter must be a username string or a object with a user property of type string or User.");
             return  "UserAccount creation failed";
         }
-        Vincent.app.provider.managers.userManager.addUserAccountToHost(obj.permObj,obj.userAccount);
+        super(obj.userAccount);
         data.set(this,obj);
     }
 
     get user() {
         return this._readAttributeWrapper(()=> {
             return Object.freeze(new User(data.get(this).userAccount.user,data.get(this).appUser,data.get(this).permObj));
+        });
+    }
+
+    get state(){
+        return this._readAttributeWrapper(()=> {
+            return data.get(this).userAccount.state;
         });
     }
 
@@ -114,6 +121,7 @@ class UserAccount {
     inspect() {
         return {
             user:  data.get(this).userAccount.user.name,
+            state: data.get(this).userAccount.state,
             authorized_keys:  data.get(this).userAccount.authorized_keys
         }
     }
@@ -135,6 +143,7 @@ class UserAccount {
             return false;
         }
     }
+    
 }
 
 export default UserAccount;

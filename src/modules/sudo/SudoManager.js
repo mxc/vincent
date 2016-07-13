@@ -160,13 +160,15 @@ class SudoManager extends Manager {
         user = this.provider.managers.userManager.findValidUser(user);
         let hosts = this.findHostsWithSudoEntriesForUser(user);
         let hses = [];
-        hosts.forEach((h)=> {
-            this.getHostSudoerEntries(h).forEach((hse)=> {
-                if (hse.sudoEntry.containsUser(user)) {
-                    hses.push(hse);
-                }
+        if(hosts) {
+            hosts.forEach((h)=> {
+                this.getHostSudoerEntries(h).forEach((hse)=> {
+                    if (hse.sudoEntry.containsUser(user)) {
+                        hses.push(hse);
+                    }
+                });
             });
-        });
+        }
         return hses;
     }
 

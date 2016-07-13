@@ -12,46 +12,42 @@ import HostComponentContainer from '../base/HostComponentContainer';
 
 class Host extends Base {
 
-    constructor(provider, data, owner, group, permissions,configGroup) {
+    constructor(provider, data, owner, group, permissions, configGroup) {
         super();
         this.errors = [];
+        this.deleted={};
         if (!provider || !(provider instanceof Provider)) {
             throw new Error("Parameter provider must be provided for Host.")
         }
         this.provider = provider;
-
+        this.data={};
         //check if we were provided with a host name or a data object
         if (typeof data === 'string') {
-            var validip = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
-            var validhostname = /(\w\.)*\w/;
-            if (!validip.test(data) && !validhostname.test(data)) {
-                logger.logAndThrow(`${data} is an invalid host name`);
-            }
-            this.data = {
-                name: data
-            };
+            this.name = data;
             //if(!owner  || !group){
             //    logger.logAndThrow(`${data} requires a valid owner and group.`);
             //}
             this.owner = owner;
             this.group = group;
-            this.permissions = permissions? permissions: "660";
-            this.configGroup=configGroup? configGroup:"default";
+            this.permissions = permissions ? permissions : "660";
+            //avoid init fields problem for detecting changes in name/configGroup
+            this.data.configGroup = configGroup ? configGroup : "default";
         } else if (typeof data === 'object') {
             if (!data.name) {
                 logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
             }
-
-            this.data = {
-                name: data.name
-            };
+            this.name=data.name;
+            // this.data = {
+            //     name: data.name
+            // };
             //if(!data.owner  || !data.group){
             //    logger.logAndThrow(`${data.name} requires a valid owner and group.`);
             //}
             this.owner = data.owner;
             this.group = data.group;
-            this.permissions = data.permissions ? data.permissions:"660";
-            this.configGroup = data.configGroup ? data.configGroup:"default";
+            this.permissions = data.permissions ? data.permissions : "660";
+            //avoid init fields problem for detecting changes in name/configGroup
+            this.data.configGroup = data.configGroup ? data.configGroup : "default";
         }
 
         //configure remoteAccess settings for host.
@@ -65,6 +61,20 @@ class Host extends Base {
                 logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
                     this.errors);
             }
+        }
+    }
+
+    set name(name) {
+        if(this.data.name && !this.deleted.configGroup && !this.deleted.name){
+            this.deleted.name=this.data.name;
+            this.deleted.configGroup = this.configGroup;
+        }
+        var validip = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
+        var validhostname = /(\w\.)+\w/;
+        if (!validip.test(name) && !validhostname.test(name)) {
+            logger.logAndThrow(`${name} is an invalid host name`);
+        } else {
+            this.data.name = name;
         }
     }
 
@@ -108,12 +118,16 @@ class Host extends Base {
         this.data.permissions = dperms;
     }
 
-    get configGroup(){
+    get configGroup() {
         return this.data.configGroup;
     }
 
-    set configGroup(configGroup){
-        this.data.configGroup =  configGroup;
+    set configGroup(configGroup) {
+        if(this.data.name && !this.deleted.configGroup && !this.deleted.name){
+            this.deleted.name=this.data.name;
+            this.deleted.configGroup = this.data.configGroup;
+        }
+        this.data.configGroup = configGroup;
     }
 
     get name() {
@@ -133,6 +147,9 @@ class Host extends Base {
     }
 
     set remoteAccess(remoteAccess) {
+        if (!remoteAccess) {
+            this.data.remoteAccess = null;
+        }
         if (!remoteAccess instanceof RemoteAccess) {
             throw new Error("The parameter remoteAccessObj must be of type RemoteAccess");
         }
@@ -145,6 +162,9 @@ class Host extends Base {
         keys.forEach((prop)=> {
             if (prop == 'permissions') {
                 obj[prop] = parseInt(this.data.permissions.toString(8));
+                return;
+            }
+            if(prop=="deleted"){
                 return;
             }
             if (Array.isArray(this.data[prop]) && this.data[prop].length > 0 && this.data[prop][0] instanceof HostComponent) {
@@ -173,7 +193,7 @@ class Host extends Base {
                 obj[prop] = this.data[prop];
             }
         });
-        if (this.data.remoteAccess && this.data.remoteAccess.remoteUser == "same") {
+        if (!obj.remoteAccess) {
             delete obj["remoteAccess"];
         }
         return obj;

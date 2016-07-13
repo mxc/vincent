@@ -324,15 +324,13 @@ class GroupManager extends PermissionsManager {
         user = this.provider.managers.userManager.findValidUser(user);
         let hostGroups = [];
         let hgs = this.provider.managers.groupManager.getHostGroups(host);
-        //let hgs = [];
-        //hosts.forEach((tHost)=>{
-        //    Array.prototype.push.apply(hgs,this.provider.managers.groupManager.getHostGroups(tHost));
-        //});
-        hgs.forEach((hg)=> {
-            if (hg.containsMember(user)) {
-                hostGroups.push(hg);
-            }
-        });
+        if(hgs) {
+            hgs.forEach((hg)=> {
+                if (hg.containsMember(user)) {
+                    hostGroups.push(hg);
+                }
+            });
+        }
         return hostGroups;
     };
 
@@ -384,6 +382,9 @@ class GroupManager extends PermissionsManager {
             !(group instanceof HostGroup) && typeof group!=="string")) {
             logger.logAndThrow("Parameter host must be an instance of Host and parameter hostGroup must be " +
                 "an instance of HostGroup,Group or a group name string.");
+        }
+        if(!host.data.groups){
+            return;
         }
         return host.data.groups.find((hgroup)=> {
             if (group instanceof Group) {
@@ -460,7 +461,7 @@ class GroupManager extends PermissionsManager {
         if (!HostUI.prototype.hasOwnProperty("hostGroups")) {
             let func = function () {
                 let wrapperFunc = function () {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup)[0];
+                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
                     let rhostgroups = self.provider.managers.groupManager.getHostGroups(host);
                     if(!rhostgroups){
                         return [];
@@ -493,7 +494,7 @@ class GroupManager extends PermissionsManager {
                     } else {
                         return "Parameter group must be a group name or of type Group.";
                     }
-                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup)[0];
+                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
                     let hostGroups = self.getHostGroups(host);
                     if (hostGroups) {
                         let hg = hostGroups.find((hostGroup)=> {
@@ -539,7 +540,11 @@ class GroupManager extends PermissionsManager {
         if (typeof user == 'string') {
             if (host.data.groups) {
                 host.data.groups.forEach((hg)=> {
-                    hg.removeMember(user);
+                    try {
+                        hg.removeMember(user);
+                    }catch(e){
+                        logger.info(`Error removing user - ${e.message}`);
+                    }
                 });
             }
         } else {

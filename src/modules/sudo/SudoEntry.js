@@ -108,19 +108,19 @@ class SudoEntry extends Base {
     }
 
     removeUserGroup(elm) {
-        if (elm instanceof Group) {
-            this.data.userList.groups.forEach((group, index, array)=> {
-                if (group.name == elm.name) {
-                    array.splice(index, 1);
-                }
-            });
-        } else if (elm instanceof User) {
+        if (elm instanceof Group && this.data.userList.groups) {
+                this.data.userList.groups.forEach((group, index, array)=> {
+                    if (group.name == elm.name) {
+                        array.splice(index, 1);
+                    }
+                });
+        } else if (elm instanceof User && this.data.userList.users) {
             this.data.userList.users.forEach((user, index, array)=> {
                 if (user.name == elm.name) {
                     array.splice(index, 1);
                 }
             });
-        } else {
+        } else if(!(elm instanceof Group) && !(elm instanceof User)) {
             throw new Error("Parameter elm must be of type User or Group.")
         }
     }

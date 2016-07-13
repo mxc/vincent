@@ -53,7 +53,7 @@ class RemoteAccess extends Base {
     set remoteUser(remoteUser) {
         if (!remoteUser) {
             //same means login as user executing vincent
-            this.data.remoteUser = "same";
+            this.data.remoteUser = "currentUser";
         } else if (typeof remoteUser == 'string') {
             this.data.remoteUser = remoteUser
         } else if (remoteUser instanceof User) {
@@ -62,7 +62,6 @@ class RemoteAccess extends Base {
             logger.logAndThrow("Remote user must be a user name.");
         }
     }
-
 
     set authentication(authentication) {
         if (!authentication) {
@@ -76,7 +75,7 @@ class RemoteAccess extends Base {
 
     set becomeUser(becomeUser) {
         if (!becomeUser) {
-            return;
+            this.data.becomeUser=null;
         } else if (typeof becomeUser === 'string') {
             this.data.becomeUser = becomeUser;
         }else if (becomeUser instanceof User){
@@ -88,10 +87,18 @@ class RemoteAccess extends Base {
     }
 
     export() {
-        if (this.data.remoteUser == 'same') {
-            return {};
-        } else {
-            return this.data;
+        let obj = {};
+        if(this.data.becomeUser){
+            obj.becomeUser=this.data.becomeUser;
+        }
+        if(this.data.remoteUser){
+            obj.remoteUser = this.data.remoteUser;
+        }
+        if(this.data.becomeUser){
+            obj.becomeUser=this.data.becomeUser;
+        }
+        if (Object.keys(obj).length > 0){
+            return obj
         }
     }
 }

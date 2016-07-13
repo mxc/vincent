@@ -19,8 +19,15 @@ class AnsibleEngine extends EngineComponent {
                 let ansibleUser = {
                     name: "User account state check",
                     user: `name=${user.name} state=${user.state}`,
-                    become: 'yes'
                 };
+                if(user.become){
+                    ansibleUser.become="true";
+                    if(user.becomeUser){
+                        ansibleUser.becomeUser= user.becomeUser;
+                    }else if(host.becomeUser){
+                        ansibleUser.becomeUser=host.becomeUser;
+                    }
+                }
                 if (user.uid) {
                     ansibleUser.user += ` uid={$user.uid}`;
                 }
@@ -34,9 +41,16 @@ class AnsibleEngine extends EngineComponent {
                                 key: `{{ lookup('file','${authorizedUser.keyPath}') }}`,
                                 manage_dir: 'yes',
                                 state: `${authorizedUser.state}`
-                            },
-                            become: 'yes'
+                            }
                         };
+                        if(user.become){
+                            ansibleAuthorizedKey.become="true";
+                            if(user.becomeuser){
+                                ansibleAuthorizedKey.becomeUser= user.becomeUser;
+                            }else if(host.becomeUser){
+                                ansibleAuthorizedKey.becomeUser=host.becomeUser;
+                            }
+                        }
                         tasks.push(ansibleAuthorizedKey);
                     });
                 }

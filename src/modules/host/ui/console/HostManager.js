@@ -69,13 +69,13 @@ class HostManager {
                 let tmap = new Map();
                 hosts.forEach((host)=> {
                     let h = Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
-                        return new Host(host, data.get(this).appUser);
+                        return new Host(host, data.get(this).session);
                     });
                     tmap.set(h.configGroup, h);
                 });
                 return tmap;
             } else {
-                return new Host(hosts, data.get(this).appUser);
+                return new Host(hosts, data.get(this).session);
             }
         } catch (e) {
             console.log(e.message);

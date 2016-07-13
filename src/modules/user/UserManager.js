@@ -264,6 +264,7 @@ class UserManager extends PermissionsManager {
     findUserAccountForUser(host, user) {
         if (host instanceof Host && user instanceof User) {
             let userAccounts = this.getUserAccounts(host);
+            if(!userAccounts) return;
             let userAccount = userAccounts.find((userAccount)=> {
                 if (userAccount.user.name === user.name) {
                     return userAccount;
@@ -326,7 +327,8 @@ class UserManager extends PermissionsManager {
                     try {
                         let genFunc = function (obj, tappUser, permObj) {
                                 var userAccount = new UserAccountUI(obj, permObj, tappUser);
-                                return userAccount;
+
+                            return userAccount;
                         };
                         genFunc = genFunc.bind(this);
                         return this.genFuncHelper(genFunc, user);
@@ -417,7 +419,7 @@ class UserManager extends PermissionsManager {
                 return this._readAttributeWrapper(func);
             };
         }
-        context.userManager = new UserManagerUI(session.appUser);
+        context.userManager = new UserManagerUI(session);
     }
 
 
@@ -468,27 +470,28 @@ class UserManager extends PermissionsManager {
             throw new Error("Parameter user must be a username or instance of User.");
         }
         user = this.findValidUser(user);
-        let useraccounts = [];
+        let userAccounts = [];
         if (user) {
             let hosts = this.provider.managers.hostManager.validHosts.forEach((host)=> {
                 let uas = this.getUserAccounts(host);
-                uas.forEach((ua)=>{
-                     let tua =    ua.authorized_keys.find((key)=>{
-                                    if (key.user.name==user.name){
-                                            if (key.state==state){
-                                                return ua;
-                                            }
-                                    }
+                if (uas) {
+                    uas.forEach((ua)=> {
+                        let tua = ua.authorized_keys.find((key)=> {
+                            if (key.user.name == user.name) {
+                                if (key.state == state) {
+                                    return ua;
+                                }
+                            }
                         });
-                    if (tua){
-                        return userAccounts.push(tua);
-                    }
-                });
+                        if (tua) {
+                            userAccounts.push(tua);
+                        }
+                    });
+                }
             });
         }
-        return useraccounts;
+        return userAccounts;
     }
-
 
     changeUserState(user, state) {
         if (state !== 'absent' && state !== 'present') {
@@ -505,19 +508,23 @@ class UserManager extends PermissionsManager {
                 if (state == 'absent') {
                     //update all useraccounts to be absent
                     let hosts = this.findHostsWithUser(tUser);
-                    hosts.forEach((host)=>{
-                        let ua = this.findUserAccountForUser(host,tUser);
-                            ua.state="absent";
-                    });
-                    //update all authorized_keys to "absent"
-                    let uas = this.findUserAccountsWithAuthorizedKey(tUser,"present");
-                    uas.forEach((ua)=>{
-                            ua.authorized_keys.find((key)=>{
-                                if (key.user.name ==tUser.name){
-                                    key.state="absent";
-                                }
+                    if (hosts) {
+                        hosts.forEach((host)=> {
+                            let ua = this.findUserAccountForUser(host, tUser);
+                            ua.state = "absent";
                         });
-                    })
+                    }
+                    //update all authorized_keys to "absent"
+                    let uas = this.findUserAccountsWithAuthorizedKey(tUser, "present");
+                    if (uas) {
+                        uas.forEach((ua)=> {
+                            ua.authorized_keys.find((key)=> {
+                                if (key.user.name == tUser.name) {
+                                    key.state = "absent";
+                                }
+                            });
+                        })
+                    }
                 }
             } else {
                 logger.warn(`User ${user.name ? user.name : user} requested to be marked as ${state} is not a valid user.`);
@@ -526,7 +533,6 @@ class UserManager extends PermissionsManager {
             logger.warn("User parameter must be a username or instance of User.");
         }
     }
-
 
     deleteUser(user, updateHosts = true) {
         if ((typeof user == 'string') || user instanceof User) {
@@ -552,18 +558,15 @@ class UserManager extends PermissionsManager {
             if(uas.length>0){
                 throw new Error(`User ${username} has authorized_keys marked as present. First change authorized_keys state to 'absent' before the user can be deleted.`);
             }
-            //let keys = this.findUserAccountsWithAuthroizedKey(rUser,'present');
-
             //delete user entry from userAccount entries in host as the user has been previously marked as deleted.
             if (updateHosts) {
                 //remove user from hosts
-                // this.findHostsWithUser(rUser, 'absent').forEach((host)=> {
-                //     this.removeUserFromHost(host, user);
-                // });
                 let hosts = this.provider.managers.hostManager.validHosts;
-                hosts.forEach((host)=>{
-                   this.removeUserFromHost(host,rUser,true);
-                });
+                if(hosts) {
+                    hosts.forEach((host)=> {
+                        this.removeUserFromHost(host, rUser, true);
+                    });
+                }
                 //remove user from host groups
                 let hgs = this.provider.managers.groupManager.findHostGroupsWithUser(rUser);
                 if (hgs) {
@@ -580,7 +583,6 @@ class UserManager extends PermissionsManager {
                 }
 
                 //todo clean up userCategories?
-
                 // can safely remove user from valid users list as no references exists from validHosts
                 this.validUsers.find((user, index, array)=> {
                     if (user.name === username) {
@@ -589,11 +591,10 @@ class UserManager extends PermissionsManager {
                     }
                 });
             }
-
-
         } else {
             logger.warn("User parameter must be a username or instance of User.");
         }
+        return true;
     }
 
     removeUserFromHost(host, user,global=false) {
@@ -605,24 +606,26 @@ class UserManager extends PermissionsManager {
             logger.logAndThrow("Parameter host must be a Host object.");
         }
         let hostUsers = this.getUserAccounts(host);
-        hostUsers.forEach((hostUser, index, array)=> {
-            if (hostUser.user.name === user.name) {
-                array.splice(index, 1);
-                //return hostUser;
-            }
-            //if the user is being removes from validUsers then we need to clean up authorized_keys too.
-            if(global) {
-                hostUser.authorized_keys.forEach((key, kindex, karray)=> {
-                    if (key.user.name == user.name) {
-                        karray.splice(index, 1);
-                    }
-                });
-            }
-            //remove user from groups
-            this.provider.managers.groupManager.removeUserFromHostGroups(host, user);
-            //remove user from sudoer entry
-            this.provider.managers.sudoManager.removeUserGroupFromHostSudoEntries(host, user);
-        });
+        if(hostUsers) {
+            hostUsers.forEach((hostUser, index, array)=> {
+                if (hostUser.user.name === user.name) {
+                    array.splice(index, 1);
+                    //return hostUser;
+                }
+                //if the user is being removes from validUsers then we need to clean up authorized_keys too.
+                if (global) {
+                    hostUser.authorized_keys.forEach((key, kindex, karray)=> {
+                        if (key.user.name == user.name) {
+                            karray.splice(index, 1);
+                        }
+                    });
+                }
+                //remove user from groups
+                this.provider.managers.groupManager.removeUserFromHostGroups(host, user);
+                //remove user from sudoer entry
+                this.provider.managers.sudoManager.removeUserGroupFromHostSudoEntries(host, user);
+            });
+        }
     }
 
 
