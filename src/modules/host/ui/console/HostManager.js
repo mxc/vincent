@@ -48,7 +48,7 @@ class HostManager {
             var host = new Host(hostname, data.get(this).session, configGroup);
             return host;
         } else {
-            console.log("Parameter hostname must be a hostname string and the optional parameter configGroup must be a configuration group string.");
+             return "Parameter hostname must be a hostname string and the optional parameter configGroup must be a configuration group string.";
         }
     }
 
@@ -57,12 +57,13 @@ class HostManager {
     }
 
     getHost(hostname, configGroup) {
+        console.log(configGroup);
         if (typeof hostname !== "string") {
             return "Parameter hostname must be of type string.";
         }
         if (configGroup && typeof configGroup !== "string") {
             return "Parameter config is optional and must be of type string if provided.";
-        }else{
+        }else if (!configGroup){
             configGroup="default";
         }
         try {
@@ -77,10 +78,11 @@ class HostManager {
                 });
                 return tmap;
             } else {
-                return new Host(hosts, data.get(this).session);
+                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, hosts,()=>{
+                    return new Host(hosts, data.get(this).session);
+                });
             }
         } catch (e) {
-            console.log(e.message);
             return false;
         }
     }
@@ -155,7 +157,7 @@ class HostManager {
             });
         });
         return Promise.all(promises).then(()=> {
-            console.log(`Successfully generated ${counter} playbooks.`);
+            data.get(this).session.socket.write(`Successfully generated ${counter} playbooks.`);
             return counter;
         });
     }

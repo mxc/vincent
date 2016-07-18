@@ -105,7 +105,7 @@ class HostGroup extends TaskObject {
                     return `User ${member.name ? member.name : member} was not found in valid users list.`;
                 }
             } catch (e) {
-                console.log(e);
+                return e.message? e.message:e;
             }
         });
     }

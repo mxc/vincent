@@ -36,7 +36,8 @@ class Host extends PermissionsUIManager {
         obj.appUser = session.appUser;
         obj.session = session;
         data.set(this, obj);
-        this.lastResults="NA";
+        this.lastResults = "NA";
+        this.info="Not Available";
     }
 
     get remoteUser() {
@@ -113,6 +114,72 @@ class Host extends PermissionsUIManager {
         });
     }
 
+    getInfo() {
+        let remoteUsername;
+        let privateKeyPath;
+        let password;
+        let sudoPassword;
+        let authType;
+
+        let checkHostKey = Vincent.app.provider.config.get("checkhostkey");
+        if (!checkHostKey) {
+            checkHostKey = true;
+        } else if (!Object.isBoolean(checkHostKey)) {
+            checkHostKey = false;
+        }
+
+        let host = data.get(this).permObj;
+        //username, checkhostkey, privkeyPath, passwd, sudoPasswd
+        return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, host, ()=> {
+            try {
+                let out = data.get(this).session.socket;
+                //If remote access is not defined on the host then use public key
+                if (!host.remoteAccess || !host.remoteAccess.authentication || host.remoteAccess.authentication == "publicKey") {
+                    privateKeyPath = data.get(this).appUser.privateKeyPath;
+                    authType = "publicKey";
+                } else {
+                    authType = "password";
+                    password = data.get(this).session.passwords[host.name];
+                    if (!password) {
+                        password = data.get(this).session.passwords["default"];
+                    }
+                    if (!password) {
+                        return `Host ${host.name} uses password authentication but no password has been set.`
+                            + `Please set your password with ".password ${host.name}".`;
+                    }
+                }
+
+                if (!host.remoteAccess.remoteUser) {
+                    remoteUsername = appUser.username;
+                } else {
+                    remoteUsername = host.remoteAccess.remoteUser;
+                }
+
+                //determine if there is a SUDO password
+                if (host.remoteAccess.sudoAuthentication) {
+                    sudoPassword = data.get(this).session.passwords[host.name];
+                    if (!sudoPassword) {
+                        sudoPassword = data.get(this).session.passwords["default"];
+                    }
+                }
+
+               Vincent.app.provider.engine.getInfo(host, checkHostKey, privateKeyPath,
+                    remoteUsername, password, sudoPassword).then((result)=> {
+                    this.info = result;
+                    out.write(JSON.stringify(this.info));
+                },(err)=>{
+                    out.write(`Error during host information retrieval - ${err}`)
+                }).catch((e)=> {
+                    out.write(`There was an error getting info for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
+                });
+                return `${host.name} info query has been submitted. Results will be available shortly.`;
+            } catch (e) {
+                return `There was an error configuring execution of info query ${data.get(this).permObj.name} - ${e.message ? e.message : e}`;
+            }
+        });
+
+    }
+
     get name() {
         return this._readAttributeWrapper(()=> {
             return data.get(this).permObj.name;
@@ -185,8 +252,7 @@ class Host extends PermissionsUIManager {
                 };
             });
         } catch (e) {
-            console.log(e);
-            return "Permission denied"
+            return `Permission denied - ${e.message ? e.message : e}`;
         }
     }
 
@@ -210,7 +276,7 @@ class Host extends PermissionsUIManager {
                     if (result == "success") {
                         return `Successfully generated playbook for ${data.get(this).permObj.name}.`;
                     } else {
-                        return(`Failed to generate playbook for ${data.get(this).permObj.name}.`);
+                        return (`Failed to generate playbook for ${data.get(this).permObj.name}.`);
                     }
                 });
             } catch (e) {
@@ -219,14 +285,14 @@ class Host extends PermissionsUIManager {
         });
     }
 
-    applyConfig(genDepArtifact=true) {
+    applyConfig(genDepArtifact = true) {
         let remoteUsername;
         let privateKeyPath;
         let password;
         let sudoPassword;
         let authType;
 
-        if(genDepArtifact) this.generateDeploymentArtifact();
+        if (genDepArtifact) this.generateDeploymentArtifact();
 
         let checkHostKey = Vincent.app.provider.config.get("checkhostkey");
         if (!checkHostKey) {
@@ -239,7 +305,7 @@ class Host extends PermissionsUIManager {
         //username, checkhostkey, privkeyPath, passwd, sudoPasswd
         return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, host, ()=> {
             try {
-                let out =   data.get(this).session.socket;
+                let out = data.get(this).session.socket;
                 //If remote access is not defined on the host then use public key
                 if (!host.remoteAccess || !host.remoteAccess.authentication || host.remoteAccess.authentication == "publicKey") {
                     privateKeyPath = data.get(this).appUser.privateKeyPath;
@@ -251,9 +317,8 @@ class Host extends PermissionsUIManager {
                         password = data.get(this).session.passwords["default"];
                     }
                     if (!password) {
-                      out.write(`Host ${host.name} uses password authentication but no password has been set.`
-                            + `Please set your password with ".password ${host.name}".`);
-                        return;
+                        return `Host ${host.name} uses password authentication but no password has been set.`
+                            + `Please set your password with ".password ${host.name}".`;
                     }
                 }
 
@@ -271,18 +336,18 @@ class Host extends PermissionsUIManager {
                     }
                 }
 
-                data.get(this).session.socket.write(`${host.name} playbook has been submitted. Results will be available shortly.`);
                 //try running playbook
-                Vincent.app.provider.engine.runPlaybook(host,checkHostKey, privateKeyPath,
+                Vincent.app.provider.engine.runPlaybook(host, checkHostKey, privateKeyPath,
                     remoteUsername, password, sudoPassword).then((results)=> {
-                    this.lastResults=results.toString();
+                    this.lastResults = results.toString();
                     out.write(this.lastResults);
                     //out.write(`Results for ${data.get(this).permObj.name}.\n\r - ${JSON.stringify(results)}`);
                 }).catch((e)=> {
                     out.write(`There was an error running playbook for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
                 });
+                return `${host.name} playbook has been submitted. Results will be available shortly.`;
             } catch (e) {
-                out.write(`There was an error setting up playbook execution for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
+                return `There was an error setting up playbook execution for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`;
             }
         });
     }

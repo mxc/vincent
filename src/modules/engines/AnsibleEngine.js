@@ -27,7 +27,7 @@ class AnsibleEngine extends Engine {
 
     clean() {
         return new Promise((resolve, reject)=> {
-            fs.stat(this.playbookDir, (err)=> {
+            fs.stat(this.playbookDir, (err, stat)=> {
                 if (!err) {
                     fs.readdir(this.playbookDir, (err, files)=> {
                         if (err) {
@@ -37,7 +37,7 @@ class AnsibleEngine extends Engine {
                         }
                     });
                 } else {
-                    reject("no files to delete");
+                    reject("no files to delete.");
                 }
             });
         }).then(files=> {
@@ -45,8 +45,8 @@ class AnsibleEngine extends Engine {
                 let fullpath = path.resolve(this.playbookDir, file);
                 this.delete(fullpath);
             })
-        }, result=> {
-            logger.logAndThrow(result);
+        }, error=> {
+            logger.logAndThrow(error);
         });
     }
 
@@ -61,14 +61,14 @@ class AnsibleEngine extends Engine {
                     fs.unlinkSync(curPath);
                 }
             });
-            fs.rmdirSync(fullpath);
+            fs.rmdir(fullpath);
         } else {
             fs.unlinkSync(fullpath);
         }
     }
 
     export(host) {
-        if(!host instanceof Host){
+        if (!host instanceof Host) {
             logger.logAndThrow("The parameter host must be an instance of Host.");
         }
         return new Promise((resolve, reject)=> {
@@ -79,13 +79,13 @@ class AnsibleEngine extends Engine {
                         if (host) {
                             this.loadEngineDefinition(host);
                             return this.writePlaybook(host);
-                        }else{
+                        } else {
                             logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
                         }
                     }
                 }).then((results)=> {
-                    return this.writeInventory();
-                })
+                return this.writeInventory();
+            })
                 .then(file=> {
                     resolve("success");
                 }, reject).catch((e)=> {
@@ -96,7 +96,7 @@ class AnsibleEngine extends Engine {
 
     mkPlayBookDir(configGroup) {
         let func = (resolve)=> {
-            let tpath = path.resolve(this.playbookDir,configGroup);
+            let tpath = path.resolve(this.playbookDir, configGroup);
             fs.stat(tpath, (err)=> {
                 if (err) {
                     mkdirp(tpath, (err) => {
@@ -120,15 +120,15 @@ class AnsibleEngine extends Engine {
         let promises = [];
         for (let host in this.playbooks) {
             for (let configGroup in this.playbooks[host]) {
-                let host = this.provider.managers.hostManager.findValidHost(hostname,configGroup);
+                let host = this.provider.managers.hostManager.findValidHost(host, configGroup);
                 if (host) {
                     try {
                         promises.push(this.writePlaybook(host));
                     } catch (e) {
-                        logger.info(`Skipping playbook creation for host ${hostname} due to inadequate permissions`);
+                        logger.info(`Skipping playbook creation for host ${host} due to inadequate permissions`);
                     }
-                }else{
-                    logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
+                } else {
+                    logger.logAndThrow(`Host ${host} of ${configGroup} is not a valid host.`);
                 }
             }
         }
@@ -140,18 +140,18 @@ class AnsibleEngine extends Engine {
      Write out the yml playbook file using javascript ansible object
      */
     writePlaybook(host) {
-        if(!host instanceof Host){
+        if (!host instanceof Host) {
             logger.logAndThrow("Parameter host must be an instance of Host.");
         }
         return new Promise((resolve, reject)=> {
             host = this.provider.managers.hostManager.findValidHost(host);
-            if (!host){
+            if (!host) {
                 logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
             }
             let hostname = host.name;
             let configGroup = host.configGroup;
             try {
-                let tpath = path.resolve(this.playbookDir,host.configGroup,`${hostname}.yml`);
+                let tpath = path.resolve(this.playbookDir, host.configGroup, `${hostname}.yml`);
                 fs.writeFile(tpath, this.playbooks[hostname][configGroup].yml,
                     (err)=> {
                         if (err) {
@@ -195,6 +195,7 @@ class AnsibleEngine extends Engine {
                     resolve(filename);
                 });
             } catch (e) {
+                console.log(e);
                 logger.logAndAddToErrors(e.message, this.errors);
                 throw e;
             }
@@ -225,12 +226,11 @@ class AnsibleEngine extends Engine {
         if (!this.playbooks[host.name]) {
             this.playbooks[host.name] = {};
         }
-        if(!this.playbooks[host.name][host.configGroup]){
-            this.playbooks[host.name][host.configGroup]=[];
+        if (!this.playbooks[host.name][host.configGroup]) {
+            this.playbooks[host.name][host.configGroup] = [];
         }
 
         this.playbooks[host.name][host.configGroup].yml = yaml.safeDump(playbook); //cache the generated yml for playbook.
-        //this.playbooks[host.name].object = playbook; //cache the generated object for playbook.
         return this.playbooks[host.name][host.configGroup].yml;
     }
 
@@ -238,12 +238,13 @@ class AnsibleEngine extends Engine {
      Method to retrieve host details using ansible target properties
      */
     getInfo(host, checkhostkey, privkey, username, passwd, sudoPasswd) {
-        if (!host instanceof Host){
+        if (!host instanceof Host) {
             logger.logAndThrow("Parameter host must be an instance of Host.");
         }
-        return new Promise((resolve, reject)=> {
+        this.inventory.add(host.name);
+        return this.writeInventory().then(()=>{return new Promise((resolve, reject)=> {
                 host = this.provider.managers.hostManager.findValidHost(host);
-                if(host.length!==1){
+                if (!host) {
                     logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
                 }
                 let cmd = 'ansible';
@@ -255,23 +256,25 @@ class AnsibleEngine extends Engine {
                 let proc = child_process.spawn(cmd, args, opts);
                 proc.stdout.on('data', (data)=> {
                     if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
-                        resolve(data.toString());
+                        data = data.toString();
+                        data= data.slice(data.indexOf("{"));
+                        resolve(JSON.parse(data).ansible_facts);
                     }
                 });
                 proc.stderr.on('data', (stderr)=> {
                     //this happens when ansible can't suppress the echo to the terminal
-                    //all we do is ingore it and proceed. Not great as it leads to the
+                    //all we do is ignore it and proceed. Not great as it leads to the
                     //problem with a trailing error that needs to be ignored.
                     if (!this.checkPasswordPrompt(proc, stderr, passwd, sudoPasswd)) {
                         //hack for stderr -> empty error message generates incorrect response
                         //we ignore it
-                        if (stderr.toString().length > 1) {
-                            reject(stderr.toString());
+                        if (stderr && stderr.toString().length > 1) {
+                               if(reject) reject(stderr.toString());
                         }
                     }
                 });
-            }
-        );
+            })
+        });
     }
 
     getOpts(checkhostkey) {
@@ -332,7 +335,7 @@ class AnsibleEngine extends Engine {
      * @returns {Promise}
      */
     runPlaybook(host, checkhostkey, privkeyPath, username, passwd, sudoPasswd) {
-        if(!host instanceof Host){
+        if (!host instanceof Host) {
             logger.logAndThrow("Parameter host must be an instanceof Host.");
         }
         let cmd = 'ansible-playbook';
@@ -344,12 +347,12 @@ class AnsibleEngine extends Engine {
             let proc = child_process.spawn(cmd, args, opts);
             let results = "";
             proc.on('exit', (code)=> {
-                let msg={ host:host.name};
-                msg.log=results;
+                let msg = {host: host.name};
+                msg.log = results;
                 if (code != 0) {
-                    msg.status ="failed";
+                    msg.status = "failed";
                 } else {
-                    msg.status ="succeeded";
+                    msg.status = "succeeded";
                 }
                 this.log(msg);
                 resolve(results);

@@ -77,9 +77,9 @@ describe("ansible engine", () => {
 
             ]
         }];
-    let appUser = new AppUser("einstien",["sysadmin"]);
+    let appUser = new AppUser("einstien", ["sysadmin"]);
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-    let provider = new Provider(path.resolve(home,"vincenttest"));
+    let provider = new Provider(path.resolve(home, "vincenttest"));
     var gen = provider.engine;
     //inject mocks
     provider.managers.groupManager.validGroups = validGroups;
@@ -94,18 +94,19 @@ describe("ansible engine", () => {
             done();
         }).catch(e=> {
             console.log(e);
-            throw new Error(e);
+            expect(e.message).to.equal("no files to delete.");
+            done();
         });
     });
 
 
     it("should generate a playbook for the host", (done) => {
-        let host = provider.managers.hostManager.findValidHost("www.example.com","default");
-        gen.loadEngineDefinition(host,appUser);
-        gen.export(host,appUser).then((result)=> {
+        let host = provider.managers.hostManager.findValidHost("www.example.com", "default");
+        gen.loadEngineDefinition(host, appUser);
+        gen.export(host).then((result)=> {
             expect(result).to.equal("success");
             let playbookObj = gen.playbooks["www.example.com"];
-            expect(playbookObj.object[0].tasks.length).to.equal(6);
+            expect(playbookObj.default.yml).to.contain("- hosts: www.example.com");
             gen.clean();
             done();
         }).catch(e=> {
@@ -116,10 +117,10 @@ describe("ansible engine", () => {
     });
 
     it("should generate playbook files for host", function (done) {
-        let host = provider.managers.hostManager.findValidHost("www.example.com","default");
-        gen.loadEngineDefinition(host,appUser);
+        let host = provider.managers.hostManager.findValidHost("www.example.com", "default");
+        gen.loadEngineDefinition(host, appUser);
         gen.clean().then(result=> {
-            gen.export(host,appUser).then((result)=> {
+            gen.export(host).then((result)=> {
                 fs.readdir(gen.playbookDir, (err, files)=> {
                     expect(files.length).to.equal(2);
                     done();
@@ -136,34 +137,28 @@ describe("ansible engine", () => {
         let running = false;
         this.timeout(17000);
         docker.startDocker("vincentsshkeys").then(ipaddr=> {
-            //console.log("Not finding IP Addy");
-            //console.log(ipaddr);
             running = true;
-            return new Promise(resolve=> {
-                gen.inventory = new Set([ipaddr]);
-                gen.writeInventory();
-                resolve(ipaddr);
-            });
-        }).then(ipaddr=> {
-            provider.managers.hostManager.addHost(new Host(provider,ipaddr,"einstein","sysadmin",770));
+            let host = new Host(provider, ipaddr, "einstein", "sysadmin", 770);
+            provider.managers.hostManager.addHost(host);
             let keypath = path.resolve(provider.getRootDir(), "test/docker/sshkeys/vincent.key");
-            return gen.getInfo(ipaddr, false, keypath, "vincent")
-        }).then((result)=> {
-            return new Promise(resolve=> {
-                expect(result.includes('ansible_facts')).to.be.true;
-                resolve();
+            return gen.getInfo(host, false, keypath, "vincent").then((result)=> {
+                expect(result.ansible_system).to.equal("yes");
             });
         }).then(result => {
             return docker.stopDocker();
         }).then(result=> {
             gen.clean();
-            provider.managers.hostManager.validHosts=[];
+            provider.managers.hostManager.validHosts = [];
             done();
         }).catch(e=> {
             if (running) {
+                provider.managers.hostManager.validHosts = [];
                 docker.stopDocker().then(console.log(e));
+                done();
             } else {
                 console.log(e);
+                provider.managers.hostManager.validHosts = [];
+                done();
             }
         });
     });
@@ -174,24 +169,16 @@ describe("ansible engine", () => {
         this.timeout(25000);
         docker.startDocker("vincentsshpasswd").then(ipaddr=> {
             running = true;
-            return new Promise(resolve=> {
-                gen.inventory = new Set([ipaddr]);
-                gen.writeInventory();
-                resolve(ipaddr);
-            });
-        }).then(ipaddr=> {
-                provider.managers.hostManager.addHost(new Host(provider,ipaddr,"einstein","sysadmin",770));
-            return gen.getInfo(ipaddr, false, undefined, "vincent", "pass", "pass");
+            let host = new Host(provider, ipaddr, "einstein", "sysadmin", 770);
+            provider.managers.hostManager.addHost(host);
+            return gen.getInfo(host, false, undefined, "vincent", "pass", "pass");
         }).then((result)=> {
-            return new Promise(resolve=> {
-                expect(result.includes('ansible_facts')).to.be.true;
-                resolve();
-            });
+            expect(result.includes('ansible_facts')).to.be.true;
         }).then(result => {
             return docker.stopDocker();
         }).then(result=> {
             gen.clean();
-            provider.managers.hostManager.validHosts=[];
+            provider.managers.hostManager.validHosts = [];
             done();
         }).catch(e=> {
             if (running) {
@@ -199,6 +186,7 @@ describe("ansible engine", () => {
             } else {
                 console.log(e);
             }
+            done();
         });
     });
 });
