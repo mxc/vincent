@@ -5,7 +5,7 @@
 import Vincent from '../../../../Vincent';
 import UserElement from '../../User';
 import UserManager from './UserManager';
-import logger from '../../../../Logger';
+import {logger} from '../../../../Logger';
 import AppUser from '../../../../ui/AppUser';
 import PermissionHelper from '../../../../ui/base/PermissionHelper';
 
@@ -89,7 +89,7 @@ class User extends PermissionHelper {
             data.get(this).user.setKey(Vincent.app.provider,key);
         });
     }
-
+    
     toString() {
         return this._readAttributeWrapper(()=> {
             return `{ name: ${this.name},uid:${this.uid ? this.uid : '-'},state:${this.state} }`;
@@ -102,7 +102,8 @@ class User extends PermissionHelper {
                 return {
                     name: this.name,
                     uid: this.uid ? this.uid : "-",
-                    state: this.state
+                    state: this.state,
+                    publicKey: this.publicKey? "yes":"no"
                 };
             });
         }catch(e) {

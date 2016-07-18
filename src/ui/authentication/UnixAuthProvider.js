@@ -4,7 +4,7 @@
 import AuthenticationProvider from './AuthenticationProvider';
 import pam from 'authenticate-pam';
 import child_process from 'child_process';
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 
 class UnixAuthProvider extends AuthenticationProvider {
 

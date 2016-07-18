@@ -5,7 +5,7 @@
 import Provider from './../../Provider';
 import Host from '../host/Host';
 import User from '../user/User';
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 
 class HostComponent {
 

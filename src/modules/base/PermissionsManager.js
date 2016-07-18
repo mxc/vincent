@@ -3,7 +3,7 @@
  */
 
 import Manager from './Manager';
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import User from '../user/User';
 
 

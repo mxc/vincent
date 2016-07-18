@@ -50,11 +50,10 @@ describe("File DB loader tests", function () {
     });
 
 
-// Refactor this code as methods are moved out of loader!
     it('should load hosts', ()=> {
-            ModuleLoader.managerOrderedIterator((managerClass)=> {
+            provider.loader.callFunctionInTopDownOrder((managerClass)=> {
                 provider.getManagerFromClassName(managerClass).loadFromFile();
-            }, provider);
+            });
         expect(provider.managers.hostManager.validHosts.length).to.equal(3);
     });
 });

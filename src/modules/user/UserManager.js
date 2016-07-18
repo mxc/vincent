@@ -8,7 +8,7 @@ import UserManagerUI from './ui/console/UserManager';
 import UserAccount from './UserAccount';
 import UserCategories from './UserCategories';
 import Provider from './../../Provider';
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 import PermissionsManager from '../base/PermissionsManager';
 import ModuleLoader from '../../utilities/ModuleLoader';
 import Vincent from '../../Vincent';
@@ -25,7 +25,7 @@ class UserManager extends PermissionsManager {
         this.userCategories = new UserCategories(provider);
         this.validUsers = [];
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('user', provider);
+        this.engines = provider.loader.loadEngines('user', provider);
     }
 
     exportToEngine(engine, host, struct) {
@@ -462,8 +462,8 @@ class UserManager extends PermissionsManager {
         }
     }
 
-    findUserAccountsWithAuthorizedKey(user,state){
-        if (state !== 'present' && state !== 'absent' && state !== undefined) {
+    findUserAccountsWithAuthorizedKey(user,state="all"){
+        if (state !== 'present' && state !== 'absent' && state !== "all") {
             throw new Error(`Parameter state must either be 'present','absent' or undefined not ${state}`);
         }
         if (typeof user !== "string" && !(user instanceof User)) {
@@ -478,7 +478,9 @@ class UserManager extends PermissionsManager {
                     uas.forEach((ua)=> {
                         let tua = ua.authorized_keys.find((key)=> {
                             if (key.user.name == user.name) {
-                                if (key.state == state) {
+                                if(state=="all"){
+                                    return ua;
+                                }else if (key.state == state) {
                                     return ua;
                                 }
                             }
@@ -491,6 +493,14 @@ class UserManager extends PermissionsManager {
             });
         }
         return userAccounts;
+    }
+
+    entityStateChange(ent){
+        //noop
+    }
+
+    deleteEntity(ent){
+        //noop
     }
 
     changeUserState(user, state) {
@@ -519,13 +529,16 @@ class UserManager extends PermissionsManager {
                     if (uas) {
                         uas.forEach((ua)=> {
                             ua.authorized_keys.find((key)=> {
-                                if (key.user.name == tUser.name) {
+                                if (key.name == tUser.name) {
                                     key.state = "absent";
                                 }
                             });
                         })
                     }
                 }
+                this.provider.loader.callFunctionInTopDownOrder((manager)=>{
+                    this.provider.getManagerFromClassName(manager).entityStateChange(user);
+                });
             } else {
                 logger.warn(`User ${user.name ? user.name : user} requested to be marked as ${state} is not a valid user.`);
             }
@@ -560,6 +573,7 @@ class UserManager extends PermissionsManager {
             }
             //delete user entry from userAccount entries in host as the user has been previously marked as deleted.
             if (updateHosts) {
+
                 //remove user from hosts
                 let hosts = this.provider.managers.hostManager.validHosts;
                 if(hosts) {
@@ -567,20 +581,10 @@ class UserManager extends PermissionsManager {
                         this.removeUserFromHost(host, rUser, true);
                     });
                 }
-                //remove user from host groups
-                let hgs = this.provider.managers.groupManager.findHostGroupsWithUser(rUser);
-                if (hgs) {
-                    hgs.forEach((hg)=> {
-                        hg.removeMember(rUser);
-                    });
-                }
-                //remove user from sudoentries
-                let hses = this.provider.managers.sudoManager.findHostSudoEntriesForUser(user);
-                if (hses) {
-                    hses.forEach((hse)=> {
-                        hse.removeUserGroup(rUser);
-                    });
-                }
+                
+                this.provider.loader.callFunctionInBottomUpOrder((manager)=>{
+                    this.provider.getManagerFromClassName(manager).deleteEntity(rUser);
+                });
 
                 //todo clean up userCategories?
                 // can safely remove user from valid users list as no references exists from validHosts
@@ -615,7 +619,7 @@ class UserManager extends PermissionsManager {
                 //if the user is being removes from validUsers then we need to clean up authorized_keys too.
                 if (global) {
                     hostUser.authorized_keys.forEach((key, kindex, karray)=> {
-                        if (key.user.name == user.name) {
+                        if (key.name == user.name) {
                             karray.splice(index, 1);
                         }
                     });
@@ -627,7 +631,6 @@ class UserManager extends PermissionsManager {
             });
         }
     }
-
 
 }
 

@@ -2,7 +2,7 @@
 
 import RemoteAccess from './RemoteAccess';
 import Provider from '../../Provider';
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import Base from '../../modules/base/Base';
 import User from '../user/User';
 import AppUser from '../../ui/AppUser';

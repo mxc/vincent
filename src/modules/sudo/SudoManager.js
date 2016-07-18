@@ -2,7 +2,7 @@
  * Created by mark on 2016/02/19.
  */
 
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import Provider from '../../Provider';
 import Manager from '../base/Manager';
 import ModuleLoader from '../../utilities/ModuleLoader';
@@ -25,7 +25,7 @@ class SudoManager extends Manager {
         this.data = {};
         this.data.configs = {};
         this.provider = provider;
-        this.engines = ModuleLoader.loadEngines('sudo', this.provider);
+        this.engines = provider.loader.loadEngines('sudo', this.provider);
     }
 
 
@@ -188,8 +188,20 @@ class SudoManager extends Manager {
         //no op
     }
 
-    loadConsoleUI() {
+    entityStateChange(ent){
+        //noop
+    }
 
+    deleteEntity(ent){
+        if(ent instanceof User){
+            //remove user from sudoentries
+            let hses = this.findHostSudoEntriesForUser(ent);
+            if (hses) {
+                hses.forEach((hse)=> {
+                    hse.removeUserGroup(rUser);
+                });
+            }
+        }
     }
 }
 

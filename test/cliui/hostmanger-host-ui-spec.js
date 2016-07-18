@@ -167,7 +167,7 @@ describe("Host UI should", ()=> {
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner
             host.owner = "einstein";
-            expect(()=>{host.generatePlaybook()}).to.throw("User newton does not have the required permissions for dogzrule.co.za for the action execute attribute.");
+            expect(()=>{host.generateDeploymentArtifact()}).to.throw("User newton does not have the required permissions for dogzrule.co.za for the action execute attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -185,7 +185,7 @@ describe("Host UI should", ()=> {
                     resolve('success');
                 });
             };
-            host.generatePlaybook().then((result)=>{
+            host.generateDeploymentArtifact().then((result)=>{
                 expect(result).to.equal("Successfully generated playbook for dogzrule.co.za.");
                 done();
             }).catch((e)=>{
@@ -253,7 +253,7 @@ describe("Host UI should", ()=> {
             func = ()=> {
                 host2.name = "lolcatzsuxmore.co.za";
             };
-            expect(func).to.throw("Cannot set property name of [object Object] which has only a getter");
+            expect(func).to.throw("User newton does not have the required permissions for catzsux.co.za for the action write attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -276,18 +276,16 @@ describe("Host UI should", ()=> {
         }
     });
 
-    it("prevent changes to host name", ()=> {
-        try {
-            let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-            let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
-            let host2 = hostManagerUi.addHost("catzsux.co.za");
-            let func = ()=> {
-                host2.name = "changenamenotallowed.co.za";
-            };
-            expect(func).to.throw("Cannot set property name of [object Object] which has only a getter");
-        } finally {
-            Vincent.app.provider.managers.hostManager.validHosts = [];
-        }
-    });
+    // it("changes to host name should result in old host name being recorded for deletiong and file cleanup.", ()=> {
+    //     try {
+    //         let appUser = new AppUser("newton", ["devops", "dev"], "dev");
+    //         let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
+    //         let host2 = hostManagerUi.addHost("catzsux.co.za");
+    //         host2.name = "changename.co.za";
+    //         expect(host2.deleted.name).to.equal("catzsux.co.za");
+    //     } finally {
+    //         Vincent.app.provider.managers.hostManager.validHosts = [];
+    //     }
+    // });
 
 });

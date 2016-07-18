@@ -17,9 +17,14 @@ cliui:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/cliui/*.js
 
-main:
+other:
 	clear
-	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/*.js
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/other/*.js
+
+ansible:
+	clear
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/ansible/*.js
+
 
 import-export:
 	clear
@@ -30,4 +35,4 @@ userauth-security:
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/userauth-security/*.js
 
 
-.ALL: api save cliui main import-export userauth-security
+.ALL: api save cliui main import-export userauth-security other ansible

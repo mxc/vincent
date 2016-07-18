@@ -1,11 +1,13 @@
 /**
  * Created by mark on 2016/02/13.
  */
-import {createLogger}  from 'bunyan';
+import Logger  from 'bunyan';
 
-class Logger {
+
+class VLogger {
     constructor() {
-        this.logger = createLogger({name: "vincent", level: "debug", streams: [{path: "vincent.log"}]});
+
+        this.logger = new Logger({name: "vincent", level: "debug", src: true, streams: [{path: "vincent.log"}]});
     }
 
     fatal(msg) {
@@ -49,8 +51,30 @@ class Logger {
         return msg;
     }
 
+    addStream(dest,level,type="file") {
+        let def = {
+            "type": type,
+            level: level
+        };
+        if (type == "file") {
+            def.path = dest;
+        }else{
+            def.stream=dest;    
+        }
+        this.logger.addStream(def);
+    }
+
+    setStream(dest,level,type="file"){
+        this.logger.streams = [];
+        this.addStream(dest,level,type);
+    }
+
+    getStreams(){
+        return this.logger.streams;
+    }
+
 }
 
-var logger = new Logger();
+var logger = new VLogger();
 
-export default logger;
+export {logger,VLogger};

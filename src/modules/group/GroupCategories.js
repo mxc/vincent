@@ -1,7 +1,7 @@
 /**
  * Created by mark on 2016/05/30.
  */
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import GroupManager from './GroupManager';
 import HostGroup from './HostGroup';
 import Manager from '../base/Manager';

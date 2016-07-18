@@ -1,11 +1,11 @@
 /**
  * Created by mark on 2016/02/29.
  */
-import Provider from "../src/Provider.js";
-import User from "../src/modules/user/User";
-import Group from "../src/modules/group/Group";
+import Provider from "../../src/Provider.js";
+import User from "../../src/modules/user/User";
+import Group from "../../src/modules/group/Group";
 import {expect} from 'chai';
-import AppUser from '../src/ui/AppUser';
+import AppUser from '../../src/ui/AppUser';
 
 describe("HostManager configuration without remote access definition", ()=> {
     "use strict";

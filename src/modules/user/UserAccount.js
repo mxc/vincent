@@ -1,9 +1,9 @@
 'use strict';
 
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 import User from './User';
 import HostComponent from './../base/HostComponent';
-
+import AuthorizedUser from './AuthorizedUser';
 
 /*
  Account user is a user with a list of authorized keys associate with this user account.
@@ -96,19 +96,23 @@ class UserAccount extends HostComponent {
             }
             //detect if user already in keys
             let euser = this.data.authorized_keys.find((key)=> {
-                if (key.user.name == user.name) {
+                if (key.name == user.name) {
                     key.state = state; //update state
                     return key.user;
                 }
             });
             if (!euser) {
-                let authorizedUser = {user: user};
-                if (state == "absent") {
-                    authorizedUser.state = "absent";
-                } else {
-                    authorizedUser.state = "present"
+                try {
+                    let authorizedUser = new AuthorizedUser(user);
+                    if (state == "absent") {
+                        authorizedUser.state = "absent";
+                    } else {
+                        authorizedUser.state = "present"
+                    }
+                    this.data.authorized_keys.push(authorizedUser);
+                }catch(e){
+                    logger.logAndThrow(`Error creating authorizedUser - ${e.message? e.message:e}`);
                 }
-                this.data.authorized_keys.push(authorizedUser);
             } else {
                 logger.info(`User ${user.name} is already in host users authorized keys - state updated.`);
             }
@@ -117,6 +121,24 @@ class UserAccount extends HostComponent {
         }
     }
 
+    changeAuthorizedUserState(user,state){
+        if(!user instanceof User){
+            logger.logAndThrow("Parameter user must be an instance of User.");
+        }
+        if(state!=="present" && state!=="absent"){
+            logger.logAndThrow("Parameter state must be a either 'presnet' or 'absent'.");
+        }
+
+        //detect if user already in keys
+        let euser = this.data.authorized_keys.find((key)=> {
+            if (key.name == user.name) {
+                key.state = state; //update state
+                return key.user;
+            }
+        });
+        euser.state=state;
+    }
+    
     merge(userAccount) {
         if (userAccount instanceof UserAccount) {
             if (userAccount.name !== this.name) {
@@ -164,7 +186,7 @@ class UserAccount extends HostComponent {
             if (this.data.authorized_keys && this.data.authorized_keys.length > 0) {
                 obj.authorized_keys = [];
                 this.data.authorized_keys.forEach((key)=> {
-                    obj.authorized_keys.push({name: key.user.name, state: key.state});
+                    obj.authorized_keys.push({name: key.name, state: key.state});
                 });
             }
         }

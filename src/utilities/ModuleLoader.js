@@ -12,20 +12,30 @@ import GroupAnsibleEngine from './../modules/group/engine/AnsibleEngine';
 import SshAnsibleEngine from './../modules/ssh/engine/AnsibleEngine';
 import SudoAnsibleEngine from './../modules/sudo/engine/AnsibleEngine';
 import SshManager from './../modules/ssh/SshManager';
-import logger from './../Logger';
+import {logger} from './../Logger';
+import DependencyGraph from './DependencyGraph';
+import DependencyVertex from './DependencyVertex';
+
 
 class ModuleLoader {
 
-    static init() {
-        if (!ModuleLoader.initialised) {
+    constructor(provider) {
+        this.graph = new DependencyGraph();
+        this.initialised = false;
+        this.provider = provider;
+        this.init();
+    }
+
+    init() {
+        if (!this.initialised) {
             System.paths['babel'] = 'node_modules/babel-cli/bin/babel.js';
             System.transpiler = 'babel';
-            ModuleLoader.initialised = true;
+            this.initialised = true;
         }
     }
 
     /** mocked for now **/
-    static loadEngines(dir, provider) {
+    loadEngines(dir, provider) {
         let name = dir;
         let engines = {};
         if (name === 'user') {
@@ -40,129 +50,139 @@ class ModuleLoader {
         return engines;
     }
 
+    parseModulesDirectory(modules) {
+        if(!modules) {
+            modules = [];
+            modules.push(UserManager);
+            modules.push(GroupManager);
+            modules.push(HostManager);
+            modules.push(SshManager);
+            modules.push(SudoManager);
+        }else{
+            if(!Array.isArray(modules)){
+                    logger.logAndThrow("Parameter modules should be of type array");                
+            }
+        }
+        while (modules.length > 0) {
+            this.buildDependencyGraph(modules, modules[0]);
+        }
+    }
 
     /*
      Currently node does not support es2015 module loading. All the polyfills tried fail to work with transpiling
      */
 
-    static parseDirectory(dir, match, provider) {
-
-        return new Promise(resolve => {
-            ModuleLoader.modules.push(UserManager);
-            ModuleLoader.modules.push(GroupManager);
-            ModuleLoader.modules.push(HostManager);
-            ModuleLoader.modules.push(SshManager);
-            ModuleLoader.modules.push(SudoManager);
-            ModuleLoader.managerOrderedIterator((manager)=> {
-                let name = manager.name.charAt(0).toLowerCase() + manager.name.slice(1);
-                provider.managers[name] = new manager(provider);
-            }, provider);
-            resolve();
-        });
-
-        // ModuleLoader.init();
-        // let promise = new Promise(resolve => {
-        //     let promises = [];
-        //     fs.readdir(dir, (err, files)=> {
-        //         if (!files) {
-        //             console.log(dir);
-        //             console.log("no files");
-        //             resolve();
-        //             return;
-        //         }
-        //         files.forEach(file=> {
-        //             let fullpath = path.resolve(dir, file);
-        //             let stats = fs.statSync(fullpath);
-        //             if (stats && stats.isDirectory()) {
-        //                 Array.prototype.push.apply(promises, ModuleLoader.parseDirectory(fullpath, match, dictionary));
-        //             } else if (stats && stats.isFile()) {
-        //                 if (file.endsWith(`${match}.js`)) {
-        //                     console.log("Match!");
-        //                     promises.push(new Promise(innerResolve=> {
-        //                         System.import(fullpath).then(mod => {
-        //                             console.log(fullpath);
-        //                             let key = file.substring(0, file.indexOf(match));
-        //                             console.log(key);
-        //                             dictionary[key] = new mod.default();
-        //                             innerResolve();
-        //                         }).catch(e=> {
-        //                             console.log(e);
-        //                         });
-        //                     }).catch(e=>{console.log(e)}));
-        //                 }
-        //             }
-        //         });
-        //         Promise.all(promises).then(resolve);
-        //     });
-        // });
-        // return promise;
-    }
-
-    static managerOrderedIterator(callback, provider) {
-        let loaded = {};
-        ModuleLoader.modules.forEach((managerClass)=> {
-            try {
-                ModuleLoader.callFunctionInManagerDependencyOrder(managerClass, provider, loaded, callback);
-                //call HostManager last as it will be dependent on many modules
-            } catch (e) {
-                logger.error(`Fatal error loading module manager -${e.message ? e.message : e}`);
-                throw (e);
-            }
-        });
-        try {
-            callback(HostManager);
-        } catch (e) {
-            logger.error(`Fatal error loading module manager -${e.message ? e.message : e}`);
-            throw (e);
+    buildDependencyGraph(modules, current, childVertex) {
+        if(typeof current !=="function"){
+            logger.logAndThrow("Parameter current should be a Class definition");
         }
+        try {
+
+            let index = modules.indexOf(current);
+            if(index!=-1) {
+                modules.splice(modules.indexOf(current), 1);
+            }
+
+            let vertex = this.graph.getVertex(current);
+            let found = true;
+
+            if (!vertex) {
+                vertex = new DependencyVertex(current);
+                this.graph.vertices.add(vertex);
+                found=false;
+            }
+
+            if(!found) {
+                var list = current.getDependencies();
+                list.forEach((clazz)=> {
+                    vertex.ancestors.add(this.buildDependencyGraph(modules, clazz, vertex));
+                    //remove the root elements
+                    if (this.graph.roots.has(vertex)) {
+                        this.graph.roots.delete(vertex);
+                    }
+                });
+            }
+            //check for ciruclar dependencies
+            if (childVertex) {
+                if(vertex.hasAncestor(childVertex)){
+                    logger.logAndThrow(`Circular dependency between ${vertex.name} and ${childVertex.name}`);
+                }
+                vertex.decendents.add(childVertex);
+            }
+            //add the vertex to graph root if it has no incoming elements
+            if(vertex.ancestors.size==0){
+                this.graph.roots.add(vertex);
+            }
+            return vertex;
+        } catch (e) {
+            logger.logAndThrow(`Fatal error loading module manager - ${e.message ? e.message : e}`);
+          }
     }
 
-    static callFunctionInManagerDependencyOrder(managerClass, provider, loaded, callback) {
+    callFunctionInTopDownOrder(callback, vertex, loaded) {
 
-        if (typeof managerClass != "function") {
+        if(!vertex){
+            vertex = this.graph.roots.values().next().value;
+        }
+
+        if(!loaded){
+            loaded={};
+        }
+
+        if (typeof vertex.clazz != "function") {
             logger.logAndThrow("The managerClass parameter must be a class constructor function");
         }
-        //we load HostManager last as it is dependent on every other module.
-        if (managerClass.name === 'HostManager') return;
 
         //have we already loaded this manager?
-        if (loaded[managerClass.name]) {
+        if (loaded[vertex.name]) {
             return;
         }
 
         try {
-            var list = managerClass.getDependencies();
+            callback(vertex.clazz);
+            loaded[vertex.name] = true;
         } catch (e) {
-            logger.logAndThrow(`Error loading managers and dependencies - ${e.message ? e.message : e}`);
+            logger.logAndThrow(`${vertex.name} threw an error on callback - ${e.message? e.message:e}`);
         }
 
-        let missingDependencies = false;
-        list.forEach((clazz)=> {
-            if (!provider.managers[clazz.name]) {
-                try {
-                    this.callFunctionInManagerDependencyOrder(clazz, provider, loaded, callback);
-                } catch (e) {
-                    logger.error(`${managerClass.name} has a missing dependency`)
-                    missingDependencies = true;
-                    throw (e);
-                }
-            }
+        Array.from(vertex.decendents.values()).forEach((v)=> {
+                    this.callFunctionInTopDownOrder(callback,v,loaded);
         });
 
-        if (!missingDependencies) {
-            try {
-                callback(managerClass);
-                loaded[managerClass.name] = true;
-            } catch (e) {
-                missingDependencies = true;
-                logger.logAndThrow(`Error loading manager ${managerClass.name} - ${e}`);
-            }
-        }
-        return loaded;
     }
+
+    callFunctionInBottomUpOrder(callback, vertex, loaded) {
+        if(!vertex){
+            vertex = this.graph.roots.values().next().value;
+        }
+
+        if(!loaded){
+            loaded={};
+        }
+
+        if (typeof vertex.clazz != "function") {
+            logger.logAndThrow("The managerClass parameter must be a class constructor function");
+        }
+
+        //have we already loaded this manager?
+        if (loaded[vertex.name]) {
+            return;
+        }
+
+        Array.from(vertex.decendents.values()).forEach((v)=> {
+            this.callFunctionInBottomUpOrder(callback,v,loaded);
+        });
+
+        try {
+            callback(vertex.clazz);
+            loaded[vertex.name] = true;
+        } catch (e) {
+            logger.logAndThrow(`${vertex.name} threw an error on callback - ${e.message? e.message:e}`);
+        }
+
+    }
+
 }
 
-ModuleLoader.modules = [];
-ModuleLoader.initialised = false;
 
 export default ModuleLoader;

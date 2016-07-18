@@ -3,14 +3,14 @@
 import Host from './Host';
 import RemoteAccess from './RemoteAccess';
 import Provider from '../../Provider';
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import Manager from '../base/Manager';
 import fs from 'fs';
 import ConsoleHostManager from './ui/console/HostManager';
-import path from "path";
-import ModuleLoader from '../../utilities/ModuleLoader';
-import _ from 'lodash';
 import mkdirp from 'mkdirp';
+import UserManager from '../user/UserManager';
+import GroupManager from '../group/GroupManager';
+
 
 class HostManager extends Manager {
 
@@ -162,10 +162,10 @@ class HostManager extends Manager {
         }
 
         try {
-            ModuleLoader.managerOrderedIterator((managerClass)=> {
+            this.provider.loader.callFunctionInTopDownOrder((managerClass)=> {
                 let manager = this.provider.getManagerFromClassName(managerClass);
                 manager.loadHost(this, host, hostDef);
-            }, this.provider);
+            });
         } catch (e) {
             logger.logAndAddToErrors(`Error processing loadHost for managers -${e.message ? e.message : e}`,
                 this.errors[host.name].get(host.configGroup));
@@ -202,7 +202,7 @@ class HostManager extends Manager {
     }
 
     static getDependencies() {
-        return [];
+        return [UserManager,GroupManager];
     }
 
     getConfigs() {
@@ -235,6 +235,14 @@ class HostManager extends Manager {
             mkdirp(this.provider.getDBDir() + `/configs/${config}`);
         }
         return this.provider.saveToFile(`configs/${config}/${host.name}.json`, host, backup);
+    }
+
+    entityStateChange(ent){
+        //noop
+    }
+
+    deleteEntity(ent){
+
     }
 
 }

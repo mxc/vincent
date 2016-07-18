@@ -1,7 +1,7 @@
 /**
  * Created by mark on 2016/02/19.
  */
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import Provider from '../../Provider';
 import Manager from '../base/Manager';
 import HostSsh from '../ssh/HostSsh'
@@ -22,7 +22,7 @@ class SshManager extends Manager {
         this.data.configs = {};
         this.provider = provider;
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('ssh',provider);
+        this.engines = provider.loader.loadEngines('ssh',provider);
     }
 
 
@@ -119,6 +119,14 @@ class SshManager extends Manager {
 
     loadConsoleUIForSession(context,session) {
         //no op
+    }
+
+    entityStateChange(ent){
+        //noop
+    }
+
+    deleteEntity(ent){
+        //noop
     }
 
 }

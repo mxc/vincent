@@ -7,4 +7,5 @@ vincent.log
 dist
 build
 lib
+conf-example/logs/*
 conf-example-bk

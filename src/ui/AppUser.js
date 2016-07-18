@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/27.
  */
 
-import logger from '../Logger';
+import {logger} from '../Logger';
 import fs from 'fs';
 import child_process from 'child_process';
 import mkdirp from 'mkdirp';
@@ -123,6 +123,15 @@ class AppUser {
         }
     }
 
+    get publicKeyPath(){
+        let tpath = data.get(this) + "/" + this.name +"/"+this.name+"_vincent.pub";
+        try {
+            let exists = fs.statSync(tpath);
+            return tpath;
+        } catch (e) {
+            return `Private key does not exists for ${this.user}.`;
+        }
+    }
 }
 
 export default AppUser;

@@ -2,7 +2,7 @@
  * Created by mark on 2016/04/16.
  */
 
-import logger from '../Logger';
+import {logger} from '../Logger';
 
 class Session {
 

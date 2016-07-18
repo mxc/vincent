@@ -6,7 +6,7 @@ import Engine from '../base/Engine';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import Host from '../host/Host.js';
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import child_process from 'child_process';
 import Manager from '../base/Manager';
 import HostManager from '../host/HostManager';
@@ -17,7 +17,7 @@ import mkdirp from 'mkdirp';
 class AnsibleEngine extends Engine {
 
     constructor(provider) {
-        super();
+        super(provider);
         this.inventory = new Set();
         this.playbooks = {};//a  directory lookup cache for generated playbooks
         this.provider = provider;
@@ -343,17 +343,16 @@ class AnsibleEngine extends Engine {
             host = this.provider.managers.hostManager.findValidHost(host);
             let proc = child_process.spawn(cmd, args, opts);
             let results = "";
-
             proc.on('exit', (code)=> {
-                let msg = "";
+                let msg={ host:host.name};
+                msg.log=results;
                 if (code != 0) {
-                    msg = "**************** Playbook Failed ****************\n";
-                    msg = msg.concat(results, "\n**************** Playbook failed ****************\n");
+                    msg.status ="failed";
                 } else {
-                    msg = "**************** Playbook Succeeded ****************\n";
-                    msg = msg.concat(results, "\n**************** Playbook Succeeded ****************\n");
+                    msg.status ="succeeded";
                 }
-                resolve(msg);
+                this.log(msg);
+                resolve(results);
             });
 
             proc.stdout.on('data', (data)=> {

@@ -4,7 +4,7 @@
 
 import pg from 'pg';
 import Provider from '../Provider';
-import logger from '../Logger';
+import {logger} from '../Logger';
 
 class Database {
 

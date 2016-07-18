@@ -3,7 +3,7 @@
  */
 
 
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 import Base from './../base/Base';
 import User from './../user/User';
 
@@ -96,6 +96,9 @@ class RemoteAccess extends Base {
         }
         if(this.data.becomeUser){
             obj.becomeUser=this.data.becomeUser;
+        }
+        if(this.data.authentication){
+            obj.authentication = this.data.authentication;
         }
         if (Object.keys(obj).length > 0){
             return obj

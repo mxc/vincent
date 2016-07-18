@@ -4,7 +4,7 @@
 
 import Vincent from '../../../../Vincent';
 import GroupElement from '../../Group';
-import logger from '../../../../Logger';
+import {logger} from '../../../../Logger';
 import PermissionHelper from '../../../../ui/base/PermissionHelper';
 import AppUser from '../../../../ui/AppUser';
 import GroupManager from '../../GroupManager';

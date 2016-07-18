@@ -18,7 +18,7 @@ class AnsibleEngine extends EngineComponent {
             userAccounts.forEach((user)=> {
                 let ansibleUser = {
                     name: "User account state check",
-                    user: `name=${user.name} state=${user.state}`,
+                    user: `name=${user.name} state=${user.state}`
                 };
                 if(user.become){
                     ansibleUser.become="true";

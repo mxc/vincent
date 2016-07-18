@@ -19,10 +19,11 @@ describe("UI User object should", ()=> {
     it("allow authorised users to create users", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI(appUser);
+            let userManagerUi = new UserManagerUI({appUser:appUser});
             let user = userManagerUi.addUser("demoUser1");
             let user1 = userManagerUi.addUser({name: "demoUser2", uid: 1000});
             let user2 = userManagerUi.addUser({name: "demoUser3", uid: 1001, state: "present"});
+
             expect(user.name).to.equal("demoUser1");
             expect(user.uid).to.be.empty;
             expect(user1.name).to.equal("demoUser2");
@@ -41,7 +42,7 @@ describe("UI User object should", ()=> {
     it("return an error message when creating users with incorrect parameters", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI(appUser);
+            let userManagerUi = new UserManagerUI({appUser:appUser});
             let user = userManagerUi.addUser();
             expect(user).to.equal("Parameter must be a username string or a object with mandatory a name and optionally a uid and state property.");
             user = userManagerUi.addUser({name: "demoUser2", uid: "abc"});
@@ -59,7 +60,7 @@ describe("UI User object should", ()=> {
     it("prevent users being created with duplicate names or uids", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI(appUser);
+            let userManagerUi = new UserManagerUI({appUser:appUser});
             let user = userManagerUi.addUser("demoUser2");
             let user2 = userManagerUi.addUser({name: "demoUser2", uid: 1000});
             expect(user2).to.equal("User demoUser2 already exists.");
@@ -77,7 +78,7 @@ describe("UI User object should", ()=> {
     it("allow authorised users to read user properties", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI(appUser);
+            let userManagerUi = new UserManagerUI({appUser:appUser});
             let user = userManagerUi.addUser({name: "demoUser2", uid: 1000, state: "absent"});
             expect(user.name).to.equal("demoUser2");
             expect(user.uid).to.equal(1000);

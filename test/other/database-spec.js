@@ -3,8 +3,8 @@
  */
 
 
-import Database from '../src/utilities/Database';
-import Provider from '../src/Provider';
+import Database from '../../src/utilities/Database';
+import Provider from '../../src/Provider';
 import {expect} from 'chai';
 
 describe("Database utility tests", ()=> {

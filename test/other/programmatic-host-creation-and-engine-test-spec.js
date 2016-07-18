@@ -4,15 +4,15 @@
 'use strict';
 
 
-import Provider from '../src/Provider';
-import User from "../src/modules/user/User";
-import Host from "../src/modules/host/Host";
-import UserAccount from "../src/modules/user/UserAccount";
-import Group from "../src/modules/group/Group";
-import AnsibleGenerator from "../src/modules/engines/AnsibleEngine";
+import Provider from '../../src/Provider';
+import User from "../../src/modules/user/User";
+import Host from "../../src/modules/host/Host";
+import UserAccount from "../../src/modules/user/UserAccount";
+import Group from "../../src/modules/group/Group";
+import AnsibleGenerator from "../../src/modules/engines/AnsibleEngine";
 import {expect} from 'chai';
 import fs from 'fs';
-import AppUser from '../src/ui/AppUser';
+import AppUser from '../../src/ui/AppUser';
 
 
 describe("The system", function () {

@@ -4,7 +4,7 @@
 
 import HostComponent from './../base/HostComponent';
 import User from './../user/User';
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 
 class HostGroup extends HostComponent {
 

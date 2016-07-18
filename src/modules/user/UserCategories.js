@@ -6,7 +6,7 @@
 /**
  * Created by mark on 2016/02/20.
  */
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import Provider from '../../Provider';
 import Manager from '../base/Manager';
 import UserManager from './UserManager';

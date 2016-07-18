@@ -1,15 +1,15 @@
 /**
  * Created by mark on 2016/02/21.
  */
-import Provider from "../src/Provider";
-import User from "../src/modules/user/User";
-import Group from "../src/modules/group/Group";
+import Provider from "../../src/Provider";
+import User from "../../src/modules/user/User";
+import Group from "../../src/modules/group/Group";
 import {expect} from 'chai';
 import fs from 'fs';
-import Docker from './support/Docker'
+import Docker from '../support/Docker'
 import path from 'path';
-import AppUser from '../src/ui/AppUser';
-import Host from '../src/modules/host/Host';
+import AppUser from '../../src/ui/AppUser';
+import Host from '../../src/modules/host/Host';
 
 
 describe("ansible engine", () => {

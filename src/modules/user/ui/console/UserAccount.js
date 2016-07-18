@@ -9,6 +9,7 @@ import HostElement from '../../../host/Host';
 import Host from '../../../host/ui/console/Host';
 import AppUser from '../../../../ui/AppUser';
 import TaskObject from '../../../../ui/base/TaskObject';
+import AuthorizedUser from './AuthorizedUser';
 
 var data = new WeakMap();
 
@@ -53,7 +54,6 @@ class UserAccount extends TaskObject {
         } else if (userData instanceof UserAccountElement) {
             obj.userAccount = userData;
         } else{
-            console.log("The data parameter must be a username string or a object with a user property of type string or User.");
             return  "UserAccount creation failed";
         }
         super(obj.userAccount);
@@ -72,25 +72,22 @@ class UserAccount extends TaskObject {
         });
     }
 
-    get authorized_keys() {
-        return this._readAttributeWrapper(()=> {
-            return data.get(this).userAccount.authorized_keys.map((user)=> {
-                        return new User(user,data.get(this).appUser,data.get(this).permObj);
-            });
+    set state(state) {
+        return this._writeAttributeWrapper(()=> {
+            data.get(this).userAccount.state = state;
         });
     }
 
-    set authorized_keys(array) {
-        return this._writeAttributeWrapper(()=> {
-            if (Array.isArray(array)) {
-                if (array.length > 0 && typeof array[0] === 'string') {
-                    data.get(this).userAccount.user.authorized_keys = array;
-                    return data.get(this).userAccount.user.authorized_keys;
-                } else {
-                    console.log("Invalid array format for authorized_keys");
-                    return false;
+    get authorized_keys() {
+        return this._readAttributeWrapper(()=> {
+            return data.get(this).userAccount.authorized_keys.map((au)=> {
+                try {
+                    let tuser = new AuthorizedUser(au, data.get(this).appUser, data.get(this).permObj);
+                    return tuser;
+                }catch(e){
+                    return e.message;
                 }
-            }
+             });
         });
     }
 
@@ -105,6 +102,46 @@ class UserAccount extends TaskObject {
                 if (_user) {
                     data.get(this).userAccount.addAuthorizedUser(_user);
                     return this.authorized_keys;
+                } else {
+                    return "User was not found in valid users list.";
+                }
+            }catch(e){
+                return e.message? e.message:e;
+            }
+        });
+    }
+    
+    getAuthorizedUser(user){
+        if(!user instanceof User){
+            user = user.name;
+        } 
+        if(typeof user !=="string" ){
+            return "User must be an instance of User or a username string.";
+        }
+        aus = this.authorized_keys;
+        let found =aus.find((au)=>{
+            if(au.name==user){
+                return au;
+            }
+        });
+        if(found){
+            return found;
+        }else{
+            return `${user} not found in authorized keys.`;
+        }
+    }
+    
+    changeAuthorizedUserState(user,state){
+        return this._writeAttributeWrapper(()=> {
+            try {
+                if (typeof user === "string") {
+                    var _user = Vincent.app.provider.managers.userManager.findValidUserByName(user);
+                } else if (user instanceof User) {
+                    _user = Vincent.app.provider.managers.userManager.findValidUserByName(user.name);
+                }
+                if (_user) {
+                    data.get(this).userAccount,changeAuthorizedUserState(_user,state);
+                    return this.getAuthorizedUser(user.name);
                 } else {
                     return "User was not found in valid users list.";
                 }

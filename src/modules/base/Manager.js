@@ -41,6 +41,15 @@ class Manager {
     static getDependencies(){
         throw new Error ("Method getDependencies must be overridden in child object");
     }
+    
+   
+    deleteEntity(hc){
+        throw new Error ("Method getDependencies must be overridden in child object");
+    }
+    
+    entityStateChange(hc){
+        throw new Error ("Method getDependencies must be overridden in child object");  
+    }
 }
 
 export default Manager;

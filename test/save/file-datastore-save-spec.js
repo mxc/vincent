@@ -266,11 +266,7 @@ describe("File DB save tests", function () {
     provider.managers.hostManager.loadHosts(hosts);
 
     it('should save valid user and archive previous file', ()=> {
-        let backupPath = provider.managers.userManager.save();
-        if (backupPath !== "no backup required.") {
-            let result = fs.statSync(backupPath);
-            expect(result.isFile()).to.be.true;
-        }
+        provider.managers.userManager.save();
         var result = fs.statSync(`${provider.getDBDir()}/users.json`);
         expect(result.isFile()).to.be.true;
     });
@@ -281,12 +277,7 @@ describe("File DB save tests", function () {
     });
 
     it('should save valid groups and backup previous file', ()=> {
-        let backupPath = provider.managers.groupManager.save();
-        if (backupPath !== "no backup required.") {
-            let result = fs.statSync(backupPath);
-            //verify backup
-            expect(result.isFile()).to.be.true;
-        }
+        provider.managers.groupManager.save();
         var result = fs.statSync(`${provider.getDBDir()}/groups.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
@@ -294,31 +285,31 @@ describe("File DB save tests", function () {
 
     it('should save valid hosts', ()=> {
         let host = provider.managers.hostManager.findValidHost("www.abc.co.za","default");
-        let backupPath = provider.managers.hostManager.saveHost(host);
-        expect(backupPath).to.equal("no backup required.");
+        let success = provider.managers.hostManager.saveHost(host);
+        expect(success).to.be.true;
         var result = fs.statSync(`${provider.getDBDir()}/configs/default/${host.name}.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
 
         host = provider.managers.hostManager.findValidHost("www.test.com","default");
-        backupPath = provider.managers.hostManager.saveHost(host);
-        expect(backupPath).to.equal("no backup required.");
+        success = provider.managers.hostManager.saveHost(host);
+        expect(success).to.be.true;
         result = fs.statSync(`${provider.getDBDir()}/configs/default/${host.name}.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
     });
 
     it('should save user categories', ()=> {
-        let backupPath = provider.managers.userManager.categories.save();
-        expect(backupPath).to.equal("no backup required.");
+        let success = provider.managers.userManager.categories.save();
+        expect(success).to.be.true;
         var result = fs.statSync(`${provider.getDBDir()}/includes/user-categories.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
     });
 
     it('should save group categories', ()=> {
-        let backupPath = provider.managers.groupManager.categories.save();
-        expect(backupPath).to.equal("no backup required.");
+        let success = provider.managers.groupManager.categories.save();
+        expect(success).to.be.true;
         var result = fs.statSync(`${provider.getDBDir()}/includes/group-categories.json`);
         //verify new file
         expect(result.isFile()).to.be.true;

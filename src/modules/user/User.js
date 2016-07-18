@@ -1,6 +1,6 @@
 "use strict";
 
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 import path from 'path';
 import fs from 'fs';
 import mkdirp from 'mkdirp';

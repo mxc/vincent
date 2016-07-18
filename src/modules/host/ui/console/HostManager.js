@@ -4,7 +4,7 @@
 import Host from './Host';
 import Provider from '../../../../Provider';
 import Vincent from '../../../../Vincent';
-import logger from '../../../../Logger';
+import {logger} from '../../../../Logger';
 import HostEntity from '../../Host';
 
 var data = new WeakMap();
@@ -62,6 +62,8 @@ class HostManager {
         }
         if (configGroup && typeof configGroup !== "string") {
             return "Parameter config is optional and must be of type string if provided.";
+        }else{
+            configGroup="default";
         }
         try {
             let hosts = data.get(this).permObj.findValidHost(hostname, configGroup);
@@ -69,7 +71,7 @@ class HostManager {
                 let tmap = new Map();
                 hosts.forEach((host)=> {
                     let h = Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
-                        return new Host(host, data.get(this).session);
+                        return new Host(host, data.get(this).session,configGroup);
                     });
                     tmap.set(h.configGroup, h);
                 });

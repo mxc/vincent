@@ -449,6 +449,7 @@ describe("validating host configuration", function () {
         }).then((result)=> {
             return gen.runPlaybook(host, false, null, 'vincent', 'pass');
         }).then(result=> {
+            console.log(result);
             expect(result.includes('ok=2    changed=1')).to.be.true;
         }).then(result => {
             return docker.stopDocker();

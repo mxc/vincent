@@ -1,7 +1,7 @@
 "use strict";
 
 import Group from './Group';
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 import Provider from './../../Provider';
 import HostGroup from './HostGroup';
 import GroupCategories from './GroupCategories';
@@ -26,7 +26,7 @@ class GroupManager extends PermissionsManager {
         this.groupCategories = new GroupCategories(provider);
         this.validGroups = [];
         this.errors = [];
-        this.engines = ModuleLoader.loadEngines('group', provider);
+        this.engines = provider.loader.loadEngines('group', provider);
     }
 
     exportToEngine(engine, host, struct) {
@@ -171,6 +171,9 @@ class GroupManager extends PermissionsManager {
                         });
                     });
                 }
+                this.provider.loader.callFunctionInTopDownOrder((manager)=>{
+                    this.provider.getManagerFromClassName(manager).entityStateChange(group);
+                });
             } else {
                 logger.warn(`Group ${group.name ? group.name : group} requested to be marked as ${state} is not a valid group.`);
             }
@@ -228,6 +231,10 @@ class GroupManager extends PermissionsManager {
             //remove user from hosts
             this.findHostsWithGroup(rGroup).forEach((host)=> {
                 this.removeGroupFromHost(host, rGroup);
+            });
+
+            this.provider.loader.callFunctionInBottomUpOrder((manager)=>{
+                this.provider.getManagerFromClassName(manager).deleteEntity(group);
             });
 
             //todo clean up groupCategories?
@@ -559,6 +566,22 @@ class GroupManager extends PermissionsManager {
                 return host;
             }
         });
+    }
+
+    entityStateChange(ent){
+        //noop
+    }
+
+    deleteEntity(ent){
+        if(ent instanceof User) {
+            //remove user from host groups
+            let hgs = this.findHostGroupsWithUser(ent);
+            if (hgs) {
+                hgs.forEach((hg)=> {
+                    hg.removeMember(ent);
+                });
+            }
+        }
     }
 }
 

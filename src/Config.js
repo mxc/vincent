@@ -6,7 +6,7 @@ import fs from 'fs';
 import ini from  'ini';
 import path from 'path';
 import mkdirp from 'mkdirp';
-import logger from './Logger';
+import {logger} from './Logger';
 import {EOL} from 'os';
 
 class Config {

@@ -3,7 +3,7 @@
  */
 import HostComponent from './../base/HostComponent';
 import SudoEntry from './SudoEntry';
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 
 
 class HostSudoEntry extends HostComponent {

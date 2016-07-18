@@ -2,7 +2,7 @@
  * Created by mark on 2016/05/28.
  */
 
-import logger from '../../Logger';
+import {logger} from '../../Logger';
 import HostComponent from './HostComponent';
 
 class HostComponentContainer {

@@ -5,7 +5,7 @@
  */
 
 import Base from './../base/Base';
-import logger from './../../Logger';
+import {logger} from './../../Logger';
 
 class Ssh extends Base {
 
@@ -60,6 +60,37 @@ class Ssh extends Base {
 
     get passwordAuthentication() {
         return this.data.passwordauthentication;
+    }
+
+    addValidUser(host,user){
+        if (!this.data.validUsers){
+            this.data.validUsers =[];
+        }
+        if((user instanceof User || typeof user ==="string") && (host instanceof Host)){
+            let ua = this.provider.mananager._HostManager.findUserAccountForHostByUserName(host,user);
+            if(ua){
+                this.data.validUsers.push(ua.name);
+            }
+        }else{
+            logger.logAndThrow("Parameter user must be an instance of User or a username string.");
+        }
+    }
+
+    removeValidUser(host,user){
+        if (!this.data.validUsers){
+            return;
+        }
+        if((user instanceof User || typeof user ==="string") && (host instanceof Host)){
+            let ua = this.provider.mananager._HostManager.findUserAccountForHostByUserName(host,user);
+            if(ua){
+                let index = this.data.validUsers.indexOf(user.name? user.name: user);
+                if(index!=-1) {
+                    this.data.validUsers.splice(index,1);
+                }
+            }
+        }else{
+            logger.logAndThrow("Parameter user must be an instance of User or a username string.");
+        }
     }
 
     export() {

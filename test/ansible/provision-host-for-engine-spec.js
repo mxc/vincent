@@ -1,11 +1,11 @@
 /**
  * Created by mark on 2016/03/01.
  */
-import Provider from "../src/Provider.js";
-import User from "../src/modules/user/User";
-import UserAccount from "../src/modules/user/UserAccount";
-import RemoteAccess from "../src/modules/host/RemoteAccess";
-import Host from "../src/modules/host/Host";
+import Provider from "../../src/Provider.js";
+import User from "../../src/modules/user/User";
+import UserAccount from "../../src/modules/user/UserAccount";
+import RemoteAccess from "../../src/modules/host/RemoteAccess";
+import Host from "../../src/modules/host/Host";
 import {expect} from 'chai';
 
 

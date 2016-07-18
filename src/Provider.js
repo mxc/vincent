@@ -3,7 +3,7 @@ import Engine from './modules/engines/AnsibleEngine';
 import Config from './Config';
 import path from 'path';
 import ModuleLoader from './utilities/ModuleLoader';
-import logger from './Logger';
+import {logger} from './Logger';
 import fs from 'fs';
 import Manager from './modules/base/Manager';
 import mkdirp from 'mkdirp';
@@ -20,11 +20,29 @@ class Provider {
             this.configDir = path.resolve(this.configDir, ".vincent");
         }
         this.config = new Config(path.resolve(this.configDir));
+        this.loader = new ModuleLoader(this);
         this.createManagers();
         this.makeDBDir();
         this.database = new Database(this);
         //todo lookup default engine from config file.
         this._engine = new Engine(this);
+        this.setupLogger();
+    }
+
+    setupLogger(){
+        let logdir =this.config.get("logdir");
+        let logfile = this.config.get("logfile");
+        let logpath = path.resolve(this.configDir,logdir?logdir:"logs",);
+        try {
+            fs.statSync(logpath);
+        }catch(e){
+            mkdirp(logpath, parseInt("770", 8));
+        }
+        logfile= path.resolve(logpath, logfile? logfile:"vincent.log");
+
+        let loglevel = this.config.get("loglevel");
+        logger.setStream(logfile,loglevel? loglevel:"info");
+
     }
 
     makeDBDir() {
@@ -41,7 +59,14 @@ class Provider {
             logger.info(`${this.getDBDir()}/configs does not exists. It will be created`);
             fs.mkdirSync(`${this.getDBDir()}/configs`, parseInt("700", 8));
         }
-
+        
+        try {
+            fs.statSync(`${this.getDBDir()}/scripts`);
+        } catch (e) {
+            logger.info(`${this.getDBDir()}/scripts does not exists. It will be created`);
+            fs.mkdirSync(`${this.getDBDir()}/scripts`, parseInt("700", 8));
+        }
+        
         try {
             fs.statSync(`${this.getDBDir()}/archive`);
         } catch (e) {
@@ -89,8 +114,22 @@ class Provider {
      Create all managers
      */
     createManagers() {
-        let mpath = path.resolve(this.getRootDir(), 'lib/modules');
-        return ModuleLoader.parseDirectory(mpath, 'Manager', this);
+        //let mpath = path.resolve(this.getRootDir(), 'lib/modules');
+        //return this.loader.parseDirectory(mpath, 'Manager', this);
+       try {
+           this.loader.parseModulesDirectory();
+           this.loader.callFunctionInTopDownOrder((manager)=> {
+               let name = manager.name.charAt(0).toLowerCase() + manager.name.slice(1);
+               try {
+                  this.managers[name] = new manager(this);
+               } catch (e) {
+                   logger.logAndThrow(e);
+               }
+           });
+       }catch(e){
+           logger.logAndThrow(e);
+       }
+
     }
 
     getManagerFromClassName(manager) {
@@ -107,13 +146,13 @@ class Provider {
      */
     loadAll(user) {
         let status = true;
-        ModuleLoader.managerOrderedIterator((managerClass)=> {
+        this.loader.callFunctionInTopDownOrder((managerClass)=> {
             let manager = this.getManagerFromClassName(managerClass);
             if (!manager || !manager.loadFromFile(user)) {
                 logger.error(`There was an error calling loadFromFile on ${managerClass.name}`);
                 status = false;
             }
-        }, this);
+        });
         return status;
     }
 
@@ -179,58 +218,6 @@ class Provider {
         });
         return results;
     }
-
-/*    saveGroups(backup) {
-        let currentPath = path.resolve(this.getDBDir(), "groups.json");
-        if (backup) {
-            try {
-                var stat = fs.statSync(currentPath);
-                if (stat && stat.isFile()) {
-                    var archivePath = this.makeArchiveDir();
-                    let fullArchivePath = path.resolve(archivePath, "users.json");
-                    try {
-                        fs.statSync(fullArchivePath);
-                    } catch (e) {
-                        logger.info(`${fullArchivePath} does not exist, creating path.`);
-                        fs.mkdirSync(fullArchivePath);
-                    }
-                    fs.renameSync(currentPath, fullArchivePath);
-                }
-            } catch (e) {
-                logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
-            }
-        }
-        let obj = this.managers.groupManager.export();
-        var json = JSON.stringify(obj, null, 2);
-        fs.writeFileSync(currentPath, json);
-        return archivePath;
-    }
-
-    saveUsers(backup) {
-        let currentPath = path.resolve(this.getDBDir(), "users.json");
-        if (backup) {
-            try {
-                var stat = fs.statSync(currentPath);
-                if (stat && stat.isFile()) {
-                    var archivePath = this.makeArchiveDir();
-                    let fullArchivePath = path.resolve(archivePath, "users.json");
-                    try {
-                        fs.statSync(fullArchivePath);
-                    } catch (e) {
-                        logger.info(`${fullArchivePath} does not exist, creating path.`);
-                        fs.mkdirSync(fullArchivePath);
-                    }
-                    fs.renameSync(currentPath, fullArchivePath);
-                }
-            } catch (e) {
-                logger.warn(`${filename} file does not exist. No backup taken - ${e.message}.`);
-            }
-        }
-        let obj = this.managers.userManager.export();
-        var json = JSON.stringify(obj, null, 2);
-        fs.writeFileSync(currentPath, json);
-        return archivePath;
-    }*/
 
     createConfigGroup(configGroup) {
         let tpath = path.join(this.getDBDir() + "/configs", configGroup);
@@ -314,7 +301,7 @@ class Provider {
      */
     loadFromFile(filename) {
         let dbDir = this.getDBDir();
-        let data = fs.readFileSync(`${dbDir}/${filename}`, 'utf-8');
+        let data = fs.readFileSync(path.resolve(dbDir,filename), 'utf-8');
         try {
             return JSON.parse(data);
         } catch (e) {

@@ -3,7 +3,7 @@
  */
 import Console from './ui/Console/Console';
 import Provider from './Provider';
-import logger from './Logger';
+import {logger} from './Logger';
 import fs from 'fs';
 import tls from 'tls';
 import LdapAuthProvider from './ui/authentication/LdapAuthProvider';
@@ -20,6 +20,7 @@ class Vincent {
         if (!this.processArguments()) {
             process.exit();
         }
+        
         if (!appDir) {
             this.provider = new Provider(this.args.configDir);
         } else {

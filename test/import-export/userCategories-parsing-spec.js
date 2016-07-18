@@ -65,7 +65,7 @@ describe("UserCategories parsing should", function () {
         let usercategories = provider.managers.userManager.loadUserCategoriesFromJson(usercats);
         expect(usercategories.categories.length).to.equal(2);
         expect(usercategories.categories[0].userAccounts.length).to.equal(2);
-        expect(usercategories.categories[1].userAccounts[0].authorized_keys[0].user.name).to.equal("user1");
+        expect(usercategories.categories[1].userAccounts[0].authorized_keys[0].name).to.equal("user1");
     });
 
     it('export UserCategories', ()=> {
