@@ -23,15 +23,15 @@ class Group extends PermissionHelper {
         } else {
             throw new Error("The parameter group must be a group name or data object with a name and optional gid, state and member.");
         }
-        if (!appUser instanceof AppUser) {
+        if (!(appUser instanceof AppUser)) {
             throw new Error("The parameter appUser must be of type AppUser.");
         }
         obj.appUser = appUser;
-        if (!manager instanceof GroupManager) {
+        if (!(manager instanceof GroupManager)) {
             throw new Error("The parameter manager must be of type GroupManager.");
         }
         obj.permObj = manager;
-        super(obj.appUser,obj.permObj);
+        super(obj.sesion,obj.permObj);
         data.set(this,obj);
     }
 
@@ -49,7 +49,7 @@ class Group extends PermissionHelper {
 
     set gid(value){
         if (typeof value==='number'){
-            VIncent.app.provider.managers.groupManager.updateGroupGid(this[_group],value);
+            Vincent.app.provider.managers.groupManager.updateGroupGid(this[_group],value);
         }else{
             console.log("Gid must be a number");
         }

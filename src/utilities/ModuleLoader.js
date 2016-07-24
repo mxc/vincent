@@ -11,6 +11,7 @@ import UserAnsibleEngine from './../modules/user/engine/AnsibleEngine';
 import GroupAnsibleEngine from './../modules/group/engine/AnsibleEngine';
 import SshAnsibleEngine from './../modules/ssh/engine/AnsibleEngine';
 import SudoAnsibleEngine from './../modules/sudo/engine/AnsibleEngine';
+import HostAnsibleEngine from './../modules/host/engine/AnsibleEngine';
 import SshManager from './../modules/ssh/SshManager';
 import {logger} from './../Logger';
 import DependencyGraph from './DependencyGraph';
@@ -46,6 +47,8 @@ class ModuleLoader {
             engines['ansible'] = new SshAnsibleEngine(provider);
         } else if (name === 'sudo') {
             engines['ansible'] = new SudoAnsibleEngine(provider);
+        }else if(name==='host'){
+            engines['ansible'] = new HostAnsibleEngine(provider);
         }
         return engines;
     }

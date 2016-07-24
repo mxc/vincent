@@ -18,7 +18,7 @@ import PermissionsManager from '../base/PermissionsManager';
 class GroupManager extends PermissionsManager {
 
     constructor(provider) {
-        if (!provider instanceof Provider) {
+        if (!(provider instanceof Provider)) {
             throw new Error("Parameter provider must be an instance of provider");
         }
         super(provider);
@@ -132,7 +132,6 @@ class GroupManager extends PermissionsManager {
     }
 
     clear() {
-
         let groupnames = [];
         this.validGroups.forEach((group)=> {
             groupnames.push(group.name);
@@ -142,9 +141,7 @@ class GroupManager extends PermissionsManager {
             this.changeGroupStatus(groupname, "absent");
             this.deleteGroup(groupname);
         })
-
     }
-
 
     changeGroupStatus(group, status) {
         if (status !== 'absent' && status !== 'present') {
@@ -180,7 +177,6 @@ class GroupManager extends PermissionsManager {
         } else {
             logger.warn("Group parameter must be a groupname or instance of Group.");
         }
-
     }
 
     getValidHostGroup(group) {
@@ -324,7 +320,7 @@ class GroupManager extends PermissionsManager {
     }
 
     findHostGroupsWithUserForHost(host, user) {
-        if(!host instanceof Host){
+        if(!(host instanceof Host)){
             logger.logAndThrow(`Parameter host must be an instance of Host.`);
         }
         let hosts = this.provider.managers.hostManager.findValidHost(host);
@@ -351,7 +347,7 @@ class GroupManager extends PermissionsManager {
 
     addHostGroupToHost(host, hostGroup) {
 
-        if(!host instanceof Host){
+        if(!(host instanceof Host)){
             logger.logAndThrow("The parameter host must be of type HostGroup.");
         }else {
             //update host for userAccounts
@@ -430,13 +426,14 @@ class GroupManager extends PermissionsManager {
     }
 
     loadConsoleUIForSession(context, session) {
+        super.loadConsoleUIForSession(context,session);
         let self = this;
 
         if (!HostUI.prototype.addHostGroup) {
             HostUI.prototype.addHostGroup = function (data) {
                 let func = function () {
-                    return this.genFuncHelper(function (grp, tappUser, permObj) {
-                        var hostGroup = new HostGroupUI(grp, permObj, tappUser);
+                    return this.genFuncHelper(function (grp, tsession, permObj) {
+                        var hostGroup = new HostGroupUI(grp, permObj, tsession);
                         return hostGroup;
                     }, data);
                 };
@@ -444,26 +441,6 @@ class GroupManager extends PermissionsManager {
                 return this._writeAttributeWrapper(func);
             };
         }
-
-        // if (!HostUI.prototype.listHostGroups) {
-        //     HostUI.prototype.listHostGroups = function () {
-        //         let host = self.provider.managers.hostManager.findValidHost(this.name);
-        //         let hostGroups = self.getHostGroups(host);
-        //         let func = function() {
-        //             if (hostGroups) {
-        //                 return hostGroups.map((hostGroup)=> {
-        //                     return this.genFuncHelper(function (obj, tappUser, permObj) {
-        //                         return new HostGroupUI(obj, permObj, tappUser);
-        //                     }, hostGroup);
-        //                 });
-        //             } else {
-        //                 return `No groups defined for host ${this.name}`;
-        //             }
-        //         };
-        //         func = func.bind(this);
-        //         return this._readAttributeWrapper(func);
-        //     };
-        // }
 
         if (!HostUI.prototype.hasOwnProperty("hostGroups")) {
             let func = function () {
@@ -474,8 +451,8 @@ class GroupManager extends PermissionsManager {
                         return [];
                     }
                     return rhostgroups.map ((hg,index)=> {
-                        return this.genFuncHelper(function (obj, tappUser, permObj) {
-                            return new HostGroupUI(obj, permObj, tappUser);
+                        return this.genFuncHelper(function (obj, tsession, permObj) {
+                            return new HostGroupUI(obj, permObj, tsession);
                         }, hg);
                     });
                 };
@@ -488,7 +465,6 @@ class GroupManager extends PermissionsManager {
                 }
             );
         }
-
 
         if (!HostUI.prototype.getHostGroup) {
             HostUI.prototype.getHostGroup = function (group) {
@@ -510,8 +486,8 @@ class GroupManager extends PermissionsManager {
                             }
                         });
                         if (hg) {
-                            return this.genFuncHelper(function (obj, tappUser, permObj) {
-                                return new HostGroupUI(obj, permObj, tappUser);
+                            return this.genFuncHelper(function (obj, tsession, permObj) {
+                                return new HostGroupUI(obj, permObj, tsession);
                             }, hg);
                         }
                     } else {
@@ -522,7 +498,8 @@ class GroupManager extends PermissionsManager {
                 return this._readAttributeWrapper(func);
             };
         }
-        context.groupManager = new GroupManagerUI(session.appUser);
+
+        context.groupManager = new GroupManagerUI(session);
     }
 
 

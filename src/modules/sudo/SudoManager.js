@@ -87,7 +87,7 @@ class SudoManager extends Manager {
     }
 
     addHostSudoEntry(host, sudoData) {
-        if(!host instanceof Host){
+        if(!(host instanceof Host)){
             logger.logAndThrow(`Paramter host must be an instance of Host.`);
         }
         let entry;
@@ -185,7 +185,7 @@ class SudoManager extends Manager {
     }
 
     loadConsoleUIForSession(context, session) {
-        //no op
+        super.loadConsoleUIForSession(context,session);
     }
 
     entityStateChange(ent){

@@ -13,7 +13,7 @@ class HostComponentContainer {
     }
 
     add(label,hostComponent){
-        if (!hostComponent instanceof HostComponent){
+        if (!(hostComponent instanceof HostComponent) && !(Array.isArray(hostComponent))){
             logger.logAndThrow("Parameter hostComponent must be a subtype of HostComponent.");
         }
         if(typeof label !=="string"){

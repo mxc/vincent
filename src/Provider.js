@@ -423,7 +423,7 @@ class Provider {
     //perm may be r,w,x or 4,2,1
     checkPermissions(appUser, permObj, perm) {
 
-        if (!appUser || !appUser instanceof AppUser) {
+        if (!appUser || !(appUser instanceof AppUser)) {
             logger.logAndThrow("Parameter appUser must be of type AppUser and cannot be null or undefined");
         }
 

@@ -68,7 +68,7 @@ class AnsibleEngine extends Engine {
     }
 
     export(host) {
-        if (!host instanceof Host) {
+        if (!(host instanceof Host)) {
             logger.logAndThrow("The parameter host must be an instance of Host.");
         }
         return new Promise((resolve, reject)=> {
@@ -140,7 +140,7 @@ class AnsibleEngine extends Engine {
      Write out the yml playbook file using javascript ansible object
      */
     writePlaybook(host) {
-        if (!host instanceof Host) {
+        if (!(host instanceof Host)) {
             logger.logAndThrow("Parameter host must be an instance of Host.");
         }
         return new Promise((resolve, reject)=> {
@@ -207,7 +207,7 @@ class AnsibleEngine extends Engine {
      values as defined by ansible modules to be used to generate the yml file on export with writePlaybook().
      */
     loadEngineDefinition(host) {
-        if (!host instanceof Host) {
+        if (!(host instanceof Host)) {
             logger.logAndThrow("Parameter host must be an instance of Host.");
         }
         host = this.provider.managers.hostManager.findValidHost(host);
@@ -219,7 +219,7 @@ class AnsibleEngine extends Engine {
 
         for (let manager in this.provider.managers) {
             if (this.provider.managers[manager] instanceof Manager) {
-                if (this.provider.managers[manager] instanceof HostManager) continue;
+                //if (this.provider.managers[manager] instanceof HostManager) continue;
                 this.provider.managers[manager].exportToEngine("ansible", host, tasks);
             }
         }
@@ -238,7 +238,7 @@ class AnsibleEngine extends Engine {
      Method to retrieve host details using ansible target properties
      */
     getInfo(host, checkhostkey, privkey, username, passwd, sudoPasswd) {
-        if (!host instanceof Host) {
+        if (!(host instanceof Host)) {
             logger.logAndThrow("Parameter host must be an instance of Host.");
         }
         this.inventory.add(host.name);
@@ -248,7 +248,7 @@ class AnsibleEngine extends Engine {
                     logger.logAndThrow(`Host ${host.name} of ${host.configGroup} is not a valid host.`);
                 }
                 let cmd = 'ansible';
-                let args = this.getArgs(privkey, username, passwd);
+                let args = this.getArgs(privkey, username, passwd,sudoPasswd);
                 let opts = this.getOpts(checkhostkey);
                 args.push("-m");
                 args.push("setup");
@@ -298,7 +298,7 @@ class AnsibleEngine extends Engine {
     }
 
 
-    getArgs(privkey, username, passwd) {
+    getArgs(privkey, username, passwd,sudoPasswd) {
         let args = [];
         if (privkey && !username) {
             args.push("-i");
@@ -313,12 +313,14 @@ class AnsibleEngine extends Engine {
         } else if (username && passwd) {
             args.push("-i");
             args.push("inventory");
-            args.push(`--ask-become-pass`);
             args.push(`--ask-pass`);
             args.push(`-u ${username}`);
         } else {
             args.push("-i");
             args.push("inventory");
+        }
+        if(sudoPasswd){
+            args.push('--ask-become-pass');
         }
         return args;
     }
@@ -335,11 +337,11 @@ class AnsibleEngine extends Engine {
      * @returns {Promise}
      */
     runPlaybook(host, checkhostkey, privkeyPath, username, passwd, sudoPasswd) {
-        if (!host instanceof Host) {
+        if (!(host instanceof Host)) {
             logger.logAndThrow("Parameter host must be an instanceof Host.");
         }
         let cmd = 'ansible-playbook';
-        let args = this.getArgs(privkeyPath, username, passwd);
+        let args = this.getArgs(privkeyPath, username, passwd,sudoPasswd);
         let opts = this.getOpts(checkhostkey);
         args.push(`${host.configGroup}/${host.name}.yml`);
         return new Promise((resolve)=> {

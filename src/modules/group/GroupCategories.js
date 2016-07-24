@@ -85,7 +85,7 @@ class GroupCategories {
     }
 
     deleteGroupCategory(name) {
-        if (!typeof name == 'string' && !name instanceof GroupCategory) {
+        if (!typeof name == 'string' && !(name instanceof GroupCategory)) {
             throw new Error("Parameter must be a group string name  or a GroupCategory object.");
         }
         if (name instanceof GroupCategory) {

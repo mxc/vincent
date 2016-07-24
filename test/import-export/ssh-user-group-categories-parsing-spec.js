@@ -42,7 +42,7 @@ describe("validating ssh custom config", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
-            configGroup:"default",
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"},
@@ -63,7 +63,7 @@ describe("validating ssh custom config", function () {
                     members: ["user2"]
                 }
             ],
-            config: {
+            configs: {
                 ssh: {
                     permitRoot: "no",
                     passwordAuthentication: "no",
@@ -86,7 +86,7 @@ describe("validating ssh custom config", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
-                configGroup:"default",
+                configGroup: "default",
                 users: [
                     {
                         user: {
@@ -115,7 +115,7 @@ describe("validating ssh custom config", function () {
                         }
                     }
                 ],
-                config: {
+                configs: {
                     ssh: {
                         permitRoot: false,
                         validUsersOnly: true,
@@ -124,7 +124,7 @@ describe("validating ssh custom config", function () {
                 }
             }
         ];
-        let host = provider.managers.hostManager.findValidHost("web01.example.co.za","default");
+        let host = provider.managers.hostManager.findValidHost("web01.example.co.za", "default");
         expect(host.export()).to.deep.equal(validHosts[0]);
 
     });
@@ -158,32 +158,37 @@ describe("validating ssh include config", function () {
         })
     ];
 
-    var sshConfigs = [
-        {
-            name: "strict",
-            config: {
-                permitRoot: "no",
-                validUsersOnly: "true",
-                passwordAuthentication: "no"
+    var sshConfigs = {
+        owner: "einstein",
+        group: "sysadmin",
+        permissions: "770",
+        configs: [
+            {
+                name: "strict",
+                config: {
+                    permitRoot: "no",
+                    validUsersOnly: "true",
+                    passwordAuthentication: "no"
+                }
+            },
+            {
+                name: "strict_with_root",
+                config: {
+                    permitRoot: "without-password",
+                    validUsersOnly: "true",
+                    passwordAuthentication: "no"
+                }
+            },
+            {
+                name: "loose",
+                config: {
+                    permitRoot: "yes",
+                    validUsersOnly: "false",
+                    passwordAuthentication: "yes"
+                }
             }
-        },
-        {
-            name: "strict_with_root",
-            config: {
-                permitRoot: "without-password",
-                validUsersOnly: "true",
-                passwordAuthentication: "no"
-            }
-        },
-        {
-            name: "loose",
-            config: {
-                permitRoot: "yes",
-                validUsersOnly: "false",
-                passwordAuthentication: "yes"
-            }
-        }
-    ];
+        ]
+    };
 
     var hosts = [
         {
@@ -191,7 +196,7 @@ describe("validating ssh include config", function () {
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
-            configGroup:"default",
+            configGroup: "default",
             users: [
                 {
                     user: {name: "user1"},
@@ -230,7 +235,7 @@ describe("validating ssh include config", function () {
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,
-                configGroup:"default",
+                configGroup: "default",
                 users: [
                     {
                         user: {
@@ -259,8 +264,8 @@ describe("validating ssh include config", function () {
                         }
                     }
                 ],
-                config: {
-                    ssh:{
+                configs: {
+                    ssh: {
                         permitRoot: false,
                         validUsersOnly: true,
                         passwordAuthentication: false
@@ -269,14 +274,55 @@ describe("validating ssh include config", function () {
             }
         ];
         //find host added on test suite start
-        let host = provider.managers.hostManager.findValidHost("web01.example.co.za","default");
-        provider.managers.sshManager.addSsh(host,"strict");
+        let host = provider.managers.hostManager.findValidHost("web01.example.co.za", "default");
+        provider.managers.sshManager.addSsh(host, "strict");
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
         let ssh = provider.managers.sshManager.getSsh(host);
+        console.log(ssh);
         expect(ssh.export()).to.deep.equal({
             permitRoot: false,
             validUsersOnly: true,
             passwordAuthentication: false
         });
     });
+
+    it("should not allow SSH template configs to be saved", ()=> {
+        var sshConfigs = {
+            owner: "einstein",
+            group: "sysadmin",
+            permissions: "770",
+            configs: [
+                {
+                    name: "strict",
+                    config: {
+                        permitRoot: "no",
+                        validUsersOnly: "true",
+                        passwordAuthentication: "no"
+                    }
+                },
+                {
+                    name: "strict_with_root",
+                    config: {
+                        permitRoot: "without-password",
+                        validUsersOnly: "true",
+                        passwordAuthentication: "no"
+                    }
+                },
+                {
+                    name: "loose",
+                    config: {
+                        permitRoot: "yes",
+                        validUsersOnly: "false",
+                        passwordAuthentication: "yes"
+                    }
+                }
+            ]
+        };
+
+        let provider = new Provider();
+        //inject mocks
+        provider.managers.sshManager.loadFromJson(sshConfigs);
+        expect(provider.managers.sshManager.export()).to.deep.equal(sshConfigs);
+    });
+
 });

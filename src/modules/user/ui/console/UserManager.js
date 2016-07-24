@@ -5,14 +5,18 @@
 import Vincent from '../../../../Vincent'
 import User from "./User"
 import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
-
+import Session from '../../../../ui/Session';
+import {logger} from '../../../../Logger';
 
 var data = new WeakMap();
 
 class UserManager extends PermissionsUIManager {
 
     constructor(session) {
-        super(session.appUser, Vincent.app.provider.managers.userManager);
+        if(!(session instanceof Session)){
+            throw new Error("Parameter session must be an instance of Session");
+        }
+        super(session, Vincent.app.provider.managers.userManager);
         let obj = {};
         obj.appUser = session.appUser;
         obj.permObj = Vincent.app.provider.managers.userManager;
@@ -24,7 +28,7 @@ class UserManager extends PermissionsUIManager {
         try {
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 return data.get(this).permObj.validUsers.map((user=> {
-                    return new User(user, data.get(this).appUser, data.get(this).permObj);
+                    return new User(user, data.get(this).session);
                 }));
             });
         } catch (e) {
@@ -37,7 +41,7 @@ class UserManager extends PermissionsUIManager {
         try {
             let user = data.get(this).permObj.findValidUser(username);
             return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, () => {
-                return new User(user, data.get(this).appUser, data.get(this).permObj);
+                return new User(user, data.get(this).session);
             });
         } catch (e) {
             //console.log(e);
@@ -50,14 +54,15 @@ class UserManager extends PermissionsUIManager {
         try {
             return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
                 if (userData && (typeof userData === 'string' || userData.name)) {
-                    let user = new User(userData, data.get(this).appUser, this);
+                    let user = new User(userData, data.get(this).session);
                     return user;
                 } else {
-                    return "Parameter must be a username string or a object with mandatory a name and optionally a uid and state property.";
+                    data.get(this).session.console.outputError("Parameter must be a username string or a object with a mandatory name and optionally a uid and state property.");
                 }
             });
         } catch (e) {
-            return e.message;
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message);
         }
     }
 
@@ -91,11 +96,12 @@ class UserManager extends PermissionsUIManager {
     };
 
     changeUserState(user, state) {
+        let listeners = data.get(this).session.socket.listeners("data");
+        let appUser = data.get(this).appUser;
+        let session = data.get(this).session;
+        let cli = data.get(this).session.cli;
+        let userManager = data.get(this).permObj;
         if (state == "absent") {
-            let listeners = data.get(this).session.socket.listeners("data");
-            let appUser = data.get(this).appUser;
-            let session = data.get(this).session;
-            let userManager = data.get(this).permObj;
             session.socket.removeAllListeners("data");
             session.socket.write(`Mark user ${user.name ? user.name : user} absent? (This will mark user as absent in hosts) (y/n)\n\r`);
             let func = (data)=> {
@@ -104,13 +110,13 @@ class UserManager extends PermissionsUIManager {
                     Vincent.app.provider._writeAttributeCheck(appUser, userManager, ()=> {
                         try {
                             userManager.changeUserState(user, state);
-                            session.socket.write(`User ${user.name? user.name: user} marked absent.`);
+                            cli.outputWarning(`User ${user.name? user.name: user} marked absent.`);
                         } catch (e) {
-                            session.socket.write(e.message ? e.message : e);
+                            cli.outputError(e.message ? e.message : e);
                         }
                     });
                 } else {
-                    session.socket.write(`Changing of user ${user.name ? user.name : user} state cancelled.\r`);
+                    cli.outputWarning(`Changing of user ${user.name ? user.name : user} state cancelled.\r`);
                 }
                 session.socket.removeAllListeners("data");
                 for (var i = 0; i < listeners.length; i++) {
@@ -122,9 +128,9 @@ class UserManager extends PermissionsUIManager {
             return Vincent.app.provider._writeAttributeCheck(appUser, userManager, ()=> {
                 try {
                     userManager.changeUserState(user, state);
-                    session.socket.write(`User ${user.name} marked absent.\n\r`);
+                    cli.outputSuccess(`User ${user.name} marked absent.`);
                 } catch (e) {
-                    session.socket.write(e.message ? e.message : e);
+                    cli.outputError(e.message ? e.message : e);
                 }
             });
         }

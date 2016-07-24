@@ -10,11 +10,12 @@ import User from '../user/User';
 import HostGroup from './../group/HostGroup';
 import Group from './../group/Group';
 import _ from 'lodash';
+import HostComponent from '../base/HostComponent';
 
-class SudoEntry extends Base {
+class SudoEntry extends HostComponent {
 
     constructor(provider, data) {
-        super();
+        super(provider);
         this.data = {
             userList: {
                 users: [],

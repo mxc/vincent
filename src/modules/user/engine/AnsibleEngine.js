@@ -3,9 +3,9 @@
  */
 
 
-import EngineComponent from '../../base/EngineComponent';
+import AnsibleEngineComponent from '../../engines/AnsibleEngineComponent';
 
-class AnsibleEngine extends EngineComponent {
+class AnsibleEngine extends AnsibleEngineComponent {
 
     constructor(provider) {
         super();

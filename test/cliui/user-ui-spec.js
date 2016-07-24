@@ -9,6 +9,7 @@ import UserUI from '../../src/modules/user/ui/console/User';
 import UserManagerUI from '../../src/modules/user/ui/console/UserManager';
 import HostManagerUI from '../../src/modules/host/ui/console/HostManager';
 import Vincent from '../../src/Vincent';
+import Session from '../../src/ui/Session'
 
 describe("UI User object should", ()=> {
 
@@ -19,7 +20,22 @@ describe("UI User object should", ()=> {
     it("allow authorised users to create users", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI({appUser:appUser});
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+            let userManagerUi = new UserManagerUI(session);
             let user = userManagerUi.addUser("demoUser1");
             let user1 = userManagerUi.addUser({name: "demoUser2", uid: 1000});
             let user2 = userManagerUi.addUser({name: "demoUser3", uid: 1001, state: "present"});
@@ -42,13 +58,29 @@ describe("UI User object should", ()=> {
     it("return an error message when creating users with incorrect parameters", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI({appUser:appUser});
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            let userManagerUi = new UserManagerUI(session);
             let user = userManagerUi.addUser();
-            expect(user).to.equal("Parameter must be a username string or a object with mandatory a name and optionally a uid and state property.");
+            expect(result).to.equal("Parameter must be a username string or a object with a mandatory name and optionally a uid and state property.");
             user = userManagerUi.addUser({name: "demoUser2", uid: "abc"});
-            expect(user).to.equal("Uid must be a number.");
+            expect(result).to.equal("Uid must be a number.");
             user = userManagerUi.addUser({name: "demoUser3", uid: 1001, state: "deleted"}); //state can only be absetn or present
-            expect(user).to.equal('User state must be "present" or "absent".');
+            expect(result).to.equal('User state must be "present" or "absent".');
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -60,13 +92,29 @@ describe("UI User object should", ()=> {
     it("prevent users being created with duplicate names or uids", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI({appUser:appUser});
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+            let userManagerUi = new UserManagerUI(session);
             let user = userManagerUi.addUser("demoUser2");
             let user2 = userManagerUi.addUser({name: "demoUser2", uid: 1000});
-            expect(user2).to.equal("User demoUser2 already exists.");
+            expect(user2).to.be.undefined;
+            expect(result).to.equal("User demoUser2 already exists.");
             user2 = userManagerUi.addUser({name: "demoUser3", uid: 1000});
             let user3 = userManagerUi.addUser({name: "demoUser4", uid: 1000, state: "present"});
-            expect(user3).to.equal('User demoUser4 already exists with uid 1000.');
+            expect(result).to.equal('User demoUser4 already exists with uid 1000.');
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
@@ -78,7 +126,22 @@ describe("UI User object should", ()=> {
     it("allow authorised users to read user properties", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI({appUser:appUser});
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+            let userManagerUi = new UserManagerUI(session);
             let user = userManagerUi.addUser({name: "demoUser2", uid: 1000, state: "absent"});
             expect(user.name).to.equal("demoUser2");
             expect(user.uid).to.equal(1000);
@@ -90,53 +153,4 @@ describe("UI User object should", ()=> {
         }
     });
 
-    //there are no writable attributes for User
-
-/*
-    it("prevent unauthorised users from writing user properties", ()=> {
-        try {
-            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
-            let userManagerUi = new UserManagerUI(appUser);
-            let user = userManagerUi.addUser({name: "demoUser2", uid: 1000, state: "absent"});
-
-            let appUser2 = new AppUser("einstein", ["dev"], "devops");
-            let userManagerUi2 = new UserManagerUI(appUser2);
-            let user2 = userManagerUi2.getUser("demoUser2");
-            let func = ()=>{
-                user2.state = "absent";
-            };
-            expect(func).to.throw("User einstein does not have the required permissions for UserManager for the action write attribute");
-            func = ()=>{
-                user2.state = "absent";
-            };
-            expect(func).to.throw("User einstein does not have the required permissions for UserManager for the action write attribute");
-            func = ()=>{
-                user2.uid = 1004;
-            };
-            expect(func).to.throw("User einstein does not have the required permissions for UserManager for the action write attribute");
-            func = ()=>{
-                user2.state = "absent";
-            };
-            expect(func).to.throw("User einstein does not have the required permissions for UserManager for the action write attribute");
-        } finally {
-            Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
-        }
-    });
-*/
-
-
 });
-
-
-
-// describe("UI Manager ", ()=> {
-//
-//     //by default root user and useradmin group have read/write access to the user account store
-//     let provider = new Provider();
-//     Vincent.app = {provider: provider};
-//
-//
-//
-// });

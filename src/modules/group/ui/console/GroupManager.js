@@ -10,10 +10,11 @@ var data = new WeakMap();
 class GroupManager extends PermissionsUIManager{
     
     
-    constructor(appUser){
-        super(appUser, Vincent.app.provider.managers.groupManager);
+    constructor(session){
+        super(session, Vincent.app.provider.managers.groupManager);
         let obj = {};
-        obj.appUser = appUser;
+        obj.appUser = session.appUser;
+        obj.session = session;
         obj.permObj = Vincent.app.provider.managers.groupManager;
         data.set(this, obj);
     }
@@ -26,7 +27,6 @@ class GroupManager extends PermissionsUIManager{
                 }));
             });
         } catch (e) {
-            return e.message;
         }
     }
 

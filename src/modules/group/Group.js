@@ -66,7 +66,7 @@ class Group extends Base {
     }
 
     equals(group) {
-        if (!group instanceof Group) {
+        if (!(group instanceof Group)) {
             return false;
         } else {
             return group.name === this.data.name && group.gid == this.gid;

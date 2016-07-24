@@ -7,7 +7,10 @@ import {logger} from '../Logger';
 class Session {
 
     constructor() {
+        
         this.authenticated = false;
+        this.passwords = {};
+        this.cmd = [];
     }
 
     set socket(s){

@@ -89,7 +89,7 @@ class UserCategories {
     }
 
     deleteUserCategory(name) {
-        if (!typeof name == 'string' && !name instanceof UserCategory) {
+        if (!typeof name == 'string' && !(name instanceof UserCategory)) {
             throw new Error("Parameter must be a string or a UserCategory object.");
         }
         if (name instanceof UserCategory) {

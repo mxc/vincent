@@ -1,7 +1,7 @@
 ===V.I.N.Cent===
 
-VINCent is an JavaScript API and CLI interface which makea the generation of config files for dev ops configuration management tools, such as Ansible, Puppet and 
-Chef easier to do, easier to maintain and easier to query. Vincent provides a layer of abstraction for these tools with configurations stored in JSON format. The framework
+VINCent is an JavaScript API and CLI interface which makes the generation of config files for dev ops configuration management tools, such as Ansible, Puppet and 
+Chef easier to create, easier to maintain and easier to query. Vincent provides a layer of abstraction for these tools with configurations stored in JSON format. The framework
 has been built to allow for the development of engine plugins that will generate appropriate configuration files for the different tools. Currently Ansible support is being 
 developed and it is hoped, if the project is a success, that other engines will be added later.
 

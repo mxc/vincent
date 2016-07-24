@@ -1,26 +1,31 @@
-[
-  {
-    "name": "strict",
-    "config": {
-      "permitRoot": "no",
-      "validUsersOnly": "true",
-      "passwordAuthentication": "no"
+{
+  "owner": "root",
+  "group": "useradmin",
+  "permissions": 664,
+  "configs": [
+    {
+      "name": "strict",
+      "config": {
+        "permitRoot": "no",
+        "validUsersOnly": "true",
+        "passwordAuthentication": "no"
+      }
+    },
+    {
+      "name": "strict-with-root",
+      "config": {
+        "permitRoot": "without-password",
+        "validUsersOnly": "true",
+        "passwordAuthentication": "no"
+      }
+    },
+    {
+      "name": "loose",
+      "config": {
+        "permitRoot": "yes",
+        "validUsersOnly": "false",
+        "passwordAuthentication": "yes"
+      }
     }
-  },
-  {
-    "name": "strict-with-root",
-    "config": {
-      "permitRoot": "without-password",
-      "validUsersOnly": "true",
-      "passwordAuthentication": "no"
-    }
-  },
-  {
-    "name": "loose",
-    "config": {
-      "permitRoot": "yes",
-      "validUsersOnly": "false",
-      "passwordAuthentication": "yes"
-    }
-  }
-]
+  ]
+}

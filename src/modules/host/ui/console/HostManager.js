@@ -6,6 +6,7 @@ import Provider from '../../../../Provider';
 import Vincent from '../../../../Vincent';
 import {logger} from '../../../../Logger';
 import HostEntity from '../../Host';
+import Session from '../../../../ui/Session';
 
 var data = new WeakMap();
 
@@ -13,6 +14,9 @@ var data = new WeakMap();
 class HostManager {
 
     constructor(session) {
+        if(!(session instanceof Session)){
+            throw new Error("Parameter sessions must be an instance of Session.");
+        }
         let obj = {};
         obj.appUser = session.appUser;
         obj.session = session;
@@ -38,8 +42,8 @@ class HostManager {
             });
             return hosts;
         } catch (e) {
-            console.log(e.message);
-            return false;
+            data.get(this).session.console.outputError(e.message);
+            return;
         }
     }
 
@@ -57,7 +61,6 @@ class HostManager {
     }
 
     getHost(hostname, configGroup) {
-        console.log(configGroup);
         if (typeof hostname !== "string") {
             return "Parameter hostname must be of type string.";
         }
@@ -83,12 +86,12 @@ class HostManager {
                 });
             }
         } catch (e) {
-            return false;
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message? e.message: e);
         }
     }
 
     saveHosts() {
-        console.log("saving hosts");
         let counter = 0;
         data.get(this).permObj.validHosts.forEach((host)=> {
             let result = this.saveHost(host);

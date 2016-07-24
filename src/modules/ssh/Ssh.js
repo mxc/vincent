@@ -6,6 +6,7 @@
 
 import Base from './../base/Base';
 import {logger} from './../../Logger';
+import HostSsh from './ui/console/HostSsh';
 
 class Ssh extends Base {
 
@@ -17,18 +18,22 @@ class Ssh extends Base {
             passwordAuthentication: false
         };
         this.errors = [];
-        if (typeof data === 'object') {
-            if (data.permitroot) {
-                this.data.permitroot = this.getBooleanValue(data.permitroot);
+        if (typeof data == 'object') {
+            if (data.permitRoot!==undefined) {
+                if (data.permitRoot=="without-password"){
+                    this.data.permitRoot=data.permitRoot;
+                }else {
+                    this.data.permitRoot = this.getBooleanValue(data.permitRoot);
+                }
             } else {
                 logger.logAndAddToErrors("Ssh object is missing permitroot key. Using default",this.errors);
             }
-            if (data.validusersonly) {
-                this.data.validusersonly = this.getBooleanValue(data.validusersonly);
+            if (data.validUsersOnly!==undefined) {
+                this.data.validUsersOnly = this.getBooleanValue(data.validUsersOnly);
             } else {
                 logger.logAndAddToErrors("Ssh object is missing validuseronly key. Using default",this.errors);
             }
-            if (data.passwordAuthentication) {
+            if (data.passwordAuthentication!==undefined) {
                 this.data.passwordAuthentication = this.getBooleanValue(data.passwordAuthentication);
             } else {
                 logger.logAndAddToErrors("Ssh object is missing passwordAuthentication key. Using default",this.errors);
@@ -37,64 +42,37 @@ class Ssh extends Base {
             throw new Error("The data parameter to Ssh must be an object");
         }
     }
-
+    
     set permitRoot(val) {
-        this.data.permitroot = this.getBooleanValue(val);
+        this.data.permitRoot = this.getBooleanValue(val);
     }
 
     get permitRoot() {
-        return this.data.permitroot;
+        return this.data.permitRoot;
     }
 
     set validUsersOnly(val) {
-        this.data.permitroot = this.getBooleanValue(val);
+        this.data.validUsersOnly = this.getBooleanValue(val);
     }
 
     get validUsersOnly() {
-        return this.data.validusersonly;
+        return this.data.validUsersOnly;
     }
 
     set passwordAuthentication(val) {
-        this.data.permitroot = this.getBooleanValue(val);
+        this.data.passwordAuthentication = this.getBooleanValue(val);
     }
 
     get passwordAuthentication() {
-        return this.data.passwordauthentication;
-    }
-
-    addValidUser(host,user){
-        if (!this.data.validUsers){
-            this.data.validUsers =[];
-        }
-        if((user instanceof User || typeof user ==="string") && (host instanceof Host)){
-            let ua = this.provider.mananager._HostManager.findUserAccountForHostByUserName(host,user);
-            if(ua){
-                this.data.validUsers.push(ua.name);
-            }
-        }else{
-            logger.logAndThrow("Parameter user must be an instance of User or a username string.");
-        }
-    }
-
-    removeValidUser(host,user){
-        if (!this.data.validUsers){
-            return;
-        }
-        if((user instanceof User || typeof user ==="string") && (host instanceof Host)){
-            let ua = this.provider.mananager._HostManager.findUserAccountForHostByUserName(host,user);
-            if(ua){
-                let index = this.data.validUsers.indexOf(user.name? user.name: user);
-                if(index!=-1) {
-                    this.data.validUsers.splice(index,1);
-                }
-            }
-        }else{
-            logger.logAndThrow("Parameter user must be an instance of User or a username string.");
-        }
+        return this.data.passwordAuthentication;
     }
 
     export() {
         return this.data;
+    }
+    
+    toString(){
+        return `permitRoot:${this.data.permitRoot}, passwordAuthentication:${this.data.passwordAuthentication}, validUsersOnly:${this.data.validUsersOnly}`;
     }
 }
 

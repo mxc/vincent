@@ -16,7 +16,7 @@ class UserCategory  {
     }
 
     addReplaceUserAccount(userAccount){
-        if (!userAccount instanceof UserAccount){
+        if (!(userAccount instanceof UserAccount)){
             throw new Error("Parameter userAccount must be of type UserAccount.");
         }
         this.userAccounts.find((tUserAccount,index,array)=>{
@@ -40,7 +40,7 @@ class UserCategory  {
     }
 
     findUserAccountForUser(user){
-        if (!user instanceof User && typeof user !=='string'){
+        if (!(user instanceof User) && typeof user !=='string'){
             throw new Error("Parameter user must be of type User or a user name string.");
         }
         user = user instanceof User? user.name: user;

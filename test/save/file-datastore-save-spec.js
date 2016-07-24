@@ -256,6 +256,38 @@ describe("File DB save tests", function () {
         }
     ];
 
+    var sshConfigs = {
+        owner: "einstein",
+        group: "sysadmin",
+        permissions: "770",
+        configs: [
+            {
+                name: "strict",
+                config: {
+                    permitRoot: "no",
+                    validUsersOnly: "true",
+                    passwordAuthentication: "no"
+                }
+            },
+            {
+                name: "strict_with_root",
+                config: {
+                    permitRoot: "without-password",
+                    validUsersOnly: "true",
+                    passwordAuthentication: "no"
+                }
+            },
+            {
+                name: "loose",
+                config: {
+                    permitRoot: "yes",
+                    validUsersOnly: "false",
+                    passwordAuthentication: "yes"
+                }
+            }
+        ]
+    };
+
     //inject mocks
     let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
     let provider = new Provider(path.resolve(home, "vincenttest"));
@@ -264,6 +296,7 @@ describe("File DB save tests", function () {
     provider.managers.userManager.categories.loadFromJson(usercats);
     provider.managers.groupManager.categories.loadFromJson(groupcats);
     provider.managers.hostManager.loadHosts(hosts);
+    provider.managers.sshManager.loadFromJson(sshConfigs);
 
     it('should save valid user and archive previous file', ()=> {
         provider.managers.userManager.save();
@@ -311,6 +344,14 @@ describe("File DB save tests", function () {
         let success = provider.managers.groupManager.categories.save();
         expect(success).to.be.true;
         var result = fs.statSync(`${provider.getDBDir()}/includes/group-categories.json`);
+        //verify new file
+        expect(result.isFile()).to.be.true;
+    });
+
+    it('should save ssh configs', ()=> {
+        let success = provider.managers.sshManager.save();
+        expect(success).to.be.true;
+        var result = fs.statSync(`${provider.getDBDir()}/includes/ssh-configs.json`);
         //verify new file
         expect(result.isFile()).to.be.true;
     });

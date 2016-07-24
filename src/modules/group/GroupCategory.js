@@ -25,7 +25,7 @@ class GroupCategory {
     }
 
     findUser(user){
-        if(!user instanceof User && typeof user !=='string'){
+        if(!(user instanceof User) && typeof user !=='string'){
             throw new Error("Parameter user must be of type User or a user name string.");
         }
         let users=[];

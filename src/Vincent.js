@@ -26,9 +26,9 @@ class Vincent {
         } else {
             this.provider = new Provider(appDir);
         }
+        this.converters=new Map();
         Vincent.app = this;
     }
-
 
     startServer() {
         logger.info("staring server");

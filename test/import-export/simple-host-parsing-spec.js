@@ -265,7 +265,7 @@ describe("validating host configuration", function () {
     it("should detect hosts without a permissions property", function () {
         let host = provider.managers.hostManager.findValidHost("missing.permissions.com", "default");
         expect(host.permissions).to.equal(parseInt("660", 8));
-    });
+    });+
 
 
     it("should detect undefined users", function () {

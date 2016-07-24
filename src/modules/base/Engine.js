@@ -41,6 +41,10 @@ class Engine {
     getInfo(host) {
         throw new Error("Method must be overridden in child object");
     }
+    
+    getOperatingSystemFamily(host){
+        throw new Error("Method must be overridden in child object");
+    }
 
     log(msg) {
         this.logger.info(msg);

@@ -3,12 +3,14 @@
  */
 
 import HostComponent from '../../modules/base/HostComponent';
+import PermissionHelper from './PermissionHelper';
 
 var data = new WeakMap();
 
-class TaskObject {
+class TaskObject extends PermissionHelper{
 
-    constructor(object){
+    constructor(session,object,permObj){
+        super(session,permObj);
         if(!object instanceof HostComponent){
             throw new Error("Parameter object must be an instance of HostComponent.");
         }

@@ -9,7 +9,7 @@ import User from './../user/User';
 
 class RemoteAccess extends Base {
 
-    constructor(remoteUser, authentication, becomeUser) {
+    constructor(remoteUser, authentication, becomeUser,sudoAuthentication) {
         super();
         this.errors = [];
         this.data = {};
@@ -32,10 +32,24 @@ class RemoteAccess extends Base {
             this.errors.push(e);
         }
 
+        try{
+            this.sudoAuthentication=sudoAuthentication;
+        }catch(e){
+            this.errors.push(e);
+        }
+
         if (this.errors.length > 0) {
             let str = `Invalid configuration settings provided for RemoteAccess object./n/r${this.errors.join("/n/r")}`;
             throw new Error(str);
         }
+    }
+
+    get sudoAuthentication() {
+        return this.data.sudoAuthentication? this.data.sudoAuthentication: false;
+    }
+
+    set sudoAuthentication(enable) {
+        this.data.sudoAuthentication=enable;
     }
 
     get remoteUser() {
@@ -99,6 +113,9 @@ class RemoteAccess extends Base {
         }
         if(this.data.authentication){
             obj.authentication = this.data.authentication;
+        }
+        if(this.data.sudoAuthentication){
+            obj.sudoAuthentication = this.data.sudoAuthentication;
         }
         if (Object.keys(obj).length > 0){
             return obj

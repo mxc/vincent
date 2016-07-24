@@ -16,8 +16,11 @@ describe('When a new host is initialised for the ansible engine it', ()=> {
             this.timeout(15000);
             let provider = new Provider();
             //provider.init();
-            provider.managers.sshManager.loadFromJson([
-                {
+            provider.managers.sshManager.loadFromJson({
+                owner:"mark",
+                group:"mark",
+                permissions:"770",
+                configs:[{
                     name: "strict",
                     config: {
                         permitRoot: "no",
@@ -25,8 +28,9 @@ describe('When a new host is initialised for the ansible engine it', ()=> {
                         passwordAuthentication: "false"
                     }
                 }
-            ]);
+            ]});
             let host = new Host(provider, "192.168.122.137",'einstein','sysadmin',770);
+            provider.managers.hostManager.addHost(host);
             let ansibleUser = new User("ansibleAdmin");
             let mark = new User({name: "mark", key: "/home/mark/.ssh/newton/id_rsa.pub"});
             provider.managers.userManager.addValidUser(ansibleUser);
@@ -40,12 +44,9 @@ describe('When a new host is initialised for the ansible engine it', ()=> {
             provider.managers.userManager.addUserAccountToHost(host,ansibleUserAccount);
             provider.managers.sshManager.addSsh(host,"strict");
             host.remoteAccess = new RemoteAccess("ansibleAdmin", "password", "einstein");
-            //provider.manager.addValidGroup(host);
             provider.managers.hostManager.provisionHostForEngine(host);
             done();
-            //provider.engine.runPlaybook(host,(data)=>{ console.log(data); done();},'dagama','dagama');
-
         })
 
-})
+});
 

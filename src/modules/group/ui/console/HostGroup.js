@@ -8,7 +8,7 @@ import HostElement from '../../../host/Host';
 import Host from '../../../host/ui/console/Host';
 import Group from  './Group';
 import User from '../../../user/ui/console/User';
-import AppUser from '../../../../ui/AppUser';
+import Session from '../../../../ui/Session';
 import TaskObject from '../../../../ui/base/TaskObject';
 
 var data = new WeakMap();
@@ -16,12 +16,13 @@ var data = new WeakMap();
 
 class HostGroup extends TaskObject {
 
-    constructor(hostGroupData, host, appUser) {
+    constructor(hostGroupData, host, session) {
         let obj = {};
-        if (!appUser instanceof AppUser) {
-            throw new Error("Parameter appUser must be of type AppUser.");
+        if (!(session instanceof Session)) {
+            throw new Error("Parameter session must be of type Session.");
         }
-        obj.appUser = appUser;
+        obj.appUser = session.appUser;
+        obj.sesison=session;
         if (!(host instanceof Host) && !(host instanceof HostElement)) {
             //console.log("The host parameter must be of type Host.");
             throw new Error("HostGroup creation failed - parameter host not of type console Host or Host.");
@@ -58,7 +59,7 @@ class HostGroup extends TaskObject {
         }catch(e){
             //swallow error - hostgroup already part of host.
         }
-        super(obj.hostGroup);
+        super(session,obj.hostGroup,obj.permObj);
         data.set(this, obj);
     }
 
@@ -100,7 +101,7 @@ class HostGroup extends TaskObject {
                 }
                 if (_user) {
                     data.get(this).hostGroup.addMember(_user);
-                    return `${member} added to group ${this.group.name} members.`;
+                    return `${member} added to group ${this.name} members.`;
                 } else {
                     return `User ${member.name ? member.name : member} was not found in valid users list.`;
                 }
@@ -121,22 +122,22 @@ class HostGroup extends TaskObject {
         return `{ group: ${this.group.name},members:${this.members} }`;
     }
 
-    _readAttributeWrapper(func) {
-        try {
-            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-        } catch (e) {
-            //console.log(e);
-            return false;
-        }
-    }
-
-    _writeAttributeWrapper(func) {
-        try {
-            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-        } catch (e) {
-            return false;
-        }
-    }
+    // _readAttributeWrapper(func) {
+    //     try {
+    //         return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
+    //     } catch (e) {
+    //         //console.log(e);
+    //         return false;
+    //     }
+    // }
+    //
+    // _writeAttributeWrapper(func) {
+    //     try {
+    //         return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
+    //     } catch (e) {
+    //         return false;
+    //     }
+    // }
     
     get becomeUser(){
         return data.get(this).hostGroup.becomeUser;

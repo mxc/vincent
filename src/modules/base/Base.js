@@ -3,16 +3,16 @@ class Base {
     getBooleanValue(val) {
         if (typeof val === 'string') {
             val = val.toLowerCase();
-            if (val === 'yes' || val === 'true') {
+            if (val == 'yes' || val == 'true') {
                 return true;
             } else if (val === 'no' || val == 'false') {
                 return false;
             } else {
                 throw new Error("Boolean value must be 'true/yes' or 'false/no'");
             }
-        } else {
-            throw new Error("Boolean value must be 'true/yes' or 'false/no'");
-        }
+        } else if(typeof val =='boolean'){
+            return val;
+        }else  throw new Error("Boolean value must be 'true/yes' or 'false/no'");
     }
 
     idToJSON() {

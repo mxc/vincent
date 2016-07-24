@@ -7,23 +7,25 @@ import Vincent from '../../../../Vincent';
 import UserAccountElement from '../../../user/UserAccount';
 import HostElement from '../../../host/Host';
 import Host from '../../../host/ui/console/Host';
-import AppUser from '../../../../ui/AppUser';
+import Session from '../../../../ui/Session';
 import TaskObject from '../../../../ui/base/TaskObject';
 import AuthorizedUser from './AuthorizedUser';
+import {logger} from '../../../../Logger';
 
 var data = new WeakMap();
 
 class UserAccount extends TaskObject {
     
-    constructor(userData, host, appUser) {
+    constructor(userData, host, session) {
         let obj={};
-        if (!appUser instanceof AppUser) {
+        if (!(session instanceof Session)) {
             throw new Error("Parameter appUser must be of type AppUser.");
         }
-        obj.appUser = appUser;
+
+        obj.session = session;
+        obj.appUser = session.appUser;
 
         if (!(host instanceof Host)  && !(host instanceof HostElement)) {
-            //console.log("The host parameter must be of type Host.");
             throw new Error("UserAccount creation failed - parameter host not of type Host.");
         }
         let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
@@ -47,22 +49,21 @@ class UserAccount extends TaskObject {
             } else if (user) {
                 obj.userAccount = new UserAccountElement(Vincent.app.provider,{user: user});
             } else {
-                console.log(`The user ${userData} is not a valid user.`);
-                throw new Error(`The user ${userData} is not a valid user.`)
+                throw new Error(`The user ${userData} is not a valid user.`);
             }
             Vincent.app.provider.managers.userManager.addUserAccountToHost(obj.permObj, obj.userAccount);
         } else if (userData instanceof UserAccountElement) {
             obj.userAccount = userData;
         } else{
-            return  "UserAccount creation failed";
+            throw new Error(`User account creation failed.`);
         }
-        super(obj.userAccount);
+        super(session,obj.userAccount,obj.permObj);
         data.set(this,obj);
     }
 
     get user() {
         return this._readAttributeWrapper(()=> {
-            return Object.freeze(new User(data.get(this).userAccount.user,data.get(this).appUser,data.get(this).permObj));
+            return Object.freeze(new User(data.get(this).userAccount.user,data.get(this).session));
         });
     }
 
@@ -82,10 +83,11 @@ class UserAccount extends TaskObject {
         return this._readAttributeWrapper(()=> {
             return data.get(this).userAccount.authorized_keys.map((au)=> {
                 try {
-                    let tuser = new AuthorizedUser(au, data.get(this).appUser, data.get(this).permObj);
+                    let tuser = new AuthorizedUser(au, data.get(this).session, data.get(this).permObj);
                     return tuser;
                 }catch(e){
-                    return e.message;
+                    logger.error(e);
+                    data.get(this).session.console.outputError(e.message? e.message: e);
                 }
              });
         });
@@ -103,20 +105,21 @@ class UserAccount extends TaskObject {
                     data.get(this).userAccount.addAuthorizedUser(_user);
                     return this.authorized_keys;
                 } else {
-                    return "User was not found in valid users list.";
+                    data.get(this).session.console.outputWarning("User was not found in valid users list.");
                 }
             }catch(e){
-                return e.message? e.message:e;
+                data.get(this).session.console.outputError(e.message? e.message:e);
             }
         });
     }
     
     getAuthorizedUser(user){
-        if(!user instanceof User){
+        if(!(user instanceof User)){
             user = user.name;
         } 
         if(typeof user !=="string" ){
-            return "User must be an instance of User or a username string.";
+            data.get(this).session.console.outputError( "User must be an instance of User or a username string.");
+            return;
         }
         aus = this.authorized_keys;
         let found =aus.find((au)=>{
@@ -127,7 +130,8 @@ class UserAccount extends TaskObject {
         if(found){
             return found;
         }else{
-            return `${user} not found in authorized keys.`;
+            data.get(this).session.console.outputWarning(`${user} not found in authorized keys.`);
+            return;
         }
     }
     
@@ -143,10 +147,11 @@ class UserAccount extends TaskObject {
                     data.get(this).userAccount,changeAuthorizedUserState(_user,state);
                     return this.getAuthorizedUser(user.name);
                 } else {
-                    return "User was not found in valid users list.";
+                    data.get(this).session.console.outputWarning("User was not found in valid users list.");
+                    return;
                 }
             }catch(e){
-                return e.message? e.message:e;
+                data.get(this).session.console.outputError( e.message? e.message:e);
             }
         });
     }
@@ -159,27 +164,25 @@ class UserAccount extends TaskObject {
         return {
             user:  data.get(this).userAccount.user.name,
             state: data.get(this).userAccount.state,
-            authorized_keys:  data.get(this).userAccount.authorized_keys
+            authorized_keys:  JSON.stringify(data.get(this).userAccount.authorized_keys)
         }
     }
 
-    _readAttributeWrapper(func) {
-        try {
-            return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-        } catch (e) {
-            //console.log(e);
-            return false;
-        }
-    }
-
-    _writeAttributeWrapper(func) {
-        try {
-            return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
-        } catch (e) {
-            //console.log(e);
-            return false;
-        }
-    }
+    // _readAttributeWrapper(func) {
+    //     try {
+    //         return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
+    //     } catch (e) {
+    //         return false;
+    //     }
+    // }
+    //
+    // _writeAttributeWrapper(func) {
+    //     try {
+    //         return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
+    //     } catch (e) {
+    //         return false;
+    //     }
+    // }
     
 }
 

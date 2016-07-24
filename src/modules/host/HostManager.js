@@ -12,20 +12,22 @@ import UserManager from '../user/UserManager';
 import GroupManager from '../group/GroupManager';
 
 
+
 class HostManager extends Manager {
 
     constructor(provider) {
-        if (!provider instanceof Provider) {
+        if (!(provider instanceof Provider)) {
             throw new Error("Parameter provider must be an instance of provider");
         }
         super();
         this.provider = provider;
         this.validHosts =[];
         this.errors = {manager: []};
+        this.engines = provider.loader.loadEngines('host', provider);
     }
 
     exportToEngine(engine, host, struct) {
-        //na
+        this.engines[engine].exportToEngine(host, struct);
     }
 
     addHost(host) {
@@ -112,9 +114,11 @@ class HostManager extends Manager {
             }
             //if (!targetHost instanceof Host) {
             //check if it is a valud host and user has access rights to host.
-            targetHost = this.findValidHost(targetHost);
-            //}
-            return this.provider.engine.export(targetHost);
+            let rtargetHost = this.findValidHost(targetHost);
+            if(!rtargetHost){
+                throw new Error(`Host ${targetHost.name? targetHost.name: targetHost} was not found in valid hosts`);
+            }
+            return this.provider.engine.export(rtargetHost);
         } else {
             throw new Error("The parameter  host to provisionHostForEngine must be of type Host or " +
                 "an HostComponent object");
@@ -122,16 +126,16 @@ class HostManager extends Manager {
     }
 
     loadHosts(hosts) {
-        //load hosts
-        hosts.forEach((hostDef) => {
-            try {
-                let host = this.loadFromJson(hostDef);
-            }
-            catch (e) {
-                logger.logAndAddToErrors(`Error loading host - ${e.message}`,
-                    this.errors.manager);
-            }
-        });
+            //load hosts
+            hosts.forEach((hostDef) => {
+                try {
+                    let host = this.loadFromJson(hostDef);
+                }
+                catch (e) {
+                    logger.logAndAddToErrors(`Error loading host - ${e.message}`,
+                        this.errors.manager);
+                }
+            });
         return this.validHosts;
     }
 
@@ -147,7 +151,9 @@ class HostManager extends Manager {
             group: hostDef.group,
             permissions: hostDef.permissions,
             remoteAccess: hostDef.remoteAccess,
-            configGroup: hostDef.configGroup
+            configGroup: hostDef.configGroup,
+            osFamily:hostDef.osFamily? hostDef.osFamily:"unknown",
+            keepSystemUpdated: hostDef.keepSystemUpdated? hostDef.keepSystemUpdated: false
         };
 
         let host = {};
@@ -198,6 +204,7 @@ class HostManager extends Manager {
     }
 
     loadConsoleUIForSession(context, session) {
+        super.loadConsoleUIForSession(context,session);
         context.hostManager = new ConsoleHostManager(session);
     }
 
@@ -219,7 +226,7 @@ class HostManager extends Manager {
 
     saveHost(host, backup = true) {
         let config = host.configGroup;
-        if (!host instanceof Host) {
+        if (!(host instanceof Host)) {
             logger.logAndThrow("Host parameter must be of type host");
         }
         //check if hosts folder exists and create if not

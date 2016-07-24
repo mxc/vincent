@@ -30,6 +30,8 @@ class Host extends Base {
             this.owner = owner;
             this.group = group;
             this.permissions = permissions ? permissions : "660";
+            this.keepSystemUpdated=false;
+            this.osFamily="unknown";
             //avoid init fields problem for detecting changes in name/configGroup
             this.data.configGroup = configGroup ? configGroup : "default";
         } else if (typeof data === 'object') {
@@ -37,15 +39,11 @@ class Host extends Base {
                 logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
             }
             this.name=data.name;
-            // this.data = {
-            //     name: data.name
-            // };
-            //if(!data.owner  || !data.group){
-            //    logger.logAndThrow(`${data.name} requires a valid owner and group.`);
-            //}
             this.owner = data.owner;
             this.group = data.group;
             this.permissions = data.permissions ? data.permissions : "660";
+            this.keepSystemUpdated=data.keepSystemUpdated? data.keepSystemUpdated: false;
+            this.osFamily=data.osFamily? data.osFamily: "unknown";
             //avoid init fields problem for detecting changes in name/configGroup
             this.data.configGroup = data.configGroup ? data.configGroup : "default";
         }
@@ -55,13 +53,14 @@ class Host extends Base {
             try {
                 let remoteAccessDef = data.remoteAccess;
                 let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
-                    remoteAccessDef.authentication, remoteAccessDef.becomeUser);
+                    remoteAccessDef.authentication, remoteAccessDef.becomeUser,remoteAccessDef.sudoAuthentication);
                 this.data.remoteAccess = remoteAccess;
             } catch (e) {
                 logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
                     this.errors);
             }
         }
+        this.data.configs = new HostComponentContainer("configs");
     }
 
     set name(name) {
@@ -88,6 +87,14 @@ class Host extends Base {
 
     get permissions() {
         return this.data.permissions;
+    }
+
+    get osFamily(){
+        return this.data.osFamily;
+    }
+    
+    get keepSystemUpdated(){
+        return this.data.keepSystemUpdated;
     }
 
     //todo check if this is a valid user?
@@ -118,8 +125,24 @@ class Host extends Base {
         this.data.permissions = dperms;
     }
 
+    set osFamily(osFamily){
+            this.data.osFamily=osFamily;
+    }
+
+    set keepSystemUpdated(enabled){
+        if(typeof enabled == "boolean" ){
+            this.data.keepSystemUpdated=enabled;
+        }else{
+            logger.logAndThrow("The property keepSystemUpdated requires a boolean data type;");
+        }
+    }
+
     get configGroup() {
         return this.data.configGroup;
+    }
+
+    get configs(){
+        return this.data.configs;
     }
 
     set configGroup(configGroup) {
@@ -150,12 +173,29 @@ class Host extends Base {
         if (!remoteAccess) {
             this.data.remoteAccess = null;
         }
-        if (!remoteAccess instanceof RemoteAccess) {
+        if (!(remoteAccess instanceof RemoteAccess)) {
             throw new Error("The parameter remoteAccessObj must be of type RemoteAccess");
         }
         this.data.remoteAccess = remoteAccess;
     }
 
+    getConfig(key){
+        let obj = this.configs.container[key];
+        if(!obj){
+            logger.logAndThrow(`No config for ${key} was found.`);
+         }
+        return obj;
+    }
+    
+    deleteConfig(key){
+        let obj = this.configs.container[key];
+        if(!obj){
+            logger.logAndThrow(`No config for ${key} was found.`);
+        }
+        //todo call all entity delte methods
+        delete this.configs.container[key];
+    }
+    
     export() {
         let keys = Object.keys(this.data);
         let obj = {};
@@ -164,7 +204,7 @@ class Host extends Base {
                 obj[prop] = parseInt(this.data.permissions.toString(8));
                 return;
             }
-            if(prop=="deleted"){
+            if(prop=="deleted" || (prop=="configs" && Object.keys(this.data[prop].container).length==0)){
                 return;
             }
             if (Array.isArray(this.data[prop]) && this.data[prop].length > 0 && this.data[prop][0] instanceof HostComponent) {

@@ -4,9 +4,9 @@
 import Provider from '../../src/Provider';
 import {expect} from 'chai';
 import AppUser from '../../src/ui/AppUser';
-import HostUI from '../../src/modules/host/ui/console/Host';
 import HostManagerUI from '../../src/modules/host/ui/console/HostManager';
 import Vincent from '../../src/Vincent';
+import Session from '../../src/ui/Session';
 
 describe("HostManager UI should", ()=> {
 
@@ -15,13 +15,28 @@ describe("HostManager UI should", ()=> {
 
     it("prevent unauthorised users from loading engine definitions for hosts without permissions", (done)=> {
         let appUser = new AppUser("newton", ["dev"], "devops");
-        let hostManagerUi = new HostManagerUI({
-               appUser:appUser,
-               socket: {
-                    write: ()=> {
-                    }
-                }
-        });
+        let result="";
+        let session = new Session();
+        session.appUser = appUser;
+        session.console={
+            test:function(){},
+            outputError: function (msg) {
+                result=msg;
+            },
+            outputWarning: function (msg) {
+                result = msg;
+            },
+            outputSuccess: function (msg) {
+                result =  msg;
+            }
+        };
+
+        session.socket = {
+            write: ()=> {
+            }
+        };
+
+        let hostManagerUi = new HostManagerUI(session);
         let host = hostManagerUi.addHost("dogzrule.co.za");
         //change host owner
         host.owner = "einstein";
@@ -41,7 +56,24 @@ describe("HostManager UI should", ()=> {
 
     it("allow authorised users to load engine definitions for hosts with permissions", (done)=> {
         let appUser = new AppUser("newton", ["dev"], "devops");
-        let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+        let result="";
+
+        let session = new Session();
+        session.appUser = appUser;
+        session.console={
+            test:function(){},
+            outputError: function (msg) {
+                result=msg;
+            },
+            outputWarning: function (msg) {
+                result = msg;
+            },
+            outputSuccess: function (msg) {
+                result =  msg;
+            }
+        };
+
+        let hostManagerUi = new HostManagerUI(session);
         let host = hostManagerUi.addHost("dogzrule.co.za");
         //change host owner
         hostManagerUi.generatePlaybooks().then((results)=> {
@@ -57,14 +89,33 @@ describe("HostManager UI should", ()=> {
     it("prevent unauthorised users from obtaining a reference to a host", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner
             host.permissions = "700";
             host.group = "einstein";
             host.owner = "einstein";
             var tmpHost = hostManagerUi.getHost("dogzrule.co.za");
-            expect(tmpHost).to.deep.equal(false);
+            expect(result).to.equal("User newton does not have the required permissions for dogzrule.co.za for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -74,7 +125,27 @@ describe("HostManager UI should", ()=> {
     it("allow authorised users to obtain a reference to a host", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za", "web");
             let tmpHost = hostManagerUi.getHost("dogzrule.co.za", "web");
             expect(tmpHost).to.deep.equal(host);
@@ -87,7 +158,26 @@ describe("HostManager UI should", ()=> {
     it("prevent unauthorised users from saving a host definition", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner
             host.group = "einstein";
@@ -106,7 +196,26 @@ describe("HostManager UI should", ()=> {
     it("allow authorised users to save a host definition", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za", "web");
             Vincent.app.provider.managers.hostManager.saveHost = ()=> {
                 return true
@@ -122,7 +231,28 @@ describe("HostManager UI should", ()=> {
     it("only save host definitions to which the appUser has write permissions when invoking saveAll", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             let host2 = hostManagerUi.addHost("locatzsux.co.za");
             host2.group = "einstein";
@@ -131,8 +261,8 @@ describe("HostManager UI should", ()=> {
             //Vincent.app.provider.managers.hostManager.saveHost = ()=> {
             //    return true
             //};
-            let result = hostManagerUi.saveHosts();
-            expect(result).to.equal(1);
+            let result2 = hostManagerUi.saveHosts();
+            expect(result2).to.equal(1);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -142,7 +272,28 @@ describe("HostManager UI should", ()=> {
     it("prevent unauthorised users from listing hosts", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"]);
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host1 = hostManagerUi.addHost("dogzrule.co.za");
             let host2 = hostManagerUi.addHost("catzsux.co.za");
             host2.group = "einstein";
@@ -168,7 +319,28 @@ describe("Host UI should", ()=> {
 
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //change host owner
             host.owner = "einstein";
@@ -184,7 +356,28 @@ describe("Host UI should", ()=> {
     it("allow authorised users to load engine definitions", (done)=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("dogzrule.co.za");
             //mock out export function
             Vincent.app.provider.engine.export = ()=> {
@@ -208,15 +401,36 @@ describe("Host UI should", ()=> {
     it("prevent unauthorised users from reading attributes host", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"]);
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host2 = hostManagerUi.addHost("catzsux.co.za");
             host2.group = "einstein";
             host2.owner = "einstein";
             host2.permissins = "700";
-            expect(host2.owner).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(host2.group).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(host2.permissions).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(host2.name).to.equal("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=>{host2.owner}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=>{host2.group}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=>{host2.permissions}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=>{host2.name}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -226,7 +440,26 @@ describe("Host UI should", ()=> {
     it("allow authorised users to read attributes of host", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host2 = hostManagerUi.addHost("catzsux.co.za");
             expect(host2.owner).to.equal("newton");
             expect(host2.group).to.equal("dev");
@@ -241,7 +474,27 @@ describe("Host UI should", ()=> {
     it("prevent unauthorised users from writing attributes of host", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"]);
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+
+            let hostManagerUi = new HostManagerUI(session);
             let host2 = hostManagerUi.addHost("catzsux.co.za");
             host2.owner = "einstein";
             host2.permissions = 700;
@@ -270,7 +523,27 @@ describe("Host UI should", ()=> {
     it("allow authorised users to set attributes of host", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-            let hostManagerUi = new HostManagerUI({appUser: appUser, session: {}});
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                test:function(){},
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+
+            session.socket = {
+                write: ()=> {
+                }
+            };
+            let hostManagerUi = new HostManagerUI(session);
             let host2 = hostManagerUi.addHost("catzsux.co.za");
             host2.group = "test1";
             host2.permissions = 777;

@@ -3,39 +3,65 @@
  */
 import {logger} from '../../Logger';
 import Provider from '../../Provider';
-import Manager from '../base/Manager';
-import HostSsh from '../ssh/HostSsh'
+import HostSsh from './HostSsh'
+import SSH from './Ssh';
+
 import Host from '../host/Host';
-import ModuleLoader from '../../utilities/ModuleLoader';
 import UserManager from '../user/UserManager';
 import GroupManager from '../group/GroupManager';
 import HostComponentContainer from '../base/HostComponentContainer';
+import PermissionsManager from '../base/PermissionsManager';
+import HostSshUI from '../ssh/ui/console/HostSsh';
+import HostUI from '../host/ui/console/Host';
+import SSHManagerUI from './ui/console/SSHManager';
+import User from "../user/User";
 
-class SshManager extends Manager {
+class SshManager extends PermissionsManager {
 
     constructor(provider) {
         if (!provider || !(provider instanceof Provider)) {
             logger.logAndThrow("Parameter data provider must be of type provider");
         }
-        super();
+        super(provider);
         this.data = {};
         this.data.configs = {};
         this.provider = provider;
         this.errors = [];
-        this.engines = provider.loader.loadEngines('ssh',provider);
+        this.engines = provider.loader.loadEngines('ssh', provider);
     }
 
-
-    exportToEngine(engine,host,struct){
-        this.engines[engine].exportToEngine(host,struct);
+    exportToEngine(engine, host, struct) {
+        this.engines[engine].exportToEngine(host, struct);
     }
 
-    addSshConfig(sshConfig) {
-        //todo
+    export() {
+        var obj = {
+            owner: this.owner,
+            group: this.group,
+            permissions: this.permissions.toString(8),
+            configs: []
+        };
+        Object.keys(this.data.configs).forEach((key)=>{
+           obj.configs.push({ name:key, config:this.data.configs[key]});
+        });
+        return obj;
     }
 
-    get state() {
-        return this._state;
+    addConfig(name, sshConfig) {
+       try{
+           let ssh = new SSH(sshConfig);
+           this.data.configs[name]=ssh.export();
+       }catch(e){
+           logger.logAndThrow(`Error parsing sshConfig for ${name}`);
+       }
+    }
+
+    removeConfig(name){
+        if(this.data.configs[name]){
+            delete this.data.configs[name];
+        }else{
+            logger.logAndThrow(`Config ${name} not found in ssh configs.`);
+        }
     }
 
     get configs() {
@@ -55,15 +81,17 @@ class SshManager extends Manager {
     }
 
     loadFromJson(sshconfigsData) {
-            sshconfigsData.forEach((sshconfig)=> {
-                if (!sshconfig.config) {
-                    logger.logAndAddToErrors("Ssh config data must have a property of type 'config' " +
-                        "with a valid config definition", this.errors);
-                } else {
-                    this.data.configs[sshconfig.name] = sshconfig.config;
-                    this._state = "loaded";
-                }
-            });
+        this.owner = sshconfigsData.owner;
+        this.group = sshconfigsData.group;
+        this.permissions = sshconfigsData.permissions;
+        sshconfigsData.configs.forEach((sshConfig)=> {
+            if (!sshConfig.config) {
+                logger.logAndAddToErrors("Ssh config data must have a property of type 'config' " +
+                    "with a valid config definition", this.errors);
+            } else {
+                this.addConfig(sshConfig.name,sshConfig.config);
+            }
+        });
     }
 
     findSSHConfig(name) {
@@ -76,57 +104,127 @@ class SshManager extends Manager {
 
     loadHost(hosts, host, hostDef) {
         //Configure hostSsh for host if configured
-        if (hostDef.config && hostDef.config.ssh) {
+        if (hostDef.configs && hostDef.configs.ssh) {
             try {
-                this.addSsh(host, hostDef.config.ssh);
+                this.addSsh(host, hostDef.configs.ssh);
             } catch (e) {
                 logger.logAndAddToErrors(`Error adding ssh to host - ${e.message}`,
-                    hosts.errors[host.name].get(host.config));
+                    hosts.errors[host.name].get(host.configGroup));
             }
         }
     }
 
     addSsh(host, config) {
 
-        if(!host instanceof Host){
+        if (!(host instanceof Host)) {
             logger.logAndThrow(`Parameter host must be an instance of Host.`);
         }
 
-        if (!host.data.config){
-            host.data.config = new HostComponentContainer("config");
+        if (!host.data.config) {
+            host.data.configs = new HostComponentContainer("configs");
         }
 
         if (typeof config === 'object') {
-            host.data.config.add("ssh",new HostSsh(this.provider, config));
+            let hostSsh = new HostSsh(this.provider, config);
+            host.data.configs.add("ssh", hostSsh);
+            return hostSsh;
         } else {
             let configDef = this.findSSHConfig(config);
             if (!configDef) {
                 logger.logAndThrow(`Ssh config '${config}' not found.`);
             }
-            host.data.config.add("ssh",new HostSsh(this.provider, configDef));
+            let hostSsh = new HostSsh(this.provider, configDef);
+            host.data.configs.add("ssh", hostSsh);
+            return hostSsh;
         }
+
     }
 
     getSsh(host) {
-        if (host.data.config) {
-            return host.data.config.get("ssh");
+        if (host.data.configs) {
+            return host.data.configs.get("ssh");
         }
     }
 
-    static getDependencies(){
-        return [UserManager,GroupManager];
+    save(backup = true) {
+        return this.provider.saveToFile("includes/ssh-configs.json", this, backup);
     }
 
-    loadConsoleUIForSession(context,session) {
-        //no op
+    static getDependencies() {
+        return [UserManager, GroupManager];
     }
 
-    entityStateChange(ent){
+    loadConsoleUIForSession(context, session) {
+        super.loadConsoleUIForSession(context, session);
+        if (!HostUI.prototype.addSshConfig) {
+            HostUI.prototype.addSshConfig = function (sshConfig) {
+                let func = function () {
+                    return this.genFuncHelper(function (sshConfig, tsession, permObj) {
+                        var hostSsh = new HostSshUI(sshConfig, permObj, tsession);
+                        return hostSsh;
+                    }, sshConfig);
+                };
+                func = func.bind(this);
+                return this._writeAttributeWrapper(func);
+            };
+        }
+        context.sshManager = new SSHManagerUI(session);
+    }
+
+    entityStateChange(ent) {
         //noop
     }
 
-    deleteEntity(ent){
+    deleteEntity(ent) {
         //noop
+    }
+
+    addValidUser(host, user) {
+        if ((user instanceof User || typeof user === "string") && (host instanceof Host)) {
+            let ssh = host.getConfig("ssh");
+            if (!ssh) {
+                throw new Error(`${host.name} does not have a ssh config;`);
+            }
+            if (!ssh.validUsers) {
+                ssh.validUsers = [];
+            }
+
+            let ua = this.provider.managers.userManager.findUserAccountForHostByUserName(host, user);
+            if (ua) {
+                ssh.validUsers.push(ua.name);
+                ssh.validUsersOnly=true;
+                return ssh.validUsers;
+            } else {
+                logger.logAndThrow(`User ${user.name ? user.name : user} is not a valid user or does not have a user account on host ${host.name}.`);
+            }
+        } else {
+            logger.logAndThrow("Parameter user must be an instance of User or a username string.");
+        }
+    }
+
+    removeValidUser(host, user) {
+        if ((user instanceof User || typeof user === "string") && (host instanceof Host)) {
+            let ssh = host.getConfig("ssh");
+            if (!ssh) {
+                throw new Error(`${host.name} does not have a ssh config;`);
+            }
+            if (!this.data.validUsers) {
+                return;
+            }
+            let ua = this.provider.mananager._HostManager.findUserAccountForHostByUserName(host, user);
+            if (ua) {
+                let index = ssh.validUsers.indexOf(user.name ? user.name : user);
+                if (index != -1) {
+                    ssh.validUsers.splice(index, 1);
+                    if (ss.validUsers.length==0){
+                        this.addValidUsersOnly=false;
+                    }
+                }
+                return ssh.validUsers;
+            }
+        } else {
+            logger.logAndThrow("Parameter user must be an instance of User or a username string.");
+        }
     }
 
 }

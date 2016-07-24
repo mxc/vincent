@@ -5,15 +5,23 @@
 
 import Vincent from '../Vincent';
 import PermissionHelper from './base/PermissionHelper';
+import Session from '../ui/Session';
+import {logger} from '../Logger';
 
 var data = new WeakMap();
 
 
 class PermissionsUIManager extends PermissionHelper {
 
-    constructor(appUser,manager){
-        super(appUser,manager);
-        data.set(this,{appUser:appUser,permObj:manager})
+    constructor(session,manager){
+        if(!(session instanceof Session)){
+            let error = new Error(`The session parameter must have a Session instance for ${manager.constructor.name}.`);
+            logger.error(error.stack);
+            logger.logAndThrow(e.message);
+
+        }
+        super(session,manager);
+        data.set(this,{appUser:session.appUser,session: session,permObj:manager})
     }
 
     get owner(){
@@ -53,7 +61,7 @@ class PermissionsUIManager extends PermissionHelper {
     }
     
     genFuncHelper(genfunc,objdata){
-        return genfunc(objdata,data.get(this).appUser,data.get(this).permObj);
+        return genfunc(objdata,data.get(this).session,data.get(this).permObj);
     }
 
 }
