@@ -6,8 +6,7 @@ import HostEntity from '../../Host';
 import Vincent from '../../../../Vincent';
 import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
 import Session from '../../../../ui/Session';
-import RemoteAccess from '../../RemoteAccess';
-import chalk from 'chalk';
+import RemoteAccess from './RemoteAccess';
 
 var data = new WeakMap();
 
@@ -45,129 +44,8 @@ class Host extends PermissionsUIManager {
         this.info = "Not Available";
     }
 
-    get remoteUser() {
-        return this._readAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            if (!ra) {
-                return "currentUser";
-            } else {
-                return data.get(this).permObj.remoteAccess.remoteUser;
-            }
-        });
-    }
-
-    //to do make engine independent
-    updateOSFamily() {
-        if (this.info!="Not Available") {
-            this.osFamily = this.info.ansible_os_family;
-            if (!this.osFamily) {
-                this.osFamily = "unknown";
-                data.get(this).session.console.outputError("Could not determine Os Family. Please update manually.");
-            }
-            data.get(this).session.console.outputSuccess(`OS detected as ${this.osFamily}. Host updated.`);
-        } else {
-            data.get(this).session.console.outputSuccess("Querying host for osFamily. Please be patient.");
-            this.getInfo((result)=> {
-                this.info = result;
-                if (!this.info) {
-                    this.info = "failed";
-                }
-                data.get(this).session.console.outputSuccess("Query successful.");
-                this.updateOSFamily();
-            });
-        }
-    }
-
-    set remoteUser(remoteUser) {
-        this._writeAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            if (!ra) {
-                data.get(this).permObj.remoteAccess = new RemoteAccess(remoteUser);
-            } else {
-                data.get(this).permObj.remoteAccess.remoteUser = remoteUser;
-            }
-        });
-    }
-
-    get remoteAuth() {
-        return this._readAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            if (!ra) {
-                return "publicKey";
-            } else {
-                return data.get(this).permObj.remoteAccess.authentication;
-            }
-        });
-    }
-
-    set remoteAuth(remoteAuth) {
-        this._writeAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            try {
-                if (!ra) {
-                    data.get(this).permObj.remoteAccess = new RemoteAccess("currentUser", remoteAuth);
-                } else {
-                    data.get(this).permObj.remoteAccess.authentication = remoteAuth;
-                }
-            } catch (e) {
-                data.get(this).session.socket.write(e.message ? e.message : e);
-            }
-        });
-    }
-
-    get remoteSudoAuth(){
-        return this._readAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            if (!ra) {
-                return false;
-            } else {
-                return data.get(this).permObj.remoteAccess.sudoAuthentication;
-            }
-        });
-    }
-
-    set remoteSudoAuth(sudoAuth) {
-        this._writeAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            try {
-                if (!ra) {
-                    data.get(this).permObj.remoteAccess = new RemoteAccess("currentUser", "publicKey");
-                    data.get(this).permObj.remoteAccess.sudoAuthentication=sudoAuth;
-                } else {
-                    data.get(this).permObj.remoteAccess.sudoAuthentication = sudoAuth;
-                }
-            } catch (e) {
-                data.get(this).session.socket.write(e.message ? e.message : e);
-            }
-        });
-    }
-
-
-
-    get becomeUser() {
-        return this._readAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            if (!ra) {
-                return false;
-            } else {
-                return data.get(this).permObj.remoteAccess.becomeUser;
-            }
-        });
-    }
-
-    set becomeUser(becomeUser) {
-        this._writeAttributeWrapper(()=> {
-            let ra = data.get(this).permObj.remoteAccess;
-            try {
-                if (!ra) {
-                    data.get(this).permObj.remoteAccess = new RemoteAccess("currentUser", "publicKey", becomeUser);
-                } else {
-                    data.get(this).permObj.remoteAccess.becomeUser = becomeUser;
-                }
-            } catch (e) {
-                return e.message ? e.message : e;
-            }
-        });
+    get remoteAccess(){
+      return new RemoteAccess(data.get(this).permObj.remoteAccess);
     }
 
     getInfo(func) {
@@ -202,7 +80,7 @@ class Host extends PermissionsUIManager {
                     }
                     if (!password) {
                         cli.outputError(`Host ${host.name} uses password authentication but no password has been set.\n`
-                            + `Please set your password with ".password ${host.name}.${chalk.styles.red.close}`);
+                            + `Please set your password with ".password ${host.name}.`);
                         return;
                     }
                 }
@@ -231,7 +109,7 @@ class Host extends PermissionsUIManager {
                     remoteUsername, password, sudoPassword).then(func, (err)=> {
                     cli.outputError(`Error during host information retrieval - ${err}`);
                 }).catch((e)=> {
-                    cli.outputError(`There was an error getting info for ${data.get(this).permObj.name} - ${e.message ? e.message : e}${chalk.styles.red.close}`);
+                    cli.outputError(`There was an error getting info for ${data.get(this).permObj.name} - ${e.message ? e.message : e}`);
                 });
                 return `${host.name} info query has been submitted. Results will be available shortly.`;
             } catch (e) {
@@ -301,19 +179,6 @@ class Host extends PermissionsUIManager {
         });
     }
 
-    get keepSystemUpdated() {
-        return this._readAttributeWrapper(()=> {
-            return data.get(this).permObj.keepSystemUpdated;
-        });
-    }
-
-    set keepSystemUpdated(enabled) {
-        return this._readAttributeWrapper(()=> {
-            data.get(this).permObj.keepSystemUpdated = enabled;
-        });
-    }
-
-
     get osFamily() {
         return this._readAttributeWrapper(()=> {
             return data.get(this).permObj.osFamily;
@@ -336,7 +201,6 @@ class Host extends PermissionsUIManager {
                     group: data.get(this).permObj.group,
                     permissions: data.get(this).permObj.permissions.toString(8),
                     osFamily: data.get(this).permObj.osFamily,
-                    keepSystemUpdated: data.get(this).permObj.keepSystemUpdated
                 };
             });
         } catch (e) {
@@ -435,7 +299,7 @@ class Host extends PermissionsUIManager {
                 Vincent.app.provider.engine.runPlaybook(host, checkHostKey, privateKeyPath,
                     remoteUsername, password, sudoPassword).then((results)=> {
                     this.lastResults = results.toString();
-                    cli.outputSuccess(`${chalk.styles.green.open}${this.lastResults}${chalk.styles.green.close}\n`);
+                    cli.outputSuccess(`${this.lastResults}\n`);
                 }).catch((e)=> {
                     cli.outputError(`There was an error running playbook for ${data.get(this).permObj.name} ` +
                         `- ${e.message ? e.message : e}`);
@@ -446,18 +310,6 @@ class Host extends PermissionsUIManager {
             }
         });
     }
-
-    // _readAttributeWrapper(func) {
-    //     try {
-    //         return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-    //     } catch (e) {
-    //         return e.message;
-    //     }
-    // }
-    //
-    // _writeAttributeWrapper(func) {
-    //     return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-    // }
 
     get listConfigs() {
         return Object.keys(data.get(this).permObj.configs.container);
@@ -484,6 +336,15 @@ class Host extends PermissionsUIManager {
             return;
         }
         return new converter(obj, this, data.get(this).session);
+    }
+
+    deleteConfig(key){
+        try{
+            data.get(this).permObj.removeConfig(key);
+            data.get(this).session.console.outputSuccess(`Configuration for ${key} has been removed from host ${this.name}.`);
+        }catch(e){
+            data.get(this).session.console.outputError(e.message);
+        }
     }
 
 }

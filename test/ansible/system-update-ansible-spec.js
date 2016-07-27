@@ -1,4 +1,7 @@
 /**
+ * Created by mark on 2016/07/26.
+ */
+/**
  * Created by mark on 2016/07/24.
  */
 
@@ -11,7 +14,7 @@ import User from  './../../src/modules/user/User';
 import Group from  './../../src/modules/group/Group';
 import AppUser from  './../../src/ui/AppUser';
 
-describe("SSH Engine export should", function () {
+describe("System Update Engine export should", function () {
 
     let provider = new Provider();
 
@@ -43,11 +46,12 @@ describe("SSH Engine export should", function () {
         ];
 
         var host = {
-            name: "www.example.co.za",
+            name: "www.example.com",
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
             configGroup: "default",
+            osFamily: "Debian",
             users: [
                 {
                     user: {name: "user1"},
@@ -84,10 +88,10 @@ describe("SSH Engine export should", function () {
 
             ],
             configs: {
-                ssh: {
-                    permitRoot: false,
-                    passwordAuthentication: false,
-                    validUsersOnly: false
+                systemUpdate: {
+                    updateCache: "yes",
+                    update: "yes",
+                    autoremove: "yes"
                 }
             }
         };
@@ -95,41 +99,21 @@ describe("SSH Engine export should", function () {
         let provider = new Provider();
         //inject mocks
         let appUser = new AppUser("einstein", ["sysadmin"]);
-
         provider.managers.groupManager.validGroups = validGroups;
         provider.managers.userManager.validUsers = validUsers;
         provider.managers.hostManager.loadFromJson(host);
+        let thost = provider.managers.hostManager.findValidHost(host.name, host.configGroup);
 
-        let host1 = provider.managers.hostManager.findValidHost("www.example.co.za", "default");
-        provider.managers.sshManager.addValidUser(host1, "user1");
         let tasks = [];
-        provider.managers.sshManager.exportToEngine("ansible", host1, tasks);
-        let tresult = [{
-            name: 'Ssh config PermitRoot state check',
-            lineinfile: {
-                dest: '/etc/ssh/sshd_config',
-                regexp: '^#?PermitRootLogin .*',
-                line: 'PermitRootLogin no'
-            }
-        },
+        provider.managers.systemUpdateManager.exportToEngine("ansible", thost, tasks);
+        let tresult = [
             {
-                name: 'Ssh config PermitPassword state check',
-                lineinfile: {
-                    dest: '/etc/ssh/sshd_config',
-                    regexp: '^#?PasswordAuthentication',
-                    line: 'PasswordAuthentication false'
-                }
-            },
-            {
-                name: "Ssh config ValidUsers state check",
-                lineinfile: {
-                    dest: "/etc/ssh/sshd_config",
-                    line: "AllowUsers user1",
-                    regexp: "^#?AllowUsers .*"
-                }
+                apt: "update_cache=yes  upgrade=undefined autoremote = yes",
+                name: "Perform system update"
             }
         ];
         expect(tasks).to.deep.equal(tresult);
 
     });
+
 });

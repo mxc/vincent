@@ -30,7 +30,7 @@ class VLogger {
         if(typeof msg ==="string"){
             this.logger.error(msg);
         } else{
-            this.logger.error(msg.message? e.message: JSON.stringify(e));
+            this.logger.error(msg.message? msg.message: JSON.stringify(msg));
         }
     }
 

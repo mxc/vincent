@@ -5,13 +5,14 @@
 import {System} from 'es6-module-loader';
 import UserManager from  './../modules/user/UserManager';
 import GroupManager from  './../modules/group/GroupManager';
+import SystemUpdateManager from  './../modules/applications/systemupdate/SystemUpdateManager';
 import HostManager from './../modules/host/HostManager'
 import SudoManager from './../modules/sudo/SudoManager'
 import UserAnsibleEngine from './../modules/user/engine/AnsibleEngine';
 import GroupAnsibleEngine from './../modules/group/engine/AnsibleEngine';
 import SshAnsibleEngine from './../modules/ssh/engine/AnsibleEngine';
 import SudoAnsibleEngine from './../modules/sudo/engine/AnsibleEngine';
-import HostAnsibleEngine from './../modules/host/engine/AnsibleEngine';
+import SysUpdateAnsibleEngine from '../modules/applications/systemupdate/engine/AnsibleEngine';
 import SshManager from './../modules/ssh/SshManager';
 import {logger} from './../Logger';
 import DependencyGraph from './DependencyGraph';
@@ -47,8 +48,8 @@ class ModuleLoader {
             engines['ansible'] = new SshAnsibleEngine(provider);
         } else if (name === 'sudo') {
             engines['ansible'] = new SudoAnsibleEngine(provider);
-        }else if(name==='host'){
-            engines['ansible'] = new HostAnsibleEngine(provider);
+        }else if(name==='sysUpdate'){
+            engines['ansible'] = new SysUpdateAnsibleEngine(provider);
         }
         return engines;
     }
@@ -61,6 +62,7 @@ class ModuleLoader {
             modules.push(HostManager);
             modules.push(SshManager);
             modules.push(SudoManager);
+            modules.push(SystemUpdateManager);
         }else{
             if(!Array.isArray(modules)){
                     logger.logAndThrow("Parameter modules should be of type array");                

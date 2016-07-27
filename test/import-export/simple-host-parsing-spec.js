@@ -42,6 +42,7 @@ describe("validating host configuration", function () {
             group: "sysadmin",
             permissions: 770,
             configGroup: "default",
+            osFamily:"unknown",
             users: [
                 {
                     user: {name: "user1"},
@@ -82,6 +83,7 @@ describe("validating host configuration", function () {
             group: "sysadmin",
             permissions: 770,
             configGroup: "default",
+            osFamily:"unknown",
             users: [
                 {
                     user: {name: "user1"}
@@ -99,6 +101,7 @@ describe("validating host configuration", function () {
             group: "sysadmin",
             permissions: 770,
             configGroup: "default",
+            osFamily:"unknown",
             users: [
                 {
                     user: {name: "user1"}
@@ -152,6 +155,7 @@ describe("validating host configuration", function () {
             group: "sysadmin",
             permissions: 770,
             configGroup: "default",
+            osFamily:"unknown",
             users: [
                 {
                     user: {name: "waldo"},
@@ -190,6 +194,7 @@ describe("validating host configuration", function () {
             group: "sysadmin",
             permissions: 770,
             configGroup: "default",
+            osFamily:"unknown",
             users: [
                 {
                     user: {name: "user1"},
@@ -328,6 +333,7 @@ describe("validating host configuration", function () {
                 group: "sysadmin",
                 permissions: 770,
                 configGroup: "default",
+                osFamily:"unknown",
                 users: [
                     {
                         user: {name: "user1", state: "present"}
@@ -356,12 +362,13 @@ describe("validating host configuration", function () {
                 ]
             },
             {
-                "name": "missing.permissions.com",
-                "owner": "einstein",
-                "group": "sysadmin",
-                "permissions": 660,
-                "configGroup": "default",
-                "users": [
+                name: "missing.permissions.com",
+                owner: "einstein",
+                group: "sysadmin",
+                permissions: 660,
+                configGroup: "default",
+                osFamily:"unknown",
+                users: [
                     {
                         "user": {
                             "name": "user1",
@@ -376,6 +383,7 @@ describe("validating host configuration", function () {
                 group: "sysadmin",
                 permissions: 770,
                 configGroup: "default",
+                osFamily:"unknown",
                 users: [
                     {
                         user: {name: "user2", state: "absent"}
@@ -402,6 +410,7 @@ describe("validating host configuration", function () {
                 group: "sysadmin",
                 permissions: 770,
                 configGroup: "default",
+                osFamily:"unknown",
                 users: [
                     {
                         user: {name: "user1", state: "present"},

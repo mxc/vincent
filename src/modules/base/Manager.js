@@ -22,10 +22,6 @@ class Manager {
         throw new Error ("Method exportToEngine must be overridden in child object");
     }
     
-    loadEngines(dir){
-        throw new Error ("Method loadEngines must be overridden in child object");
-    }
-    
     clear(){
         throw new Error ("Method clear must be overridden in child object");
     }

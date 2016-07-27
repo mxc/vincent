@@ -30,7 +30,6 @@ class Host extends Base {
             this.owner = owner;
             this.group = group;
             this.permissions = permissions ? permissions : "660";
-            this.keepSystemUpdated=false;
             this.osFamily="unknown";
             //avoid init fields problem for detecting changes in name/configGroup
             this.data.configGroup = configGroup ? configGroup : "default";
@@ -42,7 +41,6 @@ class Host extends Base {
             this.owner = data.owner;
             this.group = data.group;
             this.permissions = data.permissions ? data.permissions : "660";
-            this.keepSystemUpdated=data.keepSystemUpdated? data.keepSystemUpdated: false;
             this.osFamily=data.osFamily? data.osFamily: "unknown";
             //avoid init fields problem for detecting changes in name/configGroup
             this.data.configGroup = data.configGroup ? data.configGroup : "default";
@@ -56,6 +54,7 @@ class Host extends Base {
                     remoteAccessDef.authentication, remoteAccessDef.becomeUser,remoteAccessDef.sudoAuthentication);
                 this.data.remoteAccess = remoteAccess;
             } catch (e) {
+                console.log(e);
                 logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
                     this.errors);
             }
@@ -92,10 +91,6 @@ class Host extends Base {
     get osFamily(){
         return this.data.osFamily;
     }
-    
-    get keepSystemUpdated(){
-        return this.data.keepSystemUpdated;
-    }
 
     //todo check if this is a valid user?
     set owner(owner) {
@@ -127,14 +122,6 @@ class Host extends Base {
 
     set osFamily(osFamily){
             this.data.osFamily=osFamily;
-    }
-
-    set keepSystemUpdated(enabled){
-        if(typeof enabled == "boolean" ){
-            this.data.keepSystemUpdated=enabled;
-        }else{
-            logger.logAndThrow("The property keepSystemUpdated requires a boolean data type;");
-        }
     }
 
     get configGroup() {
@@ -186,7 +173,11 @@ class Host extends Base {
          }
         return obj;
     }
-    
+
+    addConfig(key,config){
+            this.configs.add(key,config);
+    }
+
     deleteConfig(key){
         let obj = this.configs.container[key];
         if(!obj){

@@ -15,19 +15,20 @@ describe("HostManager UI should", ()=> {
 
     it("prevent unauthorised users from loading engine definitions for hosts without permissions", (done)=> {
         let appUser = new AppUser("newton", ["dev"], "devops");
-        let result="";
+        let result = "";
         let session = new Session();
         session.appUser = appUser;
-        session.console={
-            test:function(){},
+        session.console = {
+            test: function () {
+            },
             outputError: function (msg) {
-                result=msg;
+                result = msg;
             },
             outputWarning: function (msg) {
                 result = msg;
             },
             outputSuccess: function (msg) {
-                result =  msg;
+                result = msg;
             }
         };
 
@@ -56,20 +57,21 @@ describe("HostManager UI should", ()=> {
 
     it("allow authorised users to load engine definitions for hosts with permissions", (done)=> {
         let appUser = new AppUser("newton", ["dev"], "devops");
-        let result="";
+        let result = "";
 
         let session = new Session();
         session.appUser = appUser;
-        session.console={
-            test:function(){},
+        session.console = {
+            test: function () {
+            },
             outputError: function (msg) {
-                result=msg;
+                result = msg;
             },
             outputWarning: function (msg) {
                 result = msg;
             },
             outputSuccess: function (msg) {
-                result =  msg;
+                result = msg;
             }
         };
 
@@ -89,18 +91,18 @@ describe("HostManager UI should", ()=> {
     it("prevent unauthorised users from obtaining a reference to a host", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let result="";
+            let result = "";
             let session = new Session();
             session.appUser = appUser;
-            session.console={
+            session.console = {
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -125,19 +127,19 @@ describe("HostManager UI should", ()=> {
     it("allow authorised users to obtain a reference to a host", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let result="";
+            let result = "";
 
             let session = new Session();
             session.appUser = appUser;
-            session.console={
+            session.console = {
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -160,16 +162,17 @@ describe("HostManager UI should", ()=> {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -198,16 +201,17 @@ describe("HostManager UI should", ()=> {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -231,20 +235,21 @@ describe("HostManager UI should", ()=> {
     it("only save host definitions to which the appUser has write permissions when invoking saveAll", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let result="";
+            let result = "";
 
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -272,20 +277,21 @@ describe("HostManager UI should", ()=> {
     it("prevent unauthorised users from listing hosts", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"]);
-            let result="";
+            let result = "";
 
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -319,20 +325,21 @@ describe("Host UI should", ()=> {
 
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
-            let result="";
+            let result = "";
 
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -356,20 +363,24 @@ describe("Host UI should", ()=> {
     it("allow authorised users to load engine definitions", (done)=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-            let result="";
+            let result = "";
 
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
+                    if (result==="Generating configuration files for engine. Please wait...") return;
+                    expect(result).to.equal("Successfully generated playbook for dogzrule.co.za.");
+                    done();
                 }
             };
 
@@ -385,13 +396,7 @@ describe("Host UI should", ()=> {
                     resolve('success');
                 });
             };
-            host.generateDeploymentArtifact().then((result)=> {
-                expect(result).to.equal("Successfully generated playbook for dogzrule.co.za.");
-                done();
-            }).catch((e)=> {
-                expect(e).to.be.undefined;
-                done();
-            });
+            host.generateDeploymentArtifact();
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -401,20 +406,21 @@ describe("Host UI should", ()=> {
     it("prevent unauthorised users from reading attributes host", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"]);
-            let result="";
+            let result = "";
 
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -427,10 +433,18 @@ describe("Host UI should", ()=> {
             host2.group = "einstein";
             host2.owner = "einstein";
             host2.permissins = "700";
-            expect(()=>{host2.owner}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(()=>{host2.group}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(()=>{host2.permissions}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
-            expect(()=>{host2.name}).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=> {
+                host2.owner
+            }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=> {
+                host2.group
+            }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=> {
+                host2.permissions
+            }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
+            expect(()=> {
+                host2.name
+            }).to.throw("User newton does not have the required permissions for catzsux.co.za for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
         }
@@ -442,16 +456,17 @@ describe("Host UI should", ()=> {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -476,16 +491,17 @@ describe("Host UI should", ()=> {
             let appUser = new AppUser("newton", ["devops", "dev"]);
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 
@@ -523,19 +539,20 @@ describe("Host UI should", ()=> {
     it("allow authorised users to set attributes of host", ()=> {
         try {
             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-            let result="";
+            let result = "";
             let session = new Session();
             session.appUser = appUser;
-            session.console={
-                test:function(){},
+            session.console = {
+                test: function () {
+                },
                 outputError: function (msg) {
-                    result=msg;
+                    result = msg;
                 },
                 outputWarning: function (msg) {
                     result = msg;
                 },
                 outputSuccess: function (msg) {
-                    result =  msg;
+                    result = msg;
                 }
             };
 

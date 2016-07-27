@@ -34,5 +34,10 @@ userauth-security:
 	clear
 	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/userauth-security/*.js
 
+applications:
+	clear
+	./node_modules/.bin/mocha  --reporter $(REPORTER) $(MOCHA_OPTS) test/applications/*.js
+
+
 
 .ALL: api save cliui main import-export userauth-security other ansible

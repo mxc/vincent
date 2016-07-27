@@ -78,7 +78,6 @@ describe("validating ssh custom config", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
-
     it("should return a collection of valid hosts including ssh configs", function () {
         var validHosts = [
             {
@@ -87,6 +86,7 @@ describe("validating ssh custom config", function () {
                 group: "sysadmin",
                 permissions: 770,
                 configGroup: "default",
+                osFamily: "unknown",
                 users: [
                     {
                         user: {
@@ -236,6 +236,7 @@ describe("validating ssh include config", function () {
                 group: "sysadmin",
                 permissions: 770,
                 configGroup: "default",
+                osFamily:"unknown",
                 users: [
                     {
                         user: {
@@ -278,7 +279,6 @@ describe("validating ssh include config", function () {
         provider.managers.sshManager.addSsh(host, "strict");
         expect(provider.managers.hostManager.export()).to.deep.equal(validHosts);
         let ssh = provider.managers.sshManager.getSsh(host);
-        console.log(ssh);
         expect(ssh.export()).to.deep.equal({
             permitRoot: false,
             validUsersOnly: true,
@@ -295,25 +295,25 @@ describe("validating ssh include config", function () {
                 {
                     name: "strict",
                     config: {
-                        permitRoot: "no",
-                        validUsersOnly: "true",
-                        passwordAuthentication: "no"
+                        permitRoot: false,
+                        validUsersOnly: true,
+                        passwordAuthentication: false
                     }
                 },
                 {
                     name: "strict_with_root",
                     config: {
                         permitRoot: "without-password",
-                        validUsersOnly: "true",
-                        passwordAuthentication: "no"
+                        validUsersOnly: true,
+                        passwordAuthentication: false
                     }
                 },
                 {
                     name: "loose",
                     config: {
-                        permitRoot: "yes",
-                        validUsersOnly: "false",
-                        passwordAuthentication: "yes"
+                        permitRoot: true,
+                        validUsersOnly: false,
+                        passwordAuthentication: true
                     }
                 }
             ]

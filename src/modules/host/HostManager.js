@@ -1,7 +1,6 @@
 "use strict";
 
 import Host from './Host';
-import RemoteAccess from './RemoteAccess';
 import Provider from '../../Provider';
 import {logger} from '../../Logger';
 import Manager from '../base/Manager';
@@ -27,7 +26,7 @@ class HostManager extends Manager {
     }
 
     exportToEngine(engine, host, struct) {
-        this.engines[engine].exportToEngine(host, struct);
+        //this.engines[engine].exportToEngine(host, struct);
     }
 
     addHost(host) {
@@ -152,8 +151,7 @@ class HostManager extends Manager {
             permissions: hostDef.permissions,
             remoteAccess: hostDef.remoteAccess,
             configGroup: hostDef.configGroup,
-            osFamily:hostDef.osFamily? hostDef.osFamily:"unknown",
-            keepSystemUpdated: hostDef.keepSystemUpdated? hostDef.keepSystemUpdated: false
+            osFamily:hostDef.osFamily? hostDef.osFamily:"unknown"
         };
 
         let host = {};

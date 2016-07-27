@@ -13,7 +13,6 @@ class RemoteAccess extends Base {
         super();
         this.errors = [];
         this.data = {};
-
         try {
             this.remoteUser = remoteUser;
         } catch (e) {
@@ -49,7 +48,7 @@ class RemoteAccess extends Base {
     }
 
     set sudoAuthentication(enable) {
-        this.data.sudoAuthentication=enable;
+        this.data.sudoAuthentication=this.getBooleanValue(enable);
     }
 
     get remoteUser() {

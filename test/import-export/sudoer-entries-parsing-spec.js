@@ -118,6 +118,7 @@ describe("validating host configuration with sudoer entry config", function () {
                 group: "sysadmin",
                 permissions: 770,
                 configGroup:"default",
+                osFamily:"unknown",
                 users: [
                     {
                         user: {name: "user1", state: "present"}
@@ -287,6 +288,7 @@ describe("validating host configuration with sudo entry and invalid users", func
                 name: "www.example.com",
                 owner: "einstein",
                 group: "sysadmin",
+                osFamily:"unknown",
                 permissions: 770,
                 configGroup:"default",
                 users: [
@@ -543,6 +545,7 @@ describe("validating host configuration with sudo entry include", function () {
         var validHosts = [
             {
                 name: "www.example.com",
+                osFamily: "unknown",
                 owner: "einstein",
                 group: "sysadmin",
                 permissions: 770,

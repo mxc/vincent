@@ -1,11 +1,17 @@
 class Base {
 
     getBooleanValue(val) {
+
+        let vtrue = /yes|true/;
+        let vfalse = /no|false/;
+        if(val==undefined){
+            return false;
+        }
         if (typeof val === 'string') {
             val = val.toLowerCase();
-            if (val == 'yes' || val == 'true') {
+            if (vtrue.test(val)) {
                 return true;
-            } else if (val === 'no' || val == 'false') {
+            } else if (vfalse.test(val)) {
                 return false;
             } else {
                 throw new Error("Boolean value must be 'true/yes' or 'false/no'");

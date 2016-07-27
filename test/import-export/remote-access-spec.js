@@ -41,6 +41,7 @@ describe("HostManager configuration without remote access definition", ()=> {
             group: "sysadmin",
             permissions: 770,
             configGroup:"default",
+            osFamily:"unknown",
             users: [
                 {
                     user: {name: "user1"},
@@ -124,6 +125,7 @@ describe("HostManager configuration with remote access definition", ()=> {
             group: "sysadmin",
             permissions: 770,
             configGroup:"default",
+            osFamily:"unknown",
             remoteAccess: {
                 remoteUser: "mark",
                 authentication: "publicKey"
@@ -171,7 +173,6 @@ describe("HostManager configuration with remote access definition", ()=> {
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
     let host = provider.managers.hostManager.findValidHost("www.example.com","default");
-
     it("should set remote access user to user defined in host data object", ()=> {
         expect(host.remoteAccess.remoteUser).to.equal("mark");
     });
@@ -181,7 +182,7 @@ describe("HostManager configuration with remote access definition", ()=> {
     });
 
     it("should set remote access sudo authentication to be undefined if not defined in data object", ()=> {
-        expect(host.remoteAccess.sudoAuthentication).to.equal(undefined);
+        expect(host.remoteAccess.sudoAuthentication).to.equal(false);
     });
 
     it("should add definition to model export", ()=> {

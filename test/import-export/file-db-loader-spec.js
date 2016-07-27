@@ -19,9 +19,9 @@ describe("File DB loader tests", function () {
 
     it('should load ssh configs', ()=> {
         provider.managers.sshManager.loadFromFile();
-        expect(provider.managers.sshManager.configs["strict"].permitRoot).to.equal("no");
+        expect(provider.managers.sshManager.configs["strict"].permitRoot).to.equal(false);
         expect(provider.managers.sshManager.configs["loose"].validUsersOnly)
-            .to.equal("false");
+            .to.equal(false);
     });
 
     it('should load sudoer entries', ()=> {
