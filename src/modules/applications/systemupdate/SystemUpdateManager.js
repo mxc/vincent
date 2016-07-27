@@ -59,7 +59,7 @@ class SystemUpdateManager extends Manager{
         if(!context.applications){
             context.applicationManagers = {};
         }
-        context.applicationManagers.sysUpate = new SystemUpateManagerUI(session);
+        context.applicationManagers.systemUpate = new SystemUpateManagerUI(session);
     }
 
 
@@ -76,7 +76,7 @@ class SystemUpdateManager extends Manager{
     entityStateChange(hc){
     }
 
-    addSystemUpdateToHost(host, systemUpdate){
+    addSystemUpdateToHost(host){
         if(!(host instanceof Host) || !(systemUpdate instanceof SystemUpdate)){
                 logger.logAndThrow("Parameter host must be an instance of Host and systemupdate must be an instance of SystemUpdate.");
         }

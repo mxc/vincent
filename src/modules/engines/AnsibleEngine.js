@@ -258,7 +258,8 @@ class AnsibleEngine extends Engine {
                     if (!this.checkPasswordPrompt(proc, data, passwd, sudoPasswd)) {
                         data = data.toString();
                         data= data.slice(data.indexOf("{"));
-                        resolve(JSON.parse(data).ansible_facts);
+                        let obj =JSON.parse(data);
+                        resolve(obj.ansible_facts ? obj.ansible_facts: obj.msg);
                     }
                 });
                 proc.stderr.on('data', (stderr)=> {

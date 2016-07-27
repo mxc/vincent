@@ -32,7 +32,7 @@ class RemoteAccess {
     }
 
     set remoteUser(remoteUser) {
-            data.get(this).remoteUser = remoteUser.name;
+            data.get(this).remoteUser = remoteUser.name? remoteUser.name:remoteUser;
     }
 
     set authentication(authentication) {
@@ -47,7 +47,7 @@ class RemoteAccess {
         return {
             remoteUser: data.get(this).remoteUser,
             authentication: data.get(this).authentication,
-            becomeuser: data.get(this).sudoAuthentication,
+            becomeuser: data.get(this).becomeUser,
             sudoAuthentication: data.get(this).sudoAuthentication
         }
     }

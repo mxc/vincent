@@ -44,8 +44,11 @@ class Host extends PermissionsUIManager {
         this.info = "Not Available";
     }
 
-    get remoteAccess(){
-      return new RemoteAccess(data.get(this).permObj.remoteAccess);
+    get remoteAccess() {
+        if (data.get(this).permObj.remoteAccess == undefined) {
+            Vincent.app.provider.managers.hostManager.addRemoteAccessToHost(data.get(this).permObj);
+        }
+        return new RemoteAccess(data.get(this).permObj.remoteAccess);
     }
 
     getInfo(func) {
@@ -102,7 +105,7 @@ class Host extends PermissionsUIManager {
                 if (!func) {
                     func = (result)=> {
                         this.info = result;
-                        cli.outputSuccess(`Host ${host.name} query successful. Host variables populated.`);
+                        cli.outputSuccess(`Host ${host.name} query returned. Status available in info property.`);
                     };
                 }
                 Vincent.app.provider.engine.getInfo(host, checkHostKey, privateKeyPath,
@@ -288,7 +291,7 @@ class Host extends PermissionsUIManager {
                     if (!sudoPassword) {
                         sudoPassword = data.get(this).session.passwords["default"];
                     }
-                    if(!sudoPassword){
+                    if (!sudoPassword) {
                         cli.outputError(`Host ${host.name} requires a sudo password but no password has been set.\n`
                             + `Please set your password with ".password ${host.name}.`);
                         return;
@@ -338,11 +341,11 @@ class Host extends PermissionsUIManager {
         return new converter(obj, this, data.get(this).session);
     }
 
-    deleteConfig(key){
-        try{
+    deleteConfig(key) {
+        try {
             data.get(this).permObj.removeConfig(key);
             data.get(this).session.console.outputSuccess(`Configuration for ${key} has been removed from host ${this.name}.`);
-        }catch(e){
+        } catch (e) {
             data.get(this).session.console.outputError(e.message);
         }
     }

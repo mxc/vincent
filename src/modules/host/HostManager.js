@@ -9,7 +9,7 @@ import ConsoleHostManager from './ui/console/HostManager';
 import mkdirp from 'mkdirp';
 import UserManager from '../user/UserManager';
 import GroupManager from '../group/GroupManager';
-
+import RemoteAccess from './RemoteAccess';
 
 
 class HostManager extends Manager {
@@ -248,6 +248,18 @@ class HostManager extends Manager {
 
     deleteEntity(ent){
 
+    }
+
+    addRemoteAccessToHost(host){
+        if(host instanceof Host){
+            if (!host.remoteAccess){
+                host.remoteAccess = new RemoteAccess("current_user","publicKey",false,false);
+            }else{
+                logger.warn(`Host ${host.name} already has a remote access property defined.`);
+            }
+        }else{
+            logger.logAndThrow("Parameter host must be an instance of Host.");
+        }
     }
 
 }
