@@ -10,7 +10,7 @@ import mkdirp from 'mkdirp';
 import UserManager from '../user/UserManager';
 import GroupManager from '../group/GroupManager';
 import RemoteAccess from './RemoteAccess';
-
+import HistoryManager from './HistoryManager';
 
 class HostManager extends Manager {
 
@@ -23,6 +23,7 @@ class HostManager extends Manager {
         this.validHosts =[];
         this.errors = {manager: []};
         this.engines = provider.loader.loadEngines('host', provider);
+        this.historyManager = new HistoryManager(provider);
     }
 
     exportToEngine(engine, host, struct) {
@@ -51,7 +52,7 @@ class HostManager extends Manager {
         //accommodate Host object or hostname string
         if (typeof vhost === 'string') {
             var hostname = vhost;
-        } else if (vhost instanceof Host) {
+        } else if ((vhost instanceof Host) || (vhost.name && vhost.configGroup)) {
             hostname = vhost.name;
             configGroup = vhost.configGroup;
         } else {
@@ -65,9 +66,14 @@ class HostManager extends Manager {
                 }
             });
         } else {
-            return this.validHosts.filter((host)=> {
+            let hosts = this.validHosts.filter((host)=> {
                 return host.name === hostname;
             });
+            if(hosts.size==1){
+                return hosts[0];
+            }else {
+                return hosts;
+            }
         }
     }
 

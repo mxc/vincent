@@ -24,8 +24,8 @@ class AnsibleEngine extends AnsibleEngineComponent{
         if(sysUpdate instanceof Debian){
             if(host.osFamily.toLowerCase()==="debian"){
                t={
-                    name: "Perform system update",
-                    apt: `update_cache=${sysUpdate.updateCache}  upgrade=${sysUpdate.upgrade} autoremote = ${sysUpdate.autoremove}`
+                    name: "configs[systemUpdate] - Update system check",
+                    apt: `update_cache=${sysUpdate.updateCache}  upgrade=${sysUpdate.upgrade}`
                 };
             }
         }else if (sysUpdate instanceof Redhat){

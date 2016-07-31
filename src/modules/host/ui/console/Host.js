@@ -7,6 +7,7 @@ import Vincent from '../../../../Vincent';
 import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
 import Session from '../../../../ui/Session';
 import RemoteAccess from './RemoteAccess';
+import History from './History';
 
 var data = new WeakMap();
 
@@ -40,10 +41,28 @@ class Host extends PermissionsUIManager {
         obj.appUser = session.appUser;
         obj.session = session;
         data.set(this, obj);
-        this.lastResults = "NA";
+        this.lastResult = "NA";
         this.info = "Not Available";
     }
 
+    getHistory() {
+        return this._readAttributeWrapper(()=> {
+            if (data.get(this).history) {
+                let hist = new History(data.get(this).history, data.get(this).session, data.get(this).permObj);
+                return hist;
+            } else {
+                let hist;
+                try {
+                    hist = Vincent.app.provider.managers.hostManager.historyManager.loadFromFile(data.get(this).permObj);
+                }catch(e){
+                    hist = Vincent.app.provider.managers.hostManager.historyManager.createHistory(data.get(this).permObj);
+                }
+                data.get(this).history = hist;
+                return new History(hist, data.get(this).session, data.get(this).permObj);
+            }
+        });
+    }
+    
     get remoteAccess() {
         if (data.get(this).permObj.remoteAccess == undefined) {
             Vincent.app.provider.managers.hostManager.addRemoteAccessToHost(data.get(this).permObj);
@@ -220,6 +239,9 @@ class Host extends PermissionsUIManager {
     save() {
         return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
             let result = Vincent.app.provider.managers.hostManager.saveHost(data.get(this).permObj);
+            if(data.get(this).history){
+                this.getHistory().save();
+            }
             return result;
         });
     }
@@ -301,8 +323,17 @@ class Host extends PermissionsUIManager {
                 //try running playbook
                 Vincent.app.provider.engine.runPlaybook(host, checkHostKey, privateKeyPath,
                     remoteUsername, password, sudoPassword).then((results)=> {
-                    this.lastResults = results.toString();
-                    cli.outputSuccess(`${this.lastResults}\n`);
+                    let ts = Date.now();
+                    if(!data.get(this).history){
+                        this.getHistory();
+                    }
+                    data.get(this).history.addEntry(ts,results);
+                    this.lastResult = data.get(this).history.getEntry(ts);
+                    if(this.lastResult.status=="failed"){
+                        cli.outputError(`${this.lastResult.entry.stats[host.name].failures} tasks failed for for ${data.get(this).permObj.name}. Please view history for details.`);
+                        return;
+                    }
+                    cli.outputSuccess(`Configuration for ${data.get(this).permObj.name} successfully deployed. Please view history for details.`);
                 }).catch((e)=> {
                     cli.outputError(`There was an error running playbook for ${data.get(this).permObj.name} ` +
                         `- ${e.message ? e.message : e}`);
@@ -319,26 +350,24 @@ class Host extends PermissionsUIManager {
     }
 
     getConfig(key) {
-
-        // Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
-        //     return `{ name: ${this.name} }`;
-        // });
-        let obj = data.get(this).permObj.getConfig(key);
-        let entries = Vincent.app.converters.entries();
-        let converter;
-        var entry = entries.next();
-        while (!entry.done) {
-            if (entry.value[0] === key) {
-                converter = entry.value[1];
-                break;
+        return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
+            let obj = data.get(this).permObj.getConfig(key);
+            let entries = Vincent.app.converters.entries();
+            let converter;
+            var entry = entries.next();
+            while (!entry.done) {
+                if (entry.value[0] === key) {
+                    converter = entry.value[1];
+                    break;
+                }
+                entry = entries.next();
             }
-            entry = entries.next();
-        }
-        if (!converter) {
-            data.get(this).session.console.outputError(`No converter for config ${key} was found.`);
-            return;
-        }
-        return new converter(obj, this, data.get(this).session);
+            if (!converter) {
+                data.get(this).session.console.outputError(`No converter for config ${key} was found.`);
+                return;
+            }
+            return new converter(obj, data.get(this).permObj, data.get(this).session);
+        });
     }
 
     deleteConfig(key) {

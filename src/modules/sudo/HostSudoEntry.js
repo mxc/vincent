@@ -9,7 +9,7 @@ import {logger} from './../../Logger';
 class HostSudoEntry extends HostComponent {
 
     constructor(provider, host, data) {
-        super(provider);
+        super(provider,data);
         this.errors = [];
         if (!data && !data.userList && !Array.isArray(data.userList) && !data instanceof SudoEntry) {
             logger.logAndThrow("The data parameter for SudoEntry must have a userList array property.");
@@ -41,29 +41,28 @@ class HostSudoEntry extends HostComponent {
                     'as the group is not valid for host`, this.errors);
             }
         });
-        this.data = entry;
-        super.load(data);
+        this.data.entry = entry;
     }
 
 
     get sudoEntry() {
-        return this.data;
+        return this.data.entry;
     }
 
     get userList() {
-        return this.data.userList;
+        return this.data.entry.userList;
     }
 
     get users() {
-        return this.data.userList.users;
+        return this.data.entry.userList.users;
     }
 
     get groups() {
-        return this.data.userList.groups;
+        return this.data.entry.userList.groups;
     }
 
     get commandSpec() {
-        return this.data.commandSpec;
+        return this.data.entry.commandSpec;
     }
 
     clear() {
@@ -71,7 +70,7 @@ class HostSudoEntry extends HostComponent {
     }
 
     export() {
-        let obj = this.data.export();
+        let obj = this.data.entry.export();
         super.export(obj);
         return obj;
     }

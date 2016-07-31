@@ -10,10 +10,9 @@ import _ from 'lodash';
 import HostComponent from './../base/HostComponent';
 import HostComponentContainer from '../base/HostComponentContainer';
 
-class Host extends Base {
+class Host  {
 
-    constructor(provider, data, owner, group, permissions, configGroup) {
-        super();
+    constructor(provider, dataOrName, owner, group, permissions, configGroup,osFamily) {
         this.errors = [];
         this.deleted={};
         if (!provider || !(provider instanceof Provider)) {
@@ -22,34 +21,34 @@ class Host extends Base {
         this.provider = provider;
         this.data={};
         //check if we were provided with a host name or a data object
-        if (typeof data === 'string') {
-            this.name = data;
+        if (typeof dataOrName === 'string') {
+            this.name = dataOrName;
             //if(!owner  || !group){
             //    logger.logAndThrow(`${data} requires a valid owner and group.`);
             //}
             this.owner = owner;
             this.group = group;
             this.permissions = permissions ? permissions : "660";
-            this.osFamily="unknown";
+            this.osFamily=osFamily? osFamily: "unknown";
             //avoid init fields problem for detecting changes in name/configGroup
             this.data.configGroup = configGroup ? configGroup : "default";
-        } else if (typeof data === 'object') {
-            if (!data.name) {
-                logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property \"name\".`);
+        } else if (typeof dataOrName === 'object') {
+            if (!dataOrName.name) {
+                logger.logAndThrow(`The parameter data must be a hostname or an object with a mandatory property "name".`);
             }
-            this.name=data.name;
-            this.owner = data.owner;
-            this.group = data.group;
-            this.permissions = data.permissions ? data.permissions : "660";
-            this.osFamily=data.osFamily? data.osFamily: "unknown";
+            this.name=dataOrName.name;
+            this.owner = dataOrName.owner;
+            this.group = dataOrName.group;
+            this.permissions = dataOrName.permissions ? dataOrName.permissions : "660";
+            this.osFamily=dataOrName.osFamily? dataOrName.osFamily: "unknown";
             //avoid init fields problem for detecting changes in name/configGroup
-            this.data.configGroup = data.configGroup ? data.configGroup : "default";
+            this.data.configGroup = dataOrName.configGroup ? dataOrName.configGroup : "default";
         }
 
         //configure remoteAccess settings for host.
-        if (data.remoteAccess) {
+        if (dataOrName.remoteAccess) {
             try {
-                let remoteAccessDef = data.remoteAccess;
+                let remoteAccessDef = dataOrName.remoteAccess;
                 let remoteAccess = new RemoteAccess(remoteAccessDef.remoteUser,
                     remoteAccessDef.authentication, remoteAccessDef.becomeUser,remoteAccessDef.sudoAuthentication);
                 this.data.remoteAccess = remoteAccess;
@@ -175,7 +174,10 @@ class Host extends Base {
     }
 
     addConfig(key,config){
-            this.configs.add(key,config);
+        if (!this.data.configs) {
+            this.data.configs = new HostComponentContainer("configs");
+        }
+        this.configs.add(key,config);
     }
 
     deleteConfig(key){
@@ -212,7 +214,7 @@ class Host extends Base {
                     if (Array.isArray(this.data[prop].container[tKey])) {
                         obj[prop][tKey] = [];
                         this.data[prop].container[tKey].forEach((each)=> {
-                            obj[prop][tKey].push(each.data.export());
+                            obj[prop][tKey].push(each.export());
                         });
                     } else {
                         obj[prop][tKey] = this.data[prop].container[tKey].export();

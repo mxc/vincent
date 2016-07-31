@@ -5,7 +5,7 @@
 import {logger} from "../../Logger";
 import Session from '../../ui/Session';
 
-class Manager {
+class Manager  {
    
     loadHost(host, hosts, hostDef){
         throw new Error ("Method loadHost must be overridden in child object");

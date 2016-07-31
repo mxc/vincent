@@ -6,7 +6,7 @@ import {VLogger} from '../../Logger';
 import path from 'path';
 import mkdirp from 'mkdirp';
 
-class Engine {
+class Engine  {
 
     constructor(provider) {
         this.provider = provider;

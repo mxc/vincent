@@ -4,13 +4,12 @@
 
 
 import {logger} from './../../Logger';
-import Base from './../base/Base';
+import base from './../base/Base';
 import User from './../user/User';
 
-class RemoteAccess extends Base {
+class RemoteAccess  {
 
     constructor(remoteUser, authentication, becomeUser,sudoAuthentication) {
-        super();
         this.errors = [];
         this.data = {};
         try {
@@ -48,7 +47,7 @@ class RemoteAccess extends Base {
     }
 
     set sudoAuthentication(enable) {
-        this.data.sudoAuthentication=this.getBooleanValue(enable);
+        this.data.sudoAuthentication=base.getBooleanValue(enable);
     }
 
     get remoteUser() {

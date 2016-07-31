@@ -227,6 +227,7 @@ describe("HostManager configuration with invalid remote access definition", ()=>
             owner: "einstein",
             group: "sysadmin",
             permissions: 770,
+            osFamily:"Debian",
             remoteAccess: {
                 remoteUser: "peter",
                 authentication: "passwrd",

@@ -52,7 +52,7 @@ class SshManager extends PermissionsManager {
            let ssh = new SSH(sshConfig);
            this.data.configs[name]=ssh.export();
        }catch(e){
-           logger.logAndThrow(`Error parsing sshConfig for ${name}`);
+           logger.logAndThrow(`Error parsing sshConfig for ${name} - ${e.message}.`);
        }
     }
 
@@ -120,10 +120,6 @@ class SshManager extends PermissionsManager {
             logger.logAndThrow(`Parameter host must be an instance of Host.`);
         }
 
-        if (!host.data.config) {
-            host.data.configs = new HostComponentContainer("configs");
-        }
-
         if (typeof config === 'object') {
             let hostSsh = new HostSsh(this.provider, config);
             host.data.configs.add("ssh", hostSsh);
@@ -134,7 +130,7 @@ class SshManager extends PermissionsManager {
                 logger.logAndThrow(`Ssh config '${config}' not found.`);
             }
             let hostSsh = new HostSsh(this.provider, configDef);
-            host.data.configs.add("ssh", hostSsh);
+            host.addConfig("ssh", hostSsh);
             return hostSsh;
         }
 

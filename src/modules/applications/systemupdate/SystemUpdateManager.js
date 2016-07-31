@@ -4,18 +4,20 @@
 
 import {logger} from '../../../Logger';
 import Manager from '../../base/Manager';
-import SystemUpdate from './SystemUpdate';
 import Redhat from './Redhat';
 import Debian from './Debian';
 import HostManager from '../../../modules/host/HostManager';
-import Session from '../../../ui/Session';
-import Host from  '../../host/Host';
+import base from '../../base/Base';
+import Provider from  '../../../Provider';
 import SystemUpateManagerUI from './ui/console/SystemUpdateManager';
 
 
-class SystemUpdateManager extends Manager{
+class SystemUpdateManager extends Manager {
 
-    constructor(provider){
+    constructor(provider) {
+        if(!(provider instanceof Provider)){
+            logger.logAndThrow("Parameter provider must be an objec to type Provider");
+        }
         super(provider);
         this.provider = provider;
         this.engines = provider.loader.loadEngines('sysUpdate', provider);
@@ -25,71 +27,70 @@ class SystemUpdateManager extends Manager{
         this.engines[engine].exportToEngine(host, struct);
     }
 
-    loadHost(hosts, host, hostDef){
-            if(hostDef.configs && hostDef.configs.systemUpdate){
-                let sysUpdate;
-                if(host.osFamily.toLowerCase()=="debian"){
-                    sysUpdate = new Debian(this.provider,hostDef.configs.systemUpdate);
-                }else if(host.osFamily.toLowerCase()=="redhat"){
-                    sysUpdate = new Redhat(this.provider,hostDef.configs.systemUpdate);
-                }
-                if(sysUpdate){
-                    host.configs.add("systemUpdate",sysUpdate);
-                }else{
-                    logger.logAndAddToErrors("System update configuration found but it did not match any osFamily update manager.",
-                        hosts.errors[host.name].get(host.configGroup));
-                }
+    loadHost(hosts, host, hostDef) {
+        if (hostDef.configs && hostDef.configs.systemUpdate) {
+            let sysUpdate;
+            if (host.osFamily.toLowerCase() == "debian") {
+                sysUpdate = new Debian(this.provider, hostDef.configs.systemUpdate);
+            } else if (host.osFamily.toLowerCase() == "redhat") {
+                sysUpdate = new Redhat(this.provider, hostDef.configs.systemUpdate);
             }
+            if (sysUpdate) {
+                host.addConfig("systemUpdate", sysUpdate);
+            } else {
+                logger.logAndAddToErrors("System update configuration found but it did not match any osFamily update manager.",
+                    hosts.errors[host.name].get(host.configGroup));
+            }
+        }
     }
 
-    loadFromFile(){
+    loadFromFile() {
         //na
     }
 
-    loadFromJson(data){
+    loadFromJson(data) {
         //na
     }
 
 
-    clear(){
+    clear() {
         //na
     }
 
-    loadConsoleUIForSession(context,session){
-        if(!context.applications){
+    loadConsoleUIForSession(context, session) {
+        if (!context.applicationManagers) {
             context.applicationManagers = {};
         }
-        context.applicationManagers.systemUpate = new SystemUpateManagerUI(session);
+        context.applicationManagers.systemUpateManager = new SystemUpateManagerUI(session);
     }
 
 
-    loadWebUI(){
+    loadWebUI() {
     }
 
-    static getDependencies(){
-            return [HostManager];
+    static getDependencies() {
+        return [HostManager];
     }
 
-    deleteEntity(hc){
+    deleteEntity(hc) {
     }
 
-    entityStateChange(hc){
+    entityStateChange(hc) {
     }
 
-    addSystemUpdateToHost(host){
-        if(!(host instanceof Host) || !(systemUpdate instanceof SystemUpdate)){
-                logger.logAndThrow("Parameter host must be an instance of Host and systemupdate must be an instance of SystemUpdate.");
+    addSystemUpdateToHost(host) {
+        let sysUpdate;
+        let vHost = base.getValidHostFromHostParameter(this.provider.managers.hostManager,host);
+
+        if (vHost.osFamily && vHost.osFamily.toLowerCase() == "redhat") {
+            sysUpdate = new Redhat(this.provider,{upgrade:true});
+        } else if (vHost.osFamily && vHost.osFamily.toLowerCase() == "debian") {
+            sysUpdate = new Debian(this.provider,{upgrade:true});
+        }else{
+            throw new Error(`No System Update class found for osFamily ${vHost.osFamily}`);
         }
-        if(systemUpdate instanceof Redhat){
-            if (host.osFamily.toLocaleLowerCase()!=="redhat"){
-                logger.logAndThrow(`The host is os family is ${host.osFamily}. Redhat system update instance is not valid for this host.`);
-            }
-        }else if (systemUpdate instanceof Debian){
-            if (host.osFamily.toLocaleLowerCase()!=="debian"){
-                logger.logAndThrow(`The host is os family is ${host.osFamily}. Debian system update instance is not valid for this host.`);
-            }
-        }
-        host.configs.add("systemUpdate",systemUpdate);
+        vHost.configs.add("systemUpdate", sysUpdate);
+        return sysUpdate;
     }
 
 }

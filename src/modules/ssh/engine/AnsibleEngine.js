@@ -20,7 +20,7 @@ class AnsibleEngine extends AnsibleEngineComponent {
         }
         if (ssh) {
             let t = {
-                name: "Ssh config PermitRoot state check",
+                name: "configs[ssh] - PermitRoot state check",
                 lineinfile: {
                     dest: '/etc/ssh/sshd_config',
                     regexp: '^#?PermitRootLogin .*',
@@ -32,11 +32,11 @@ class AnsibleEngine extends AnsibleEngineComponent {
             tasks.push(t);
 
             t = {
-                name: "Ssh config PermitPassword state check",
+                name: "configs[ssh] - PermitPassword state check",
                 lineinfile: {
                     dest: '/etc/ssh/sshd_config',
                     regexp: '^#?PasswordAuthentication',
-                    line: `PasswordAuthentication ${ssh.passwordAuthentication}`
+                    line: `PasswordAuthentication ${ssh.passwordAuthentication? "yes":"no"}`
                 }
             };
             this.appendBecomes(host,ssh,t);
@@ -44,7 +44,7 @@ class AnsibleEngine extends AnsibleEngineComponent {
 
             if (ssh.validUsersOnly) {
                 t = {
-                    name: "Ssh config ValidUsers state check",
+                    name: "configs[ssh] - ValidUsers state check",
                     lineinfile: {
                         dest: '/etc/ssh/sshd_config',
                         regexp: '^#?AllowUsers .*',

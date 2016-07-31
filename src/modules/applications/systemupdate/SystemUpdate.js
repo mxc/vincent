@@ -8,23 +8,16 @@ import HostComponent from '../../../modules/base/HostComponent';
 class SystemUpdate extends HostComponent {
     
     constructor(provider,data){
-        super(provider);
-        this.data={};
+        super(provider,data);
         this.upgrade=data.upgrade? data.upgrade:"no";
         this.updateCache=data.updateCache? data.updateCache:"no";
     }
-
-    get upgrade(){
-        return this.data.upgrade;
-    }
-
 
     get updateCache(){
         return this.data.updateCache;
     }
 
     set updateCache(update){
-        
         if (typeof update == "boolean"){
             update= update? "yes":"no";
         }

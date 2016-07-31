@@ -17,7 +17,7 @@ class AnsibleEngine extends AnsibleEngineComponent {
         if (userAccounts) {
             userAccounts.forEach((user)=> {
                 let ansibleUser = {
-                    name: "User account state check",
+                    name: "addUserAccount - User account state",
                     user: `name=${user.name} state=${user.state}`
                 };
                 if(user.become){
@@ -35,7 +35,7 @@ class AnsibleEngine extends AnsibleEngineComponent {
                 if (user.authorized_keys) {
                     user.authorized_keys.forEach((authorizedUser)=> {
                         let ansibleAuthorizedKey = {
-                            name: "User authorized key state check",
+                            name: "addUserAccount - User authorized key state check",
                             authorized_key: {
                                 user: `${user.name}`,
                                 key: `{{ lookup('file','${authorizedUser.keyPath}') }}`,

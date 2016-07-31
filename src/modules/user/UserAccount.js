@@ -12,8 +12,8 @@ import AuthorizedUser from './AuthorizedUser';
 class UserAccount extends HostComponent {
     
     constructor(provider, data) {
-        super(provider);
-        this.data = {authorized_keys: []};
+        super(provider,data);
+        this.data.authorized_keys= [];
 
         this.errors = [];
         if (data) {
@@ -62,7 +62,6 @@ class UserAccount extends HostComponent {
                         }
                     });
                 }
-                super.load(data);
             } else {
                 logger.logAndThrow("The data parameter for UserAccount must be an data object.");
             }

@@ -2,23 +2,39 @@
  * Created by mark on 2016/07/25.
  */
 
-import Host from '../../../../host/Host';
 import HostUI from '../../../../host/ui/console/Host';
-import Debian from '../../Debian';
-import Redhat from '../../Redhat';
+import Vincent from '../../../../../Vincent';
+import SystemUpdate from './SystemUpdate';
+
+var data = new WeakMap();
 
 class SystemUpdateManager{
-    
+
+    constructor(session) {
+        let obj={};
+        obj.session = session;
+        data.set(this,obj);
+        Vincent.app.converters.set("systemUpdate",SystemUpdate);
+    }
+
     addSystemUpdateConfig(host){
         if (host instanceof HostUI){
-               if(hostUI.ofFamily.toLowerCase()=="debian"){
-                   Vincent.app.provider.managers.systemUpdateManager.addSystemUpdateToHost(host,new Debian(Vincent.));
-               }else if (hostUI.ofFamily.toLowerCase()=="redhat"){
-                   Vincent.app.provider.managers.systemUpdateManager.addSystemUpdateToHost(host,new Redhat());
-               }else{
-
-               }
+            try {
+                let vHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
+                let sysUpdate= Vincent.app.provider.managers.systemUpdateManager.addSystemUpdateToHost(vHost);
+                if(sysUpdate){
+                    return new SystemUpdate(sysUpdate,vHost,data.get(this).session);
+                }
+            }catch(e){
+                data.get(this).session.console.outputError(e.message);
+            }
+        } else{
+            data.get(this).session.console.outputError("Parameter host must be of type Host.")
         }
+    }
+
+    inspect(){
+        return  'A manager for managing software updates.'
     }
 
 }

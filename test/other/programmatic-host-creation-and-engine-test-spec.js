@@ -66,7 +66,7 @@ describe("The system", function () {
         provider.managers.userManager.addValidUser(markU);
         let demoU = new User({name: "demo", uid: 1001});
         provider.managers.userManager.addValidUser(demoU);
-        let host = new Host(provider, '192.168.122.137','einstein','sysadmin',770);
+        var host = new Host(provider, '192.168.122.137','einstein','sysadmin',770);
         let userAccount1 = new UserAccount(provider, {user: demoU});
         userAccount1.addAuthorizedUser(markU, "present");
         provider.managers.userManager.addUserAccountToHost(host, userAccount1);
@@ -76,7 +76,8 @@ describe("The system", function () {
 
     it('should successfully allow a user to build a host definition programmaticaly', function () {
         ansiblegen.loadEngineDefinition(provider.managers.hostManager.validHosts[0],appUser);
-        ansiblegen.export().then(result=> {
+        let host = provider.managers.hostManager.findValidHost("192.168.122.137","default");
+        ansiblegen.export(host).then(result=> {
             let filename = path.resolve(gen.playbookDir, "inventory");
             let promise = new Promise((resolve)=> {
                 fs.stat(filename, (err, stats)=> {

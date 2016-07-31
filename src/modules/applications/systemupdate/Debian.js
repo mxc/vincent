@@ -10,8 +10,12 @@ class Debian extends SystemUpdate {
     constructor(provider,data){
         super(provider,data);
         if(typeof data === "object"){
-            this.autoremove = data.autoremove? data.autoremove:"no";
+            this.data.autoremove = data.autoremove? data.autoremove:"no";
         }
+    }
+
+    get upgrade(){
+        return this.data.upgrade;
     }
 
     set upgrade(upgrade){
@@ -29,7 +33,6 @@ class Debian extends SystemUpdate {
     export(){
         return super.export();
     }
-    
     
     get autoremove(){
         return this.data.autoremove;

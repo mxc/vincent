@@ -10,12 +10,10 @@ import User from '../user/User';
 import HostGroup from './../group/HostGroup';
 import Group from './../group/Group';
 import _ from 'lodash';
-import HostComponent from '../base/HostComponent';
 
-class SudoEntry extends HostComponent {
+class SudoEntry  {
 
     constructor(provider, data) {
-        super(provider);
         this.data = {
             userList: {
                 users: [],
@@ -152,7 +150,7 @@ class SudoEntry extends HostComponent {
         return obj;
     }
 
-    get entry() {
+    get line() {
         let entry = '';
         let num = this.data.userList.users.length;
         this.data.userList.users.forEach((user, index)=> {

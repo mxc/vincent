@@ -9,12 +9,17 @@ class Redhat extends SystemUpdate {
 
     constructor(provider,data){
         super(provider,data);
+
         if(typeof data === "object"){
-            this.updateCache=data.updateCache;
-            this.upgrade = data.upgrade;
+            //this.updateCache=data.updateCache;
+            //this.upgrade = data.upgrade;
         }
     }
 
+    get upgrade(){
+        return this.data.upgrade;
+    }
+    
     set upgrade(upgrade){
         if (typeof upgrade == "boolean"){
             upgrade= upgrade? "yes":"no";

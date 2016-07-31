@@ -9,14 +9,15 @@ import {logger} from '../../Logger';
 
 class HostComponent {
 
-    constructor(provider) {
+    constructor(provider,data) {
         if (!provider || !(provider instanceof Provider)) {
             throw new Error("Parameter provider must be of type provider.");
         } else {
             this.provider = provider;
         }
-        this.data={};
-        this.data.become=false;
+        if(!this.data) this.data={};
+        if(!data) data={};
+        this.load(data);
     }
 
     get becomeUser() {

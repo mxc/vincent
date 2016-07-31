@@ -95,81 +95,82 @@ describe("SysUpdate should", ()=> {
         provider.managers.hostManager.loadFromJson(host);
 
         let thost = provider.managers.hostManager.findValidHost(host.name, host.configGroup);
-        let sysup = new Debian(provider, {
-            updateCache: true,
-            upgrade: true,
-            autoremove: true
-        });
+        // let sysup = new Debian(provider, {
+        //     updateCache: true,
+        //     upgrade: true,
+        //     autoremove: true
+        // });
 
 
-        provider.managers.systemUpdateManager.addSystemUpdateToHost(thost, sysup);
-        sysup = thost.getConfig("systemUpdate");
-        expect(sysup.updateCache).to.equal("yes");
-        expect(sysup.autoremove).to.equal("yes");
+        provider.managers.systemUpdateManager.addSystemUpdateToHost(thost);
+        let sysup = thost.getConfig("systemUpdate");
+        expect(sysup.upgrade).to.equal("yes");
+        expect(sysup.autoremove).to.equal("no");
+        expect(sysup.updateCache).to.equal("no");
     });
 
 
-    it("should throw an error when an incorrect system update type is added to a host", ()=> {
-        var host = {
-            name: "www.example.com",
-            owner: "einstein",
-            group: "sysadmin",
-            permissions: 770,
-            configGroup: "default",
-            osFamily: "Debian",
-            users: [
-                {
-                    user: {name: "user1"},
-                    authorized_keys: [{name: "user1", state: "present"}]
-                },
-                {
-                    user: {name: "user2"},
-                    authorized_keys: [
-                        {name: "user1", state: "present"},
-                        {name: "user2", state: "absent"}
-                    ]
-                }
-            ],
-            groups: [
-                {
-                    group: {name: "group1"},
-                    members: [
-                        "user1"
-                    ]
-                },
-                {
-                    group: {name: "group2"},
-                    members: [
-                        "user2"
-                    ]
-                },
-                {
-                    group: {name: "group3"},
-                    members: [
-                        "user1",
-                        "user2"
-                    ]
-                }
-
-            ]
-        };
-
-        let provider = new Provider();
-        //inject mocks
-        provider.managers.groupManager.validGroups = validGroups;
-        provider.managers.userManager.validUsers = validUsers;
-        provider.managers.hostManager.loadFromJson(host);
-
-        let thost = provider.managers.hostManager.findValidHost(host.name, host.configGroup);
-        let sysup = new Redhat(provider, {
-            updateCache: true,
-            upgrade: true,
-            autoremove: true
-        });
-        expect(()=> {
-            provider.managers.systemUpdateManager.addSystemUpdateToHost(thost, sysup)
-        }).to.throw("The host is os family is Debian. Redhat system update instance is not valid for this host.");
-    });
+    // it("should throw an error when an incorrect system update type is added to a host", ()=> {
+    //     var host = {
+    //         name: "www.example.com",
+    //         owner: "einstein",
+    //         group: "sysadmin",
+    //         permissions: 770,
+    //         configGroup: "default",
+    //         osFamily: "Debian",
+    //         users: [
+    //             {
+    //                 user: {name: "user1"},
+    //                 authorized_keys: [{name: "user1", state: "present"}]
+    //             },
+    //             {
+    //                 user: {name: "user2"},
+    //                 authorized_keys: [
+    //                     {name: "user1", state: "present"},
+    //                     {name: "user2", state: "absent"}
+    //                 ]
+    //             }
+    //         ],
+    //         groups: [
+    //             {
+    //                 group: {name: "group1"},
+    //                 members: [
+    //                     "user1"
+    //                 ]
+    //             },
+    //             {
+    //                 group: {name: "group2"},
+    //                 members: [
+    //                     "user2"
+    //                 ]
+    //             },
+    //             {
+    //                 group: {name: "group3"},
+    //                 members: [
+    //                     "user1",
+    //                     "user2"
+    //                 ]
+    //             }
+    //
+    //         ]
+    //     };
+    //
+    //     let provider = new Provider();
+    //     //inject mocks
+    //     provider.managers.groupManager.validGroups = validGroups;
+    //     provider.managers.userManager.validUsers = validUsers;
+    //     provider.managers.hostManager.loadFromJson(host);
+    //
+    //     let thost = provider.managers.hostManager.findValidHost(host.name, host.configGroup);
+    //     let sysup = new Redhat(provider, {
+    //         updateCache: true,
+    //         upgrade: true,
+    //         autoremove: true
+    //     });
+    //     expect(()=> {
+    //         provider.managers.systemUpdateManager.addSystemUpdateToHost(thost)
+    //     }).to.throw("The host is os family is Debian. Redhat system update instance is not valid for this host.");
+    // });
 
     it("load system update from host definition", ()=> {
         var host = {
@@ -217,7 +218,7 @@ describe("SysUpdate should", ()=> {
             configs: {
                 systemUpdate: {
                     updateCache: "yes",
-                    update: "yes",
+                    upgrade: "yes",
                     autoremove: "yes"
                 }
             }
@@ -308,7 +309,7 @@ describe("SysUpdate should", ()=> {
                 {
                     group: {name: "group3", state: "present"},
                     members: [
-                        "user1",
+                        "user1"
                     ]
                 }
 
@@ -330,13 +331,10 @@ describe("SysUpdate should", ()=> {
         provider.managers.hostManager.loadFromJson(host);
 
         let thost = provider.managers.hostManager.findValidHost(host.name, host.configGroup);
-        let sysup = new Debian(provider, {
-            updateCache: true,
-            upgrade: true,
-            autoremove: true
-        });
-        provider.managers.systemUpdateManager.addSystemUpdateToHost(thost, sysup);
-
+        let sysup = provider.managers.systemUpdateManager.addSystemUpdateToHost(thost);
+        sysup.autoremove=true;
+        sysup.updateCache=true;
+        sysup.upgrade=true;
         expect(thost.export()).to.deep.equal(expectedhost);
     });
 

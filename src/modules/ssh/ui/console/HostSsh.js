@@ -30,7 +30,6 @@ class HostSSH extends TaskObject {
         let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name, host.configGroup);
         if(!rHost){
             throw new Error(`Host ${host.name} is not valid.`);
-            return;
         }
         obj.permObj = rHost;
 

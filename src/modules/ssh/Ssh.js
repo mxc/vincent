@@ -4,14 +4,13 @@
  * and open the template in the editor.
  */
 
-import Base from './../base/Base';
+import base from './../base/Base';
 import {logger} from './../../Logger';
 import HostSsh from './ui/console/HostSsh';
 
-class Ssh extends Base {
+class Ssh  {
 
     constructor(data) {
-        super();
         this.data = {
             permitRoot: false,
             validUsersOnly: true,
@@ -23,18 +22,18 @@ class Ssh extends Base {
                 if (data.permitRoot=="without-password"){
                     this.data.permitRoot=data.permitRoot;
                 }else {
-                    this.data.permitRoot = this.getBooleanValue(data.permitRoot);
+                    this.data.permitRoot = base.getBooleanValue(data.permitRoot);
                 }
             } else {
                 logger.logAndAddToErrors("Ssh object is missing permitroot key. Using default",this.errors);
             }
             if (data.validUsersOnly!==undefined) {
-                this.data.validUsersOnly = this.getBooleanValue(data.validUsersOnly);
+                this.data.validUsersOnly = base.getBooleanValue(data.validUsersOnly);
             } else {
                 logger.logAndAddToErrors("Ssh object is missing validuseronly key. Using default",this.errors);
             }
             if (data.passwordAuthentication!==undefined) {
-                this.data.passwordAuthentication = this.getBooleanValue(data.passwordAuthentication);
+                this.data.passwordAuthentication = base.getBooleanValue(data.passwordAuthentication);
             } else {
                 logger.logAndAddToErrors("Ssh object is missing passwordAuthentication key. Using default",this.errors);
             }
@@ -44,7 +43,7 @@ class Ssh extends Base {
     }
     
     set permitRoot(val) {
-        this.data.permitRoot = this.getBooleanValue(val);
+        this.data.permitRoot = base.getBooleanValue(val);
     }
 
     get permitRoot() {
@@ -52,7 +51,7 @@ class Ssh extends Base {
     }
 
     set validUsersOnly(val) {
-        this.data.validUsersOnly = this.getBooleanValue(val);
+        this.data.validUsersOnly = base.getBooleanValue(val);
     }
 
     get validUsersOnly() {
@@ -60,7 +59,7 @@ class Ssh extends Base {
     }
 
     set passwordAuthentication(val) {
-        this.data.passwordAuthentication = this.getBooleanValue(val);
+        this.data.passwordAuthentication = base.getBooleanValue(val);
     }
 
     get passwordAuthentication() {

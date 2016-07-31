@@ -9,10 +9,11 @@ import Host from '../host/Host.js';
 import {logger} from '../../Logger';
 import child_process from 'child_process';
 import Manager from '../base/Manager';
-import HostManager from '../host/HostManager';
+import HistoryEntry from '../host/HistoryEntry';
 import path from 'path';
 import {EOL} from 'os';
 import mkdirp from 'mkdirp';
+
 
 class AnsibleEngine extends Engine {
 
@@ -25,6 +26,31 @@ class AnsibleEngine extends Engine {
         this.errors = [];
     }
 
+    processEntry(timestamp,entry,hostname){
+        let host = entry.plays[0].play.name;
+        if(host!==hostname){
+            logger.logAndThrow(`Cannot create an entry for ${host} for ${hostname}.`);
+        }
+        let errors = [];
+        let status = 'passed';
+        if (entry.stats[host].failures > 0) {
+            status = "failed";
+            entry.plays.forEach((playObj)=> {
+                if (playObj.play.name === host) {
+                    playObj.tasks.forEach((task)=> {
+                        if (task.hosts[host].msg) {
+                            errors.push({task: task.task.name, msg: task.hosts[host].msg})
+                        }
+                    });
+                }
+            });
+        }
+        let rentry = new HistoryEntry(timestamp, status, entry, errors)
+        return rentry;
+
+    }
+    
+    
     clean() {
         return new Promise((resolve, reject)=> {
             fs.stat(this.playbookDir, (err, stat)=> {
@@ -288,7 +314,8 @@ class AnsibleEngine extends Engine {
         //set the ssh control path - bug with $HOME variable in ansible
         opts.env = {
             ANSIBLE_SSH_CONTROL_PATH: "./%%h-%%p-%%r",
-            ANSIBLE_LOG_PATH: path.resolve(this.playbookDir, "ansible.log")
+            ANSIBLE_LOG_PATH: path.resolve(this.playbookDir, "ansible.log"),
+            ANSIBLE_STDOUT_CALLBACK: "json"
         };
 
         //disable hostkey checking if required
@@ -301,24 +328,17 @@ class AnsibleEngine extends Engine {
 
     getArgs(privkey, username, passwd,sudoPasswd) {
         let args = [];
+        args.push("-i");
+        args.push("inventory");
         if (privkey && !username) {
-            args.push("-i");
-            args.push("inventory");
             args.push(`--private-key=${privkey}`);
         } else if (privkey && username) {
-            args.push("-i");
-            args.push("inventory");
             args.push(`--private-key=${privkey}`);
             args.push(`-u`);
             args.push(username);
         } else if (username && passwd) {
-            args.push("-i");
-            args.push("inventory");
             args.push(`--ask-pass`);
             args.push(`-u ${username}`);
-        } else {
-            args.push("-i");
-            args.push("inventory");
         }
         if(sudoPasswd){
             args.push('--ask-become-pass');
@@ -358,7 +378,8 @@ class AnsibleEngine extends Engine {
                     msg.status = "succeeded";
                 }
                 this.log(msg);
-                resolve(results);
+                results = results.slice(results.indexOf("{"));
+                resolve(JSON.parse(results));
             });
 
             proc.stdout.on('data', (data)=> {

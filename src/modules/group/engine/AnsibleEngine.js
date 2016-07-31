@@ -15,7 +15,7 @@ class AnsibleEngine extends EngineComponent {
         if (hostGroups) {
             hostGroups.forEach((group)=> {
                 let ansibleGroup = {
-                    name: "Group state check",
+                    name: "addHostGroup - Group state check",
                     group: `name=${group.name} state=${group.state}`,
                 };
                 if (group.gid) {

@@ -105,7 +105,7 @@ describe("SSH Engine export should", function () {
         let tasks = [];
         provider.managers.sshManager.exportToEngine("ansible", host1, tasks);
         let tresult = [{
-            name: 'Ssh config PermitRoot state check',
+            name: 'configs[ssh] - PermitRoot state check',
             lineinfile: {
                 dest: '/etc/ssh/sshd_config',
                 regexp: '^#?PermitRootLogin .*',
@@ -113,15 +113,15 @@ describe("SSH Engine export should", function () {
             }
         },
             {
-                name: 'Ssh config PermitPassword state check',
+                name: 'configs[ssh] - PermitPassword state check',
                 lineinfile: {
                     dest: '/etc/ssh/sshd_config',
                     regexp: '^#?PasswordAuthentication',
-                    line: 'PasswordAuthentication false'
+                    line: 'PasswordAuthentication no'
                 }
             },
             {
-                name: "Ssh config ValidUsers state check",
+                name: "configs[ssh] - ValidUsers state check",
                 lineinfile: {
                     dest: "/etc/ssh/sshd_config",
                     line: "AllowUsers user1",

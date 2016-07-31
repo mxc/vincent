@@ -9,9 +9,8 @@ import {logger} from './../../Logger';
 class HostGroup extends HostComponent {
 
     constructor(provider, data) {
-        super(provider);
-        this.data = {members: []};
-        this.data.source = data;
+        super(provider,data);
+        this.data.members= [];
         this.errors = [];
         if (data) {
             if (typeof data === "object") {
@@ -50,7 +49,6 @@ class HostGroup extends HostComponent {
                         }
                     });
                 }
-                super.load(data);
             } else {
                 logger.logAndThrow("The data parameter for HostGroup must be an data object or undefined.");
             }

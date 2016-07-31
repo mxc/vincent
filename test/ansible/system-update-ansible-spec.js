@@ -9,7 +9,6 @@
 
 import Provider from './../../src/Provider';
 import {expect} from 'chai';
-import HostSsh from  './../../src/modules/ssh/HostSsh';
 import User from  './../../src/modules/user/User';
 import Group from  './../../src/modules/group/Group';
 import AppUser from  './../../src/ui/AppUser';
@@ -108,8 +107,8 @@ describe("System Update Engine export should", function () {
         provider.managers.systemUpdateManager.exportToEngine("ansible", thost, tasks);
         let tresult = [
             {
-                apt: "update_cache=yes  upgrade=undefined autoremote = yes",
-                name: "Perform system update"
+                apt: "update_cache=yes  upgrade=no",
+                name: "configs[systemUpdate] - Update system check"
             }
         ];
         expect(tasks).to.deep.equal(tresult);
