@@ -13,7 +13,7 @@ var data = new WeakMap();
 
 class Host extends PermissionsUIManager {
 
-    constructor(host, session, configGroup) {
+    constructor(host, session, configGroup,osFamily) {
 
         if (!(session instanceof Session)) {
             throw new Error("Parameter session must be an instance of Session.");
@@ -27,12 +27,16 @@ class Host extends PermissionsUIManager {
             configGroup = "default";
         }
 
+        if(!osFamily){
+            osFamily="unknown";
+        }
+
         //if parameter is of type HostElement (real Host) then we assume it is already
         //added to valid host and this is a reconstruction.
 
         if (typeof host === 'string') {
             host = new HostEntity(Vincent.app.provider, host, session.appUser.name,
-                session.appUser.primaryGroup, 760, configGroup);
+                session.appUser.primaryGroup, 760, configGroup,osFamily);
             Vincent.app.provider.managers.hostManager.addHost(host);
         }
         super(session, host);

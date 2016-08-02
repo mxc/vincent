@@ -433,8 +433,16 @@ class GroupManager extends PermissionsManager {
             HostUI.prototype.addHostGroup = function (data) {
                 let func = function () {
                     return this.genFuncHelper(function (grp, tsession, permObj) {
-                        var hostGroup = new HostGroupUI(grp, permObj, tsession);
-                        return hostGroup;
+                       try {
+                           var hostGroup = new HostGroupUI(grp, permObj, tsession);
+                           return hostGroup;
+                       } catch (e) {
+                           logger.error(e);
+                           if (!e) {
+                               tsession.console.outputError("error");
+                           }
+                           tsession.console.outputError(`${e.message ? e.message : e}`);
+                       }
                     }, data);
                 };
                 func = func.bind(this);

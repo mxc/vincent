@@ -115,7 +115,6 @@ class SshManager extends PermissionsManager {
     }
 
     addSsh(host, config) {
-
         if (!(host instanceof Host)) {
             logger.logAndThrow(`Parameter host must be an instance of Host.`);
         }
@@ -124,7 +123,7 @@ class SshManager extends PermissionsManager {
             let hostSsh = new HostSsh(this.provider, config);
             host.data.configs.add("ssh", hostSsh);
             return hostSsh;
-        } else {
+        } else if(typeof config==="string") {
             let configDef = this.findSSHConfig(config);
             if (!configDef) {
                 logger.logAndThrow(`Ssh config '${config}' not found.`);
@@ -132,8 +131,11 @@ class SshManager extends PermissionsManager {
             let hostSsh = new HostSsh(this.provider, configDef);
             host.addConfig("ssh", hostSsh);
             return hostSsh;
+        }else{
+            let hostSsh = new HostSsh(this.provider,{permitRoot:false, passwordAuthentication:true,validUsersOnly:false});
+            host.data.configs.add("ssh", hostSsh);
+            return hostSsh;
         }
-
     }
 
     getSsh(host) {

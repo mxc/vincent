@@ -13,8 +13,10 @@ var data = new WeakMap();
 
 class Group extends PermissionHelper {
 
-    constructor(group,appUser,manager){
+    constructor(group,session){
+        let manager = Vincent.app.provider.managers.groupManager;
         let obj ={};
+        obj.session = session;
         if (group && (typeof group === 'string' || ((group.name!=undefined) && !(group instanceof GroupElement)))) {
             obj.group = new GroupElement(group);
             Vincent.app.provider.managers.groupManager.addValidGroup(obj.group);
@@ -23,21 +25,22 @@ class Group extends PermissionHelper {
         } else {
             throw new Error("The parameter group must be a group name or data object with a name and optional gid, state and member.");
         }
-        if (!(appUser instanceof AppUser)) {
+        if (!(session.appUser instanceof AppUser)) {
             throw new Error("The parameter appUser must be of type AppUser.");
         }
-        obj.appUser = appUser;
+        obj.appUser = session.appUser;
         if (!(manager instanceof GroupManager)) {
             throw new Error("The parameter manager must be of type GroupManager.");
         }
         obj.permObj = manager;
-        super(obj.sesion,obj.permObj);
+        super(obj.session,obj.permObj);
         data.set(this,obj);
     }
 
     get gid(){
         return this._readAttributeWrapper(()=> {
-            return data.get(this).group.gid;
+            let gid = data.get(this).group.gid;
+            return gid? gid: "-";
         });
     }
 
@@ -49,9 +52,10 @@ class Group extends PermissionHelper {
 
     set gid(value){
         if (typeof value==='number'){
-            Vincent.app.provider.managers.groupManager.updateGroupGid(this[_group],value);
+            Vincent.app.provider.managers.groupManager.updateGroupGid(data.get(this).group,value);
         }else{
-            console.log("Gid must be a number");
+            logger.error("Group gid must be a number.");
+            data.get(this).session.console.outputError("Group gid must be a number.");
         }
     }
 

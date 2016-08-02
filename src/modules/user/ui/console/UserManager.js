@@ -32,10 +32,10 @@ class UserManager extends PermissionsUIManager {
                 }));
             });
         } catch (e) {
-            return e.message;
-            //return [];
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message);
         }
-    }
+        }
 
     getUser(username) {
         try {
@@ -44,9 +44,8 @@ class UserManager extends PermissionsUIManager {
                 return new User(user, data.get(this).session);
             });
         } catch (e) {
-            //console.log(e);
-            //return false;
-            return e.message;
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message);
         }
     }
 
@@ -142,7 +141,8 @@ class UserManager extends PermissionsUIManager {
                 return data.get(this).permObj.save();
             });
         } catch (e) {
-            return e.message;
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message);
         }
     }
 
@@ -156,7 +156,8 @@ class UserManager extends PermissionsUIManager {
                 }
             });
         } catch (e) {
-            return e.message ? e.message : e;
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message);
         }
     }
 
@@ -167,7 +168,8 @@ class UserManager extends PermissionsUIManager {
                 return ("Users have been cleared and removed from groups and hosts.");
             });
         } catch (e) {
-            return e.message;
+            logger.error(e);
+            data.get(this).session.console.outputError(e.message);
         }
     }
 

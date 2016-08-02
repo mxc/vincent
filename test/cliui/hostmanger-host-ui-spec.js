@@ -10,10 +10,11 @@ import Session from '../../src/ui/Session';
 
 describe("HostManager UI should", ()=> {
 
-    var provider = new Provider();
-    Vincent.app = {provider: provider};
 
     it("prevent unauthorised users from loading engine definitions for hosts without permissions", (done)=> {
+        var provider = new Provider();
+        Vincent.app = {provider: provider};
+
         let appUser = new AppUser("newton", ["dev"], "devops");
         let result = "";
         let session = new Session();
@@ -31,7 +32,6 @@ describe("HostManager UI should", ()=> {
                 result = msg;
             }
         };
-
         session.socket = {
             write: ()=> {
             }
@@ -89,6 +89,9 @@ describe("HostManager UI should", ()=> {
     });
 
     it("prevent unauthorised users from obtaining a reference to a host", ()=> {
+        var provider = new Provider();
+        Vincent.app = {provider: provider};
+
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let result = "";
@@ -125,7 +128,11 @@ describe("HostManager UI should", ()=> {
 
 
     it("allow authorised users to obtain a reference to a host", ()=> {
+        var provider = new Provider();
+        Vincent.app = {provider: provider};
+
         try {
+            Vincent.app.provider.managers.hostManager.validHosts = [];
             let appUser = new AppUser("newton", ["dev"], "devops");
             let result = "";
 
@@ -147,9 +154,9 @@ describe("HostManager UI should", ()=> {
                 write: ()=> {
                 }
             };
-            let hostManagerUi = new HostManagerUI(session);
-            let host = hostManagerUi.addHost("dogzrule.co.za", "web");
-            let tmpHost = hostManagerUi.getHost("dogzrule.co.za", "web");
+            let hostManagerUi2 = new HostManagerUI(session);
+            let host = hostManagerUi2.addHost("dogzrule.co.za","unknown", "web");
+            let tmpHost = hostManagerUi2.getHost("dogzrule.co.za","web");
             expect(tmpHost).to.deep.equal(host);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
@@ -220,7 +227,7 @@ describe("HostManager UI should", ()=> {
                 }
             };
             let hostManagerUi = new HostManagerUI(session);
-            let host = hostManagerUi.addHost("dogzrule.co.za", "web");
+            let host = hostManagerUi.addHost("dogzrule.co.za","Debian", "web");
             Vincent.app.provider.managers.hostManager.saveHost = ()=> {
                 return true
             };

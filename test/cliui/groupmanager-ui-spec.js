@@ -1,23 +1,22 @@
 /**
- * Created by mark on 2016/05/08.
+ * Created by mark on 2016/08/01.
  */
 import Provider from '../../src/Provider';
 import {expect} from 'chai';
 import AppUser from '../../src/ui/AppUser';
 import UserUI from '../../src/modules/user/ui/console/User';
-import UserManagerUI from '../../src/modules/user/ui/console/UserManager';
+import GroupManagerUI from '../../src/modules/group/ui/console/GroupManager';
 import HostManagerUI from '../../src/modules/host/ui/console/HostManager';
 import Vincent from '../../src/Vincent';
 import Session from '../../src/ui/Session';
 
-describe("UserManager UI should", ()=> {
+describe("GroupManager UI should", ()=> {
 
-    //by default root user and vincent group have read/write access to the user account store
-
+    //vincent is the default group with write/read/execute permissions
     let provider = new Provider();
     Vincent.app = {provider: provider};
 
-    it("allow authorised users to add new Users to valid user list", ()=> {
+    it("allow authorised users to add new Groups to valid group list", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -35,19 +34,17 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            //let hostManagerUi = new HostManagerUI(appUser);
-            //let host = hostManagerUi.addHost("dogzrule.co.za");
-            let user = userManagerUi.addUser("demoUser");
-            expect(user.name).to.equal("demoUser");
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup("demoGroup");
+            expect(group.name).to.equal("demoGroup");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
         }
     });
 
 
-    it("allow authorised users to add new Users with user name and uid to valid user list", ()=> {
+    it("allow authorised users to add new Groups with group name and gid to valid group list", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -65,17 +62,17 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            let user = userManagerUi.addUser({name: "demoUser", uid: 1000, state: "absent"});
-            expect(user.name).to.equal("demoUser");
-            expect(user.uid).to.equal(1000);
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup({name: "demoGroup", gid: 1000, state: "absent"});
+            expect(group.name).to.equal("demoGroup");
+            expect(group.gid).to.equal(1000);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
         }
     });
 
-    it("prevent unauthorised users from adding new Users to valid user list", ()=> {
+    it("prevent unauthorised users from adding new Groups to valid group list", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev"], "devops");
             let result="";
@@ -95,16 +92,16 @@ describe("UserManager UI should", ()=> {
             };
 
 
-            let userManagerUi = new UserManagerUI(session);
-            let user = userManagerUi.addUser("demoUser");
-            expect(result).to.equal("User newton does not have the required permissions for UserManager for the action write attribute.");
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup("demoGroup");
+            expect(result).to.equal("User newton does not have the required permissions for GroupManager for the action write attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
         }
     });
 
-    it("allow authorised users to retrieve a user instance", ()=> {
+    it("allow authorised users to retrieve a group instance", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -122,17 +119,17 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            let user = userManagerUi.addUser("demoUser");
-            let user2 = userManagerUi.getUser("demoUser");
-            expect(user).to.deep.equal(user2);
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup("demoGroup");
+            let group2 = groupManagerUi.getGroup("demoGroup");
+            expect(group).to.deep.equal(group2);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
         }
     });
 
-    it("prevent unauthorised users from retrieving user instance ", ()=> {
+    it("prevent unauthorised users from retrieving group instance ", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -149,14 +146,12 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            //let hostManagerUi = new HostManagerUI(appUser);
-            //let host = hostManagerUi.addHost("dogzrule.co.za");
-            let user = userManagerUi.addUser("demoUser");
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup("demoGroup");
 
-            //by default all users have read permission on user list.
+            //by default all users have read permission on group list.
             //switch it off for test
-            Vincent.app.provider.managers.userManager.permissions = 660;
+            Vincent.app.provider.managers.groupManager.permissions = 660;
             let appUser2 = new AppUser("einstein", ["dev"], "devops");
             let session2 = new Session();
             session2.appUser = appUser2;
@@ -171,17 +166,17 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi2 = new UserManagerUI(session2);
+            let groupManagerUi2 = new GroupManagerUI(session2);
 
-            let user2 = userManagerUi2.getUser("demoUser");
-            expect(result).to.equal("User einstein does not have the required permissions for UserManager for the action read attribute.");
+            let group2 = groupManagerUi2.getGroup("demoGroup");
+            expect(result).to.equal("User einstein does not have the required permissions for GroupManager for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
             Vincent.app.provider.managers.userManager.validUsers = [];
         }
     });
 
-    it("prevent unauthorised users from retrieving user instance ", ()=> {
+    it("prevent unauthorised users from retrieving a group instance ", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -199,14 +194,12 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            //let hostManagerUi = new HostManagerUI(appUser);
-            //let host = hostManagerUi.addHost("dogzrule.co.za");
-            let user = userManagerUi.addUser("demoUser");
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup("demoGroup");
 
             //by default all users have read permission on user list.
             //switch it off for test
-            userManagerUi.permissions = 660;
+            groupManagerUi.permissions = 660;
             let appUser2 = new AppUser("einstein", ["dev"], "devops");
             let result2="";
             let session2 = new Session();
@@ -224,17 +217,17 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            let userManagerUi2 = new UserManagerUI(session2);
-            let user2 = userManagerUi2.getUser("demoUser");
-            expect(result2).to.equal("User einstein does not have the required permissions for UserManager for the action read attribute.");
+            let groupManagerUi2 = new GroupManagerUI(session2);
+            let group2 = groupManagerUi2.getGroup("demoGroup");
+            expect(result2).to.equal("User einstein does not have the required permissions for GroupManager for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
 
-    it("prevent unauthorised users from list user names", ()=> {
+    it("prevent unauthorised users from obtaining list of group names", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
 
@@ -253,15 +246,15 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            let userManagerUi = new UserManagerUI(session);
+            let groupManagerUi = new GroupManagerUI(session);
 
-            userManagerUi.addUser("demoUser1");
-            userManagerUi.addUser("demoUser2");
-            userManagerUi.addUser("demoUser3");
+            groupManagerUi.addGroup("demoGroup1");
+            groupManagerUi.addGroup("demoGroup2");
+            groupManagerUi.addGroup("demoGroup3");
 
             //by default all users have read permission on user list.
             //switch it off for test
-            userManagerUi.permissions = 660;
+            groupManagerUi.permissions = 660;
             let appUser2 = new AppUser("einstein", ["dev"], "devops");
             let session2 = new Session();
             session2.appUser = appUser2;
@@ -277,18 +270,18 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            let userManagerUi2 = new UserManagerUI(session2);
+            let groupManagerUi2 = new GroupManagerUI(session2);
 
-            let list = userManagerUi2.list;
-            expect(result).to.equal("User einstein does not have the required permissions for UserManager for the action read attribute.");
+            let list = groupManagerUi2.list;
+            expect(result).to.equal("User einstein does not have the required permissions for GroupManager for the action read attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
 
-    it("allow authorised users to list user names", ()=> {
+    it("allow authorised users to list group names", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -307,25 +300,25 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            let userManagerUi = new UserManagerUI(session);
+            let groupManagerUi = new GroupManagerUI(session);
 
-            userManagerUi.addUser("demoUser1");
-            userManagerUi.addUser("demoUser2");
-            userManagerUi.addUser("demoUser3");
+            groupManagerUi.addGroup("demoGroup1");
+            groupManagerUi.addGroup("demoGroup2");
+            groupManagerUi.addGroup("demoGroup3");
 
             let appUser2 = new AppUser("einstein", ["dev"], "devops");
-            let userManagerUi2 = new UserManagerUI(session);
+            let groupManagerUi2 = new GroupManagerUI(session);
 
-            let list = userManagerUi2.list;
+            let list = groupManagerUi2.list;
             expect(list.length).to.equal(3);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
         }
     });
 
 
-    it("allow authorised users to save the user list", ()=> {
+    it("allow authorised users to save the group list", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -343,19 +336,19 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            userManagerUi.addUser("demoUser1");
-            userManagerUi.addUser("demoUser2");
-            userManagerUi.addUser("demoUser3");
-            let result2 = userManagerUi.save();
+            let groupManagerUi = new GroupManagerUI(session);
+            groupManagerUi.addGroup("demoGroup1");
+            groupManagerUi.addGroup("demoGroup2");
+            groupManagerUi.addGroup("demoGroup3");
+            let result2 = groupManagerUi.save();
             expect(result2).to.be.true;
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
         }
     });
 
-    it("prevent unauthorised users from saving the user list", ()=> {
+    it("prevent unauthorised users from saving the group list", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -374,11 +367,11 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            let userManagerUi = new UserManagerUI(session);
-            userManagerUi.addUser("demoUser1");
-            userManagerUi.addUser("demoUser2");
-            userManagerUi.addUser("demoUser3");
-            userManagerUi.permissions = "000";
+            let groupManagerUi = new GroupManagerUI(session);
+            groupManagerUi.addGroup("demoGroup1");
+            groupManagerUi.addGroup("demoGroup2");
+            groupManagerUi.addGroup("demoGroup3");
+            groupManagerUi.permissions = "000";
             let appUser2 = new AppUser("einstein", ["dev"], "devops");
             let result2="";
             let session2 = new Session();
@@ -395,18 +388,18 @@ describe("UserManager UI should", ()=> {
                     result2 =  msg;
                 }
             };
-            let userManagerUi2 = new UserManagerUI(session2);
-            result = userManagerUi2.save();
-            expect(result2).to.equal("User einstein does not have the required permissions for UserManager for the action write attribute.");
+            let groupManagerUi2 = new GroupManagerUI(session2);
+            result = groupManagerUi2.save();
+            expect(result2).to.equal("User einstein does not have the required permissions for GroupManager for the action write attribute.");
 
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
 
-    it("prevent users with duplicate username or uids from  being created", ()=> {
+    it("prevent users with duplicate groupname or gids from  being created", ()=> {
         try {
             let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
             let result="";
@@ -424,18 +417,18 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            let userManagerUi = new UserManagerUI(session);
-            userManagerUi.addUser("demoUser1");
-            let user = userManagerUi.addUser("demoUser1");
+            let groupManagerUi = new GroupManagerUI(session);
+            groupManagerUi.addGroup("demoGroup1");
+            let user = groupManagerUi.addGroup("demoGroup1");
             expect(user).to.be.undefined;
-            expect(result).to.equal("User demoUser1 already exists.");
+            expect(result).to.equal("Group demoGroup1 already exists.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
         }
     });
 
-    it("allow authorised users to add UserAccounts to host by name", ()=> {
+    it("allow authorised users to add HostGroups to host by name", ()=> {
         try {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             let result="";
@@ -455,21 +448,21 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},session);
-            let userManagerUi = new UserManagerUI(session);
+            Vincent.app.provider.managers.groupManager.loadConsoleUIForSession({},session);
+            let groupManagerUi = new GroupManagerUI(session);
             let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            let user = userManagerUi.addUser({name: "newton", uid: 1000, state: "present"});
-            let userAccount = host.addUserAccount('newton');
-            expect(userAccount.user).to.deep.equal(user);
+            let group = groupManagerUi.addGroup({name: "devops", uid: 1000, state: "present"});
+            let hostGroup = host.addHostGroup('devops');
+            expect(hostGroup.group).to.deep.equal(group);
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
 
-    it("throw an exception when authorised users tries to add an invalid user to a host", ()=> {
+    it("throw an exception when authorised users tries to add an invalid group to a host", ()=> {
         try {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             let result="";
@@ -487,21 +480,21 @@ describe("UserManager UI should", ()=> {
                     result =  msg;
                 }
             };
-            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},session);
-            let userManagerUi = new UserManagerUI(session);
+            Vincent.app.provider.managers.groupManager.loadConsoleUIForSession({},session);
+            let groupManagerUi = new GroupManagerUI(session);
             let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            host.addUserAccount('newton');
-            expect(result).to.equal("The user newton is not a valid user.");
+            host.addHostGroup('monitor');
+            expect(result).to.equal("The group monitor is not a valid group.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
 
 
-    it("throw an exception when an unauthorised users tries to add a valid user ", ()=> {
+    it("throw an exception when an unauthorised users tries to add a valid group ", ()=> {
         try {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             let result="";
@@ -520,23 +513,23 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},session);
+            Vincent.app.provider.managers.groupManager.loadConsoleUIForSession({},session);
             let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            let userManagerUi = new UserManagerUI(session);
-            let user = userManagerUi.addUser({name: "pascal", uid: 1001, state: "present"});
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup({name: "ops", uid: 1001, state: "present"});
             //change permissions so user has no access to host
             host.group = "ops";
             host.owner = "newton";
-            expect(()=>{ host.addUserAccount('pascal')} ).to.throw("User einstein does not have the required permissions for www.coffeecup.co.za for the action write attribute.");
+            expect(()=>{ host.addHostGroup('ops')} ).to.throw("User einstein does not have the required permissions for www.coffeecup.co.za for the action write attribute.");
         } finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
 
-    it("should allow a UserAccount to be defined by a data object",()=>{
+    it("should allow a GroupAccount to be defined by a data object",()=>{
         try {
             let appUser = new AppUser("einstein", ["dev", "vincent"], "audit");
             let result="";
@@ -555,20 +548,21 @@ describe("UserManager UI should", ()=> {
                 }
             };
 
-            Vincent.app.provider.managers.userManager.loadConsoleUIForSession({},session);
+            Vincent.app.provider.managers.groupManager.loadConsoleUIForSession({},session);
             let hostManagerUi = new HostManagerUI(session);
             let host = hostManagerUi.addHost("www.coffeecup.co.za");
-            let userManagerUi = new UserManagerUI(session);
-            let user = userManagerUi.addUser({name: "pascal", uid: 1001, state: "present"});
-            userManagerUi.addUser({name: "descarts", uid: 1002, state: "present"});
-            let userAccount =  host.addUserAccount({user: 'pascal', authorized_keys: [{name:"descarts", state:"present"}]});
-            expect(userAccount.user.name).to.equal("pascal");
+            let groupManagerUi = new GroupManagerUI(session);
+            let group = groupManagerUi.addGroup({name: "ops", uid: 1001, state: "present"});
+            groupManagerUi.addGroup({name: "backup", uid: 1002, state: "present"});
+            let groupAccount =  host.addHostGroup({group: 'ops',members:[]});
+            console.log(result);
+            expect(groupAccount.group.name).to.equal("ops");
         }finally {
             Vincent.app.provider.managers.hostManager.validHosts = [];
-            Vincent.app.provider.managers.userManager.validUsers = [];
-            Vincent.app.provider.managers.userManager.permissions = 664;
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
         }
     });
-    
+
 
 });

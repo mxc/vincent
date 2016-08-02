@@ -22,7 +22,7 @@ class HostGroup extends TaskObject {
             throw new Error("Parameter session must be of type Session.");
         }
         obj.appUser = session.appUser;
-        obj.sesison=session;
+        obj.session=session;
         if (!(host instanceof Host) && !(host instanceof HostElement)) {
             //console.log("The host parameter must be of type Host.");
             throw new Error("HostGroup creation failed - parameter host not of type console Host or Host.");
@@ -30,7 +30,7 @@ class HostGroup extends TaskObject {
 
         let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
         obj.permObj = rHost;
-        if (typeof hostGroupData === "string" || typeof hostGroupData.group === "string" || hostGroupData instanceof Group) {
+        if (typeof hostGroupData === "string" || typeof hostGroupData.group === "string" || hostGroupData instanceof Group ||typeof hostGroupData =="object") {
             let groupname = '';
             if (typeof hostGroupData === "string") {
                 groupname = hostGroupData;
@@ -48,11 +48,12 @@ class HostGroup extends TaskObject {
             } else if (group) {
                 obj.hostGroup = new HostGroupElement(Vincent.app.provider, {group: group});
             } else {
-                //console.log(`The group ${group} is not a valid group`);
-                throw new Error(`The group ${hostGroupData} is not a valid group`)
+                throw new Error(`The group ${hostGroupData} is not a valid group.`)
             }
         } else if (hostGroupData instanceof HostGroupElement) {
             obj.hostGroup = hostGroupData;
+        } else{
+            throw new Error("Parameter hostGroupData must be a host group data object, a HostGroup instance or a group name");
         }
         try {
             Vincent.app.provider.managers.groupManager.addHostGroupToHost(obj.permObj, obj.hostGroup);
@@ -65,7 +66,7 @@ class HostGroup extends TaskObject {
 
     get group() {
         return this._readAttributeWrapper(()=> {
-            return Object.freeze(new Group(data.get(this).hostGroup.group, data.get(this).appUser, data.get(this).permObj));
+            return Object.freeze(new Group(data.get(this).hostGroup.group, data.get(this).session));
         });
     }
 
@@ -79,17 +80,6 @@ class HostGroup extends TaskObject {
         });
     }
 
-    //set members(members) {
-    //    return this._writeAttributeWrapper(()=> {
-    //        if (Array.isArray(members)) {
-    //            if (members.length > 0 && typeof members[0] === 'string') {
-    //                data.get(this).hostGroup.members = members;
-    //            } else {
-    //                data.get(this).hostGroup.members.empty();
-    //            }
-    //        }
-    //    });
-    //}
 
     addMember(member) {
         return this._writeAttributeWrapper(()=> {

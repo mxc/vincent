@@ -5,7 +5,7 @@
 
 import Vincent from '../Vincent';
 import PermissionHelper from './base/PermissionHelper';
-import Session from '../ui/Session';
+import Session from './Session';
 import {logger} from '../Logger';
 
 var data = new WeakMap();
@@ -15,7 +15,7 @@ class PermissionsUIManager extends PermissionHelper {
 
     constructor(session,manager){
         if(!(session instanceof Session)){
-            let error = new Error(`The session parameter must have a Session instance for ${manager.constructor.name}.`);
+            let error = new Error(`The session parameter must be a Session instance for ${manager.constructor.name}.`);
             logger.error(error.stack);
             logger.logAndThrow(e.message);
 

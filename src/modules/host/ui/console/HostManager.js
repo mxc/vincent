@@ -47,7 +47,7 @@ class HostManager {
         }
     }
 
-    addHost(hostname, configGroup = "default") {
+    addHost(hostname, osFamily="Unknown",configGroup = "default") {
         if (typeof hostname === 'string' && typeof configGroup === 'string') {
             var host = new Host(hostname, data.get(this).session, configGroup);
             return host;
@@ -71,21 +71,27 @@ class HostManager {
         }
         try {
             let hosts = data.get(this).permObj.findValidHost(hostname, configGroup);
-            if (Array.isArray(hosts)) {
-                let tmap = new Map();
-                hosts.forEach((host)=> {
-                    let h = Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
-                        return new Host(host, data.get(this).session,configGroup);
+            if (hosts) {
+                if (Array.isArray(hosts)) {
+                    let tmap = new Map();
+                    hosts.forEach((host)=> {
+                        let h = Vincent.app.provider._readAttributeCheck(data.get(this).appUser, host, () => {
+                            return new Host(host, data.get(this).session, configGroup);
+                        });
+                        tmap.set(h.configGroup, h);
                     });
-                    tmap.set(h.configGroup, h);
-                });
-                return tmap;
-            } else {
-                return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, hosts,()=>{
-                    return new Host(hosts, data.get(this).session);
-                });
+                    return tmap;
+                } else {
+                    return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, hosts, ()=> {
+                        return new Host(hosts, data.get(this).session);
+                    });
+                }
+            }else{
+                let msg = `Host ${hostname} was not found in valid hosts.`;
+                logger.error(msg);
+                data.get(this).session.console.outputError(msg);
             }
-        } catch (e) {
+        }catch (e) {
             logger.error(e);
             data.get(this).session.console.outputError(e.message? e.message: e);
         }
