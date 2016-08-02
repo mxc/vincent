@@ -21,7 +21,7 @@ class SystemUpdateManager{
         if (host instanceof HostUI){
             try {
                 let vHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
-                let sysUpdate= Vincent.app.provider.managers.systemUpdateManager.addSystemUpdateToHost(vHost);
+                let sysUpdate= Vincent.app.provider.managers.systemUpdateManager.addConfigToHost(vHost);
                 if(sysUpdate){
                     return new SystemUpdate(sysUpdate,vHost,data.get(this).session);
                 }

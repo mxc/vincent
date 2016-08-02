@@ -16,7 +16,7 @@ describe("Repository API should", function () {
         let repositoryManagerManager = new RepositoryManagerManager(provider);
         let host = new Host(provider,"www.linux.joburg","einstein","dev","770","default","Debian");
         provider.managers.hostManager.addHost(host);
-        let repo = repositoryManagerManager.addRepositoryManagerToHost(host);
+        let repo = repositoryManagerManager.addConfigToHost(host);
         repo.install("apache2");
         repo.remove("mysql");
         repo.purge("nginx");

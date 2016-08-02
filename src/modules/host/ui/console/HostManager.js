@@ -43,7 +43,6 @@ class HostManager {
             return hosts;
         } catch (e) {
             data.get(this).session.console.outputError(e.message);
-            return;
         }
     }
 
@@ -52,7 +51,8 @@ class HostManager {
             var host = new Host(hostname, data.get(this).session, configGroup);
             return host;
         } else {
-             return "Parameter hostname must be a hostname string and the optional parameter configGroup must be a configuration group string.";
+            data.get(this).session.console.outputError("Parameter hostname must be a hostname string " +
+                "and the optional parameter configGroup must be a configuration group string.");
         }
     }
 

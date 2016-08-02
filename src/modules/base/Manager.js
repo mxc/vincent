@@ -6,7 +6,7 @@ import {logger} from "../../Logger";
 import Session from '../../ui/Session';
 
 class Manager  {
-   
+
     loadHost(host, hosts, hostDef){
         throw new Error ("Method loadHost must be overridden in child object");
     }
@@ -32,7 +32,6 @@ class Manager  {
         }
     }
 
-   
     loadWebUI(){
         throw new Error ("Method loadWebUI must be overridden in child object");
     }
@@ -49,6 +48,7 @@ class Manager  {
     entityStateChange(hc){
         throw new Error ("Method getDependencies must be overridden in child object");  
     }
+
 }
 
 export default Manager;

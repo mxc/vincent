@@ -42,7 +42,7 @@ class GroupManager extends PermissionsManager {
             var tmpGroup = this.findValidGroupByName(group.name);
             if (tmpGroup) {
                 if (tmpGroup.gid !== group.gid) {
-                    logger.logAndThrow(`Group ${group.name} already exists with different group id`);
+                    logger.logAndThrow(`Group ${group.name} already exists with different group id.`);
                 } else {
                     logger.logAndThrow(`Group ${group.name} already exists.`)
                 }

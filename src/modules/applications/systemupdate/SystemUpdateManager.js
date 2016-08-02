@@ -78,7 +78,7 @@ class SystemUpdateManager extends Manager {
     entityStateChange(hc) {
     }
 
-    addSystemUpdateToHost(host) {
+    addConfigToHost(host) {
         let sysUpdate;
         let vHost = base.getValidHostFromHostParameter(this.provider.managers.hostManager,host);
 

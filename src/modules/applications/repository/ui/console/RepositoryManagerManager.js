@@ -20,7 +20,7 @@ class RepositoryManagerManager{
         if (host instanceof HostUI){
             try {
                 let vHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
-                let repoMan= Vincent.app.provider.managers.repositoryManagerManager.addRepositoryManagerToHost(vHost);
+                let repoMan= Vincent.app.provider.managers.repositoryManagerManager.addConfigToHost(vHost);
                 if(repoMan){
                     return new RepositoryManager(repoMan,vHost,data.get(this).session);
                 }

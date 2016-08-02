@@ -13,7 +13,7 @@ describe("HostManager UI should", ()=> {
 
     it("prevent unauthorised users from loading engine definitions for hosts without permissions", (done)=> {
         var provider = new Provider();
-        Vincent.app = {provider: provider};
+        Vincent.app = {provider: provider, converters:new Map()};
 
         let appUser = new AppUser("newton", ["dev"], "devops");
         let result = "";
@@ -580,16 +580,43 @@ describe("Host UI should", ()=> {
         }
     });
 
-    // it("changes to host name should result in old host name being recorded for deletiong and file cleanup.", ()=> {
-    //     try {
-    //         let appUser = new AppUser("newton", ["devops", "dev"], "dev");
-    //         let hostManagerUi = new HostManagerUI({ appUser:appUser, session:{}});
-    //         let host2 = hostManagerUi.addHost("catzsux.co.za");
-    //         host2.name = "changename.co.za";
-    //         expect(host2.deleted.name).to.equal("catzsux.co.za");
-    //     } finally {
-    //         Vincent.app.provider.managers.hostManager.validHosts = [];
-    //     }
-    // });
+     it("should allow the retrieval of task objects.", ()=> {
+         try {
+             var provider = new Provider();
+             Vincent.app = {provider: provider, converters:new Map()};
+             let appUser = new AppUser("newton", ["devops", "dev"], "dev");
+             let result;
+             let session = new Session();
+             session.appUser = appUser;
+             session.console = {
+                 outputError: function (msg) {
+                     result = msg;
+                 },
+                 outputWarning: function (msg) {
+                     result = msg;
+                 },
+                 outputSuccess: function (msg) {
+                     result = msg;
+                 }
+             };
+
+             session.socket = {
+                 write: ()=> {
+                 }
+             };
+             let context = {};
+             Vincent.app.provider.managers.userManager.loadConsoleUIForSession(context,session);
+             Vincent.app.provider.managers.groupManager.loadConsoleUIForSession(context,session);
+             Vincent.app.provider.managers.sshManager.loadConsoleUIForSession(context,session);
+             let hostManagerUi = new HostManagerUI(session);
+             let host2 = hostManagerUi.addHost("catzsux.co.za");
+             host2.addUserAccount("user1");
+             host2.addHostGroup("group1");
+             Vincent.app.provider.managers.sshManager.addSsh(Vincent.app.provider.managers.hostManager.findValidHost(host2));
+             expect(host2.getTaskObjects().length).to.equal(3);
+         } finally {
+             Vincent.app.provider.managers.hostManager.validHosts = [];
+         }
+     });
 
 });

@@ -39,7 +39,7 @@ class GroupManager extends PermissionsUIManager{
                 if (typeof group === 'string' ||( typeof group =="object" && !(group instanceof Group))) {
                     return new Group(group,data.get(this).session);
                 } else {
-                    return "Parameter must be a group name or group data object";
+                    data.get(this).session.console.outputError("Parameter must be a group name or group data object.");
                 }
             });
         } catch (e) {

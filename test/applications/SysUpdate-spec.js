@@ -102,7 +102,7 @@ describe("SysUpdate should", ()=> {
         // });
 
 
-        provider.managers.systemUpdateManager.addSystemUpdateToHost(thost);
+        provider.managers.systemUpdateManager.addConfigToHost(thost);
         let sysup = thost.getConfig("systemUpdate");
         expect(sysup.upgrade).to.equal("yes");
         expect(sysup.autoremove).to.equal("no");
@@ -331,7 +331,7 @@ describe("SysUpdate should", ()=> {
         provider.managers.hostManager.loadFromJson(host);
 
         let thost = provider.managers.hostManager.findValidHost(host.name, host.configGroup);
-        let sysup = provider.managers.systemUpdateManager.addSystemUpdateToHost(thost);
+        let sysup = provider.managers.systemUpdateManager.addConfigToHost(thost);
         sysup.autoremove=true;
         sysup.updateCache=true;
         sysup.upgrade=true;

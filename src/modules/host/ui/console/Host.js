@@ -8,6 +8,7 @@ import PermissionsUIManager from '../../../../ui/PermissionsUIManager';
 import Session from '../../../../ui/Session';
 import RemoteAccess from './RemoteAccess';
 import History from './History';
+import {logger} from '../../../../Logger';
 
 var data = new WeakMap();
 
@@ -44,6 +45,7 @@ class Host extends PermissionsUIManager {
         obj.permObj = host;
         obj.appUser = session.appUser;
         obj.session = session;
+        obj.configs = new Map();
         data.set(this, obj);
         this.lastResult = "NA";
         this.info = "Not Available";
@@ -372,6 +374,29 @@ class Host extends PermissionsUIManager {
             }
             return new converter(obj, data.get(this).permObj, data.get(this).session);
         });
+    }
+
+    addConfig(key){
+        let manager = Vincent.app.configs.get(key);
+        if(manager){
+                manager.addConfigToHost( data.get(this).permObj);
+        }
+        return this.getConfig(key);
+    }
+
+    getTaskObjects(){
+        let taskObjects=[];
+        taskObjects.concat(this.userAccounts);
+        taskObjects.concat(this.hostGroups);
+        Object.keys(data.get(this).permObj.configs).forEach((key)=>{
+            try{
+            taskObjects.push(this.getConfig(key));
+                }catch(e){
+                logger.error(e);
+                console.log(e);
+            }
+        });
+        return taskObjects;
     }
 
     deleteConfig(key) {

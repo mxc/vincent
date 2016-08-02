@@ -18,7 +18,7 @@ class RepositoryManagerManager extends Manager {
         if (!(provider instanceof Provider)) {
             logger.logAndThrow("Parameter provider must be an objec to type Provider");
         }
-        super();
+        super(provider);
         this.provider = provider;
         this.engines = provider.loader.loadEngines('repository', provider);
     }
@@ -89,10 +89,12 @@ class RepositoryManagerManager extends Manager {
         //na
     }
 
+
     loadConsoleUIForSession(context, session) {
         if (!context.applicationManagers) {
             context.applicationManagers = {};
         }
+
         context.applicationManagers.repositoryManagerManager = new RepositoryManagerManagerUI(session);
     }
 
@@ -109,7 +111,7 @@ class RepositoryManagerManager extends Manager {
         //throw new Error("Method getDependencies must be overridden in child object");
     }
 
-    addRepositoryManagerToHost(host) {
+    addConfigToHost(host) {
         host = base.getValidHostFromHostParameter(this.provider.managers.hostManager, host);
         let repo = this._getRepositoryManagerForOsFamily(host.osFamily);
         host.addConfig("repository", repo);

@@ -73,6 +73,8 @@ class ModuleLoader {
                 logger.logAndThrow("Parameter modules should be of type array");
             }
         }
+
+        //build dependency
         while (modules.length > 0) {
             this.buildDependencyGraph(modules, modules[0]);
         }
