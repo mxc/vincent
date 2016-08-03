@@ -9,3 +9,4 @@ build
 lib
 conf-example/logs/*
 conf-example-bk
+conf-example/playbooks/*

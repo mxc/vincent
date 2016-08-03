@@ -7,6 +7,7 @@ import UserElement from '../../User';
 import AppUser from '../../../../ui/AppUser';
 import PermissionHelper from '../../../../ui/base/PermissionHelper';
 import UserManager from '../../UserManager';
+import path from 'path';
 
 var data = new WeakMap();
 
@@ -18,6 +19,7 @@ class User extends PermissionHelper {
      { name: <username>,uid:<int>, state:<present|absent> }
      */
     constructor(user, session) {
+
         let manager = Vincent.app.provider.managers.userManager;
         let obj = {};
         if (user && (typeof user === 'string' || ((user.name != undefined) && !(user instanceof UserElement)))) {
@@ -35,6 +37,12 @@ class User extends PermissionHelper {
         if (!(manager instanceof UserManager)) {
             throw new Error("The parameter manager must be of type UserManager.");
         }
+        //set the public key path
+        let dir = path.resolve(Vincent.app.provider.getDBDir(),
+            Vincent.app.provider.config.get("keydir"), obj.user.name);
+        let kpath = path.resolve(dir,obj.user.name + "_vincent.pub");
+        obj.user.data.key=kpath;
+
         obj.permObj = manager;
         obj.session = session;
         super(obj.session, obj.permObj);
@@ -80,7 +88,12 @@ class User extends PermissionHelper {
 
     get publicKey() {
         return this._readAttributeWrapper(()=> {
-            return data.get(this).user.key;
+            try{
+                return data.get(this).user.key;
+            }catch(e){
+                data.get(this).session.console.outputError(`A public key has not been defined for user ${this.name}.`);
+                return;
+            }
         });
     }
 

@@ -54,7 +54,7 @@ class Console extends Ui {
 
         this.cli._domain.removeAllListeners("error");
         this.cli._domain.on("error", (e)=> {
-            logger.error(e.message? e.message: e);
+            logger.error(e.message ? e.message : e);
             this.cli.outputStream.write(`${chalk.styles.red.open}${e.message || e}${chalk.styles.red.close} \n`);
             this.cli._currentStringLiteral = null;
             this.cli.bufferedCommand = '';
@@ -215,7 +215,7 @@ class Console extends Ui {
         };
         context.v.session.generateKeys = (force)=> {
             this.session.appUser.generateKeys(force).then((result)=> {
-                this.cli.output.write("\n" + this.cli.writer(result) + "\n", 'utf-8');
+                this.outputSuccess(result);
             });
             return "Key generation pending ...";
         };
@@ -228,10 +228,24 @@ class Console extends Ui {
             value: this.session.appUser.name
         });
         Object.defineProperty(context.v.session, "publicKey", {
-            value: this.session.appUser.publicKey
+            value: ()=> {
+                try {
+                    let result = this.session.appUser.publicKey;
+                    return result;
+                } catch (e) {
+                    this.outputError("PublicKey does not exist for user.");
+                }
+            }
         });
         Object.defineProperty(context.v.session, "publicKeyPath", {
-            value: this.session.appUser.publicKeyPath
+            value: ()=> {
+                try {
+                    let result = this.session.appUser.publicKeyPath;
+                    return result;
+                } catch (e) {
+                    this.outputError("PublicKey does not exist for user.");
+                }
+            }
         });
 
         context.v.session.hasPassword = (hostname)=> {

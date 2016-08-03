@@ -25,12 +25,8 @@ class AppUser {
         this.name = name;
 
         this.groups = groups;
-        if (groups.indexOf("root") != -1 ||
-            groups.indexOf("vadmin") != -1) {
-            this.isAdmin = true;
-        } else {
-            this.isAdmin = false;
-        }
+        this.isAdmin = (groups.indexOf("root") != -1 ||
+            groups.indexOf("vadmin") != -1);
         //set primary group is defined or default if not defined
         this.primaryGroup = primaryGroup ? primaryGroup : groups[0];
         if (this.groups.indexOf(this.primaryGroup) == -1) {
@@ -45,8 +41,7 @@ class AppUser {
 
     hasKeys() {
         try {
-            this.publicKey && this.privateKey
-            return true;
+            return (this.publicKey!=undefined) && (this.privateKey!=undefined);
         } catch (e) {
             return false;
         }
@@ -99,7 +94,8 @@ class AppUser {
             let exists = fs.statSync(tpath);
             return fs.readFileSync(tpath);
         } catch (e) {
-            return `Private key does not exists for ${this.user}.`;
+            logger.error(e);
+            throw new Error(`Private key does not exists for ${this.user}.`);
         }
     }
 
@@ -109,7 +105,8 @@ class AppUser {
             let exists = fs.statSync(tpath);
             return tpath;
         } catch (e) {
-            return `Private key does not exists for ${this.user}.`;
+            logger.error(e);
+            throw new Error(`Private key does not exists for ${this.user}.`);
         }
     }
 
@@ -119,7 +116,8 @@ class AppUser {
             let exists = fs.statSync(tpath);
             return fs.readFileSync(tpath).toString();
         } catch (e) {
-            return `Public key does not exist for ${this.user}.`;
+            logger.error(e);
+            throw new Error(`Public key does not exist for ${this.user}.`);
         }
     }
 
@@ -129,7 +127,8 @@ class AppUser {
             let exists = fs.statSync(tpath);
             return tpath;
         } catch (e) {
-            return `Private key does not exists for ${this.user}.`;
+            logger.error(e);
+            throw new Error(`Private key does not exists for ${this.user}.`);
         }
     }
 }

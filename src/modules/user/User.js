@@ -16,7 +16,7 @@ class User {
      }
      */
     constructor(data) {
-        //super();
+
         //check if we were provided with a user name or a data object
         if (typeof data === 'string') {
             var valid = /\w/;
