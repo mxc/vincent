@@ -37,5 +37,5 @@ we have decided to publish what we have as our celebration of Mandela
 Day 2016.
 
 [![IMAGE ALT TEXT HERE](https://http://img.youtube.com/vi/cnbI2wWye14/0.jpg)]
-(https://www.youtube.com/watch?v=http://img.youtube.com/vi/cnbI2wWye14/0.jpg)
+(https://www.youtube.com/watch?v=cnbI2wWye14)
  
