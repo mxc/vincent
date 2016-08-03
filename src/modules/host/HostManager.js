@@ -58,7 +58,6 @@ class HostManager extends Manager {
         } else {
             logger.logAndThrow("The host parameter must be of type Host or a host name and must be in validHosts");
         }
-
         if (configGroup){
             return this.validHosts.find((host)=>{
                 if(host.name===hostname && host.configGroup===configGroup){
@@ -253,6 +252,30 @@ class HostManager extends Manager {
     }
 
     deleteEntity(ent){
+
+    }
+
+    copyHost(srcHost,dstHost){
+        if(!(srcHost instanceof Host)){
+            throw new Error("Parameter srcHost must be an instance of Host.")
+        }
+
+        let hostname;
+        if(dstHost.name){
+            hostname= dstHost.name;
+        }
+        if(typeof dstHost=="string"){
+            hostname=dstHost;
+        }
+
+        if(hostname){
+            let json = srcHost.export();
+            json.name=hostname;
+            let newHost = this.loadFromJson(json);
+            return newHost;
+        }else{
+            throw new Error("Parameter host must have a name property or be a hostname string.");
+        }
 
     }
 

@@ -14,7 +14,7 @@ var data = new WeakMap();
 
 class Host extends PermissionsUIManager {
 
-    constructor(host, session, configGroup,osFamily) {
+    constructor(host, session, configGroup, osFamily) {
 
         if (!(session instanceof Session)) {
             throw new Error("Parameter session must be an instance of Session.");
@@ -28,8 +28,8 @@ class Host extends PermissionsUIManager {
             configGroup = "default";
         }
 
-        if(!osFamily){
-            osFamily="unknown";
+        if (!osFamily) {
+            osFamily = "unknown";
         }
 
         //if parameter is of type HostElement (real Host) then we assume it is already
@@ -37,7 +37,7 @@ class Host extends PermissionsUIManager {
 
         if (typeof host === 'string') {
             host = new HostEntity(Vincent.app.provider, host, session.appUser.name,
-                session.appUser.primaryGroup, 760, configGroup,osFamily);
+                session.appUser.primaryGroup, 760, configGroup, osFamily);
             Vincent.app.provider.managers.hostManager.addHost(host);
         }
         super(session, host);
@@ -60,7 +60,7 @@ class Host extends PermissionsUIManager {
                 let hist;
                 try {
                     hist = Vincent.app.provider.managers.hostManager.historyManager.loadFromFile(data.get(this).permObj);
-                }catch(e){
+                } catch (e) {
                     hist = Vincent.app.provider.managers.hostManager.historyManager.createHistory(data.get(this).permObj);
                 }
                 data.get(this).history = hist;
@@ -68,7 +68,7 @@ class Host extends PermissionsUIManager {
             }
         });
     }
-    
+
     get remoteAccess() {
         if (data.get(this).permObj.remoteAccess == undefined) {
             Vincent.app.provider.managers.hostManager.addRemoteAccessToHost(data.get(this).permObj);
@@ -145,6 +145,14 @@ class Host extends PermissionsUIManager {
             }
         });
 
+    }
+
+    copyTo(dstHost){
+        try {
+            return new Host(Vincent.app.provider.managers.hostManager.copyHost(data.get(this).permObj, dstHost),data.get(this).session);
+        }catch(e){
+            data.get(this).session.console.outputError(e);
+        }
     }
 
     get name() {
@@ -245,7 +253,7 @@ class Host extends PermissionsUIManager {
     save() {
         return Vincent.app.provider._executeAttributeCheck(data.get(this).appUser, data.get(this).permObj, ()=> {
             let result = Vincent.app.provider.managers.hostManager.saveHost(data.get(this).permObj);
-            if(data.get(this).history){
+            if (data.get(this).history) {
                 this.getHistory().save();
             }
             return result;
@@ -330,12 +338,12 @@ class Host extends PermissionsUIManager {
                 Vincent.app.provider.engine.runPlaybook(host, checkHostKey, privateKeyPath,
                     remoteUsername, password, sudoPassword).then((results)=> {
                     let ts = Date.now();
-                    if(!data.get(this).history){
+                    if (!data.get(this).history) {
                         this.getHistory();
                     }
-                    data.get(this).history.addEntry(ts,results);
+                    data.get(this).history.addEntry(ts, results);
                     this.lastResult = data.get(this).history.getEntry(ts);
-                    if(this.lastResult.status=="failed"){
+                    if (this.lastResult.status == "failed") {
                         cli.outputError(`${this.lastResult.entry.stats[host.name].failures} tasks failed for for ${data.get(this).permObj.name}. Please view history for details.`);
                         return;
                     }
@@ -376,24 +384,23 @@ class Host extends PermissionsUIManager {
         });
     }
 
-    addConfig(key){
+    addConfig(key) {
         let manager = Vincent.app.configs.get(key);
-        if(manager){
-                manager.addConfigToHost( data.get(this).permObj);
+        if (manager) {
+            manager.addConfigToHost(data.get(this).permObj);
         }
         return this.getConfig(key);
     }
 
-    getTaskObjects(){
-        let taskObjects=[];
-        taskObjects.concat(this.userAccounts);
-        taskObjects.concat(this.hostGroups);
-        Object.keys(data.get(this).permObj.configs).forEach((key)=>{
-            try{
-            taskObjects.push(this.getConfig(key));
-                }catch(e){
+    getTaskObjects() {
+        let taskObjects = [];
+        taskObjects =taskObjects.concat(this.userAccounts);
+        taskObjects = taskObjects.concat(this.hostGroups);
+        Object.keys(data.get(this).permObj.configs.container).forEach((key)=> {
+            try {
+                taskObjects.push(this.getConfig(key));
+            } catch (e) {
                 logger.error(e);
-                console.log(e);
             }
         });
         return taskObjects;

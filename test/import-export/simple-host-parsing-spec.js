@@ -61,7 +61,7 @@ describe("validating host configuration", function () {
                     group: {name: "group1"},
                     members: [
                         "user1"
-                    ]
+                    ],
                 },
                 {
                     group: {name: "group2"},
@@ -251,6 +251,13 @@ describe("validating host configuration", function () {
     provider.managers.groupManager.validGroups = validGroups;
     provider.managers.userManager.validUsers = validUsers;
     provider.managers.hostManager.loadHosts(hosts);
+
+    it("set become status correctly",()=>{
+        let h=provider.managers.hostManager.findValidHost("www.abc.co.za","default");
+        let g = provider.managers.groupManager.findHostGroup(h,"group2");
+        expect(g.become).to.be.true;
+        expect(g.becomeUser).to.equal("newton");
+    });
 
     it("should detect hosts without a name property", function () {
         expect(provider.managers.hostManager.errors.manager.indexOf("Error loading host - Could not create host  - The parameter data must be a hostname " +

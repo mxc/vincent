@@ -27,10 +27,10 @@ class HostGroup extends TaskObject {
             //console.log("The host parameter must be of type Host.");
             throw new Error("HostGroup creation failed - parameter host not of type console Host or Host.");
         }
-
         let rHost = Vincent.app.provider.managers.hostManager.findValidHost(host.name,host.configGroup);
         obj.permObj = rHost;
-        if (typeof hostGroupData === "string" || typeof hostGroupData.group === "string" || hostGroupData instanceof Group ||typeof hostGroupData =="object") {
+        if (typeof hostGroupData === "string" || typeof hostGroupData.group === "string" || hostGroupData instanceof Group ||
+            (typeof hostGroupData =="object") && !(hostGroupData instanceof HostGroupElement)) {
             let groupname = '';
             if (typeof hostGroupData === "string") {
                 groupname = hostGroupData;
@@ -91,7 +91,7 @@ class HostGroup extends TaskObject {
                 }
                 if (_user) {
                     data.get(this).hostGroup.addMember(_user);
-                    return `${member} added to group ${this.name} members.`;
+                    return `${member} added to group ${data.get(this).hostGroup.name} members.`;
                 } else {
                     return `User ${member.name ? member.name : member} was not found in valid users list.`;
                 }
@@ -102,47 +102,13 @@ class HostGroup extends TaskObject {
     }
 
     inspect() {
-        return {
-            group: data.get(this).hostGroup.name,
-            members: data.get(this).hostGroup.members
-        }
-    }
-
-    toString() {
-        return `{ group: ${this.group.name},members:${this.members} }`;
-    }
-
-    // _readAttributeWrapper(func) {
-    //     try {
-    //         return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-    //     } catch (e) {
-    //         //console.log(e);
-    //         return false;
-    //     }
-    // }
-    //
-    // _writeAttributeWrapper(func) {
-    //     try {
-    //         return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-    //     } catch (e) {
-    //         return false;
-    //     }
-    // }
-    
-    get becomeUser(){
-        return data.get(this).hostGroup.becomeUser;
-    }
-
-    set becomeUser(becomeUser){
-        data.get(this).hostGroup.becomeUser = becomeUser;
-    }
-
-    get become(){
-        return data.get(this).hostGroup.become;
-    }
-
-    set become(become){
-        data.get(this).hostGroup.become = become;
+        let obj = {
+            group: data.get(this).hostGroup.name
+        };
+          obj.members = data.get(this).hostGroup.members.map((item)=>{
+              return { name: item.name};
+        });
+        return obj;
     }
 
 }

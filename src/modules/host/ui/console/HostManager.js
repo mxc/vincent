@@ -24,6 +24,7 @@ class HostManager {
         data.set(this, obj);
     }
 
+
     get hosts() {
         try {
             let hosts = new Map();

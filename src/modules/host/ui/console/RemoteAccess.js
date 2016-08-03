@@ -47,7 +47,7 @@ class RemoteAccess {
         return {
             remoteUser: data.get(this).remoteUser,
             authentication: data.get(this).authentication,
-            becomeuser: data.get(this).becomeUser,
+            becomeuser: data.get(this).becomeUser?data.get(this).becomeUser:"root",
             sudoAuthentication: data.get(this).sudoAuthentication
         }
     }

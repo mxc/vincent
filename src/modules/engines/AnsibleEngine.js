@@ -221,7 +221,6 @@ class AnsibleEngine extends Engine {
                     resolve(filename);
                 });
             } catch (e) {
-                console.log(e);
                 logger.logAndAddToErrors(e.message, this.errors);
                 throw e;
             }

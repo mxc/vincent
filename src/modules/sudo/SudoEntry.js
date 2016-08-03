@@ -33,7 +33,7 @@ class SudoEntry  {
                     } else if (member.group) {
                         let group = this.provider.managers.groupManager.findValidGroupByName(member.group.name);
                         if (group) {
-                            this.data.userList.groups.push(group.clone());
+                            this.data.userList.groups.push(group);
                         }
                     }
                 });

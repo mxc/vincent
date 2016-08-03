@@ -121,7 +121,6 @@ class Database {
                     let sql = "create unique index hostname on host(name);";
                     client.query(sql, (err)=> {
                         if (err) {
-                            console.log(err);
                             done();
                             logger.logAndThrow("Error creating indices on tables. " + err);
                         } else {

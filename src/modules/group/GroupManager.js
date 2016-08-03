@@ -14,6 +14,7 @@ import HostGroupUI from './ui/console/HostGroup';
 import GroupUI from './ui/console/Group';
 import Host from '../host/Host';
 import PermissionsManager from '../base/PermissionsManager';
+import Vincent from '../../Vincent';
 
 class GroupManager extends PermissionsManager {
 
@@ -364,8 +365,7 @@ class GroupManager extends PermissionsManager {
                     logger.info(`Group ${hostGroup.group.name} already exists on host.`);
                     this.mergeGroup(host, foundHostGroup, hostGroup);
                 } else {
-                    let hg = hostGroup.clone();
-                    host.data.groups.push(hg);
+                    host.data.groups.push(hostGroup);
                 }
                 Array.prototype.push.apply(host.errors, hostGroup.errors);
             } else {
@@ -427,8 +427,6 @@ class GroupManager extends PermissionsManager {
 
     loadConsoleUIForSession(context, session) {
         super.loadConsoleUIForSession(context,session);
-        let self = this;
-
         if (!HostUI.prototype.addHostGroup) {
             HostUI.prototype.addHostGroup = function (data) {
                 let func = function () {
@@ -452,9 +450,9 @@ class GroupManager extends PermissionsManager {
 
         if (!HostUI.prototype.hasOwnProperty("hostGroups")) {
             let func = function () {
-                let wrapperFunc = function () {
-                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
-                    let rhostgroups = self.provider.managers.groupManager.getHostGroups(host);
+                let wrapperFunc = ()=> {
+                    let host = Vincent.app.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
+                    let rhostgroups = Vincent.app.provider.managers.groupManager.getHostGroups(host);
                     if(!rhostgroups){
                         return [];
                     }
@@ -464,7 +462,7 @@ class GroupManager extends PermissionsManager {
                         }, hg);
                     });
                 };
-                wrapperFunc = wrapperFunc.bind(this);
+                //wrapperFunc = wrapperFunc.bind(this);
                 return this._readAttributeWrapper(wrapperFunc);
             };
 
@@ -485,8 +483,8 @@ class GroupManager extends PermissionsManager {
                     } else {
                         return "Parameter group must be a group name or of type Group.";
                     }
-                    let host = self.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
-                    let hostGroups = self.getHostGroups(host);
+                    let host = Vincent.app.provider.managers.hostManager.findValidHost(this.name,this.configGroup);
+                    let hostGroups = host.data.groups;
                     if (hostGroups) {
                         let hg = hostGroups.find((hostGroup)=> {
                             if (hostGroup.name == groupName) {

@@ -42,6 +42,10 @@ class AuthorizedUser  {
             key: this.keyPath
         }
     }
+
+    export(){
+        return {name:this.name, state:this.state};
+    }
     
 }
 

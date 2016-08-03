@@ -1,9 +1,9 @@
 /**
  * Created by mark on 4/2/16.
  */
-import EngineComponent from '../../base/EngineComponent';
+import AnsibleEngineComponent from '../../engines/AnsibleEngineComponent'
 
-class AnsibleEngine extends EngineComponent {
+class AnsibleEngine extends AnsibleEngineComponent {
 
     constructor(provider) {
         super();
@@ -14,22 +14,15 @@ class AnsibleEngine extends EngineComponent {
         let hostGroups = this.provider.managers.groupManager.getHostGroups(host);
         if (hostGroups) {
             hostGroups.forEach((group)=> {
-                let ansibleGroup = {
+                let t = {
                     name: "addHostGroup - Group state check",
                     group: `name=${group.name} state=${group.state}`,
                 };
                 if (group.gid) {
-                    ansibleGroup.group += ` gid={$group.gid}`;
+                    t.group += ` gid={$group.gid}`;
                 }
-                if(group.become){
-                    ansibleGroup.become="true";
-                    if(group.becomeUser){
-                        ansibleGroup.becomeUser= group.becomeUser;
-                    }else if(host.becomeUser){
-                        ansibleGroup.becomeUser=host.becomeUser;
-                    }
-                }                
-                tasks.push(ansibleGroup);
+                this.appendBecomes(host, group, t);
+                tasks.push(t);
             });
         }
     }

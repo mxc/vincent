@@ -72,6 +72,7 @@ class AuthorizedUser extends PermissionHelper {
         }
     }
 
+
 }
 
 export default AuthorizedUser;

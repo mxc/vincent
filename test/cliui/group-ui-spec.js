@@ -151,4 +151,37 @@ describe("UI Group object should", ()=> {
         }
     });
 
+    it("allow valid  group to be added to hosts", ()=> {
+        try {
+            let appUser = new AppUser("newton", ["dev", "vincent"], "devops");
+            let result="";
+            let session = new Session();
+            session.appUser = appUser;
+            session.console={
+                outputError: function (msg) {
+                    result=msg;
+                },
+                outputWarning: function (msg) {
+                    result = msg;
+                },
+                outputSuccess: function (msg) {
+                    result =  msg;
+                }
+            };
+            let context = {};
+            Vincent.app.provider.managers.groupManager.loadConsoleUIForSession(context,session);
+            let groupManagerUi = new GroupManagerUI(session);
+            let hostManagerUi = new HostManagerUI(session);
+            let group = groupManagerUi.addGroup({name: "demoGroup2", gid: 1000, state: "absent"});
+            let host = hostManagerUi.addHost("192.168.122.21");
+            let hostGroup = host.addHostGroup("demoGroup2");
+            hostGroup.become=true;
+            expect(hostGroup.become).to.be.true;
+        } finally {
+            Vincent.app.provider.managers.hostManager.validHosts = [];
+            Vincent.app.provider.managers.groupManager.validGroups = [];
+            Vincent.app.provider.managers.groupManager.permissions = 664;
+        }
+    });
+
 });

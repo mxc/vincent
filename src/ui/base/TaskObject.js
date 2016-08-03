@@ -18,7 +18,7 @@ class TaskObject extends PermissionHelper{
     }
 
     get becomeUser(){
-        return data.get(this).becomeUser;
+        return data.get(this).becomeUser? data.get(this).becomeUser:"root";
     }
 
     set becomeUser(becomeUser){
@@ -26,7 +26,7 @@ class TaskObject extends PermissionHelper{
     }
 
     get become(){
-        return data.get(this).become;
+        return data.get(this).become? data.get(this).become:false;
     }
 
     set become(become){

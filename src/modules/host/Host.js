@@ -53,7 +53,6 @@ class Host  {
                     remoteAccessDef.authentication, remoteAccessDef.becomeUser,remoteAccessDef.sudoAuthentication);
                 this.data.remoteAccess = remoteAccess;
             } catch (e) {
-                console.log(e);
                 logger.logAndAddToErrors(`Error adding remote access user - ${e.message}`,
                     this.errors);
             }

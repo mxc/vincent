@@ -1,12 +1,15 @@
 /**
  * Created by mark on 2016/05/01.
  */
+
 import Provider from '../../src/Provider';
 import {expect} from 'chai';
 import AppUser from '../../src/ui/AppUser';
 import HostManagerUI from '../../src/modules/host/ui/console/HostManager';
 import Vincent from '../../src/Vincent';
 import Session from '../../src/ui/Session';
+import User from '../../src/modules/user/User';
+import Group from '../../src/modules/group/Group';
 
 describe("HostManager UI should", ()=> {
 
@@ -605,9 +608,12 @@ describe("Host UI should", ()=> {
                  }
              };
              let context = {};
+             Vincent.app.provider.managers.userManager.addValidUser(new User("user1"));
+             Vincent.app.provider.managers.groupManager.addValidGroup(new Group("group1"));
              Vincent.app.provider.managers.userManager.loadConsoleUIForSession(context,session);
              Vincent.app.provider.managers.groupManager.loadConsoleUIForSession(context,session);
              Vincent.app.provider.managers.sshManager.loadConsoleUIForSession(context,session);
+
              let hostManagerUi = new HostManagerUI(session);
              let host2 = hostManagerUi.addHost("catzsux.co.za");
              host2.addUserAccount("user1");

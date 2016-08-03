@@ -33,7 +33,6 @@ class User extends PermissionHelper {
         }
         obj.appUser = session.appUser;
         if (!(manager instanceof UserManager)) {
-            console.log(manager.constructor.name);
             throw new Error("The parameter manager must be of type UserManager.");
         }
         obj.permObj = manager;

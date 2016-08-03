@@ -5,14 +5,14 @@
 
 import Vincent from '../../../../Vincent';
 import HistoryEntry from './HistoryEntry';
-import TaskObject from '../../../../ui/base/TaskObject';
+import PermissionHelper from '../../../../ui/base/PermissionHelper';
 
 var data = new WeakMap();
 
-class History extends TaskObject {
+class History extends PermissionHelper  {
 
     constructor(history, session, host) {
-        super(session,history, host);
+        super(session, host);
         let obj = {};
         obj.history = history;
         obj.session = session;

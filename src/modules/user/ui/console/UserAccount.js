@@ -161,29 +161,19 @@ class UserAccount extends TaskObject {
     }
 
     inspect() {
+
+        let map =data.get(this).userAccount.authorized_keys.map((authUser)=>{
+            return authUser.export();
+        });
+
         return {
             user:  data.get(this).userAccount.user.name,
             state: data.get(this).userAccount.state,
-            authorized_keys:  JSON.stringify(data.get(this).userAccount.authorized_keys)
+            authorized_keys: JSON.stringify(map)
         }
+
     }
 
-    // _readAttributeWrapper(func) {
-    //     try {
-    //         return Vincent.app.provider._readAttributeCheck(data.get(this).appUser, data.get(this).permObj, func);
-    //     } catch (e) {
-    //         return false;
-    //     }
-    // }
-    //
-    // _writeAttributeWrapper(func) {
-    //     try {
-    //         return Vincent.app.provider._writeAttributeCheck(data.get(this).appUser,data.get(this).permObj, func);
-    //     } catch (e) {
-    //         return false;
-    //     }
-    // }
-    
 }
 
 export default UserAccount;

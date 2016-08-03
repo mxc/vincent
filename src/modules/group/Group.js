@@ -37,7 +37,6 @@ class Group {
         if(data.gid){
             this.data.gid= data.gid;
         }
-        this._source = data;
     }
 
     get name() {
@@ -70,10 +69,6 @@ class Group {
         } else {
             return group.name === this.data.name && group.gid == this.gid;
         }
-    }
-
-    clone() {
-        return new Group(this.data);
     }
 
     export() {

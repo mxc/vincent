@@ -7,7 +7,7 @@ import {logger} from '../../Logger';
 import Host from './Host';
 import Engine from '../base/Engine';
 
-class History {
+class History{
 
     constructor(engine,host,configGroup) {
         if(!(host instanceof Host) && typeof host!=="string"){
