@@ -18,6 +18,12 @@ editing the configuration file
 
 For npm install to wor you will need the pam development library installed.
 "sudo apt-get install libpam0g-dev"
+"sudo apt-get install build-essential"
+
+npm install
+generate ssl certificats: openssl req -newkey rsa:2048 -nodes -keyout vincent.key -x509 -days 3650 -out vincent.crt
+
+edit config.ini to point to your ssl certificates.
 
 To Run Tests
 
