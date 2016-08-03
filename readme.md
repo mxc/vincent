@@ -36,6 +36,6 @@ to be added to be useful. We had hoped to be in a more useful state but
 we have decided to publish what we have as our celebration of Mandela 
 Day 2016.
 
-[![IMAGE ALT TEXT HERE](https://http://img.youtube.com/vi/cnbI2wWye14/0.jpg)]
-(https://www.youtube.com/watch?v=cnbI2wWye14)
+[![Vincent Introduction Video](https://img.youtube.com/vi/cnbI2wWye14/0.jpg)]
+(https://www.youtube.com/watch?v=cnbI2wWye14 "Vincent in Action")
  
