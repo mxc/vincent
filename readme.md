@@ -36,6 +36,8 @@ to be added to be useful. We had hoped to be in a more useful state but
 we have decided to publish what we have as our celebration of Mandela 
 Day 2016.
 
+**Demo of Vincent**
+
 [![Vincent Introduction Video](https://img.youtube.com/vi/cnbI2wWye14/0.jpg)]
 (https://www.youtube.com/watch?v=cnbI2wWye14 "Vincent in Action")
 
@@ -82,6 +84,8 @@ but it might be too old for Vincent's ES2015 syntax.
      * node lib/Main.js &
 12. Run **netstat -lntp** and you should see node listening on port 1979
 
+**Screen Cast of Vincent Server Environment Set Up**
+
 [![Vincent Server Set Up](https://img.youtube.com/vi/1Nb3NwfjDgg/0.jpg)]
 (https://www.youtube.com/watch?v=1Nb3NwfjDgg "Vincent in Action")
 
@@ -100,10 +104,13 @@ step 1-6 above.
 5. Run the client
  * **node lib/Vincentc.js**
  
+**Screen Cast of Vincent Client Set Up** 
+
  [![Vincent Client Set Up](https://img.youtube.com/vi/8vmkZtjf3wU/0.jpg)]
  (https://www.youtube.com/watch?v=8vmkZtjf3wU "Vincent in Action")
  
- ###Another Demo of Vincent
+###Another Demo of Vincent
+ 
  [![Vincent Demo](https://img.youtube.com/vi/JfJ7metro7Q/0.jpg)]
   (https://www.youtube.com/watch?v=JfJ7metro7Q "Vincent in Action")
   
