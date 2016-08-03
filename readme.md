@@ -2,7 +2,7 @@
 
 Vincent is a project to create a programmable API or library around DevOps 
 tools such as Ansible, Chef, Puppet, Salt etc. It is hoped it will make
-the  generation of config files for dev ops configuration management tools  
+the  generation of config files for dev ops configuration management tools
 easier to create, maintain and apply with persistence of historic results
 for ease of querying.
 
@@ -23,12 +23,12 @@ Currently Ansible support is being developed and it is planned, if the
 project is a success, that other engines will be added later.
 
 The JSON configuration files can be built up interactively on the CLI or 
-programmaticlly via script files. By allowing configurations to be 
+programmatically via script files. By allowing configurations to be 
 programmed with a scripting language such as JavaScript much of the 
 frustration some experience shoehorning logic into YML files and dealing
-with the  vargaries of the YML files syntax can be avoided and 
+with the  vagaries of the YML files syntax can be avoided and 
 configuration maintenance can be made much more fun and productive. Well
-that is the theory - how successfuly VINCent will be at  this remains to
+that is the theory - how successfully VINCent will be at  this remains to
 be seen.
 
 The project is still in a development stage and needs many more modules 
@@ -37,5 +37,5 @@ we have decided to publish what we have as our celebration of Mandela
 Day 2016.
 
 [![IMAGE ALT TEXT HERE](https://http://img.youtube.com/vi/cnbI2wWye14/0.jpg)]
-(https://www.youtube.com/watch?v=http://img.youtube.com/vi/cnbI2wWye14/0.jpg)
+(https://www.youtube.com/watch?v=cnbI2wWye14)
  
