@@ -45,6 +45,8 @@ Day 2016.
  
 
 ##Development Environment Setup on Ubuntu/Debian - Vincent Server
+####You will also need a recent version Ansible to run Vincent. One that has the JSON output formatter.
+####[Get a recent version of Ansible here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-apt-ubuntu)
 
 1. On an Ubuntu/Debian workstation install the following:
     * **"sudo apt-get install libpam0g-dev"** - this is needed for the pam support in node
